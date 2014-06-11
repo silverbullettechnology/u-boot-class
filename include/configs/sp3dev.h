@@ -227,19 +227,12 @@
 
 #define CONFIG_BOOTDELAY	       1
 
-#if 0
-#define CONFIG_PREBOOT                 ""
-#endif
-
-#if 0
-#define CONFIG_LOADADDR			       0x12000000
-#endif
 
 
 #if 0
 #define CONFIG_SYS_TEXT_BASE	       0x17800000
 #else
-#define CONFIG_SYS_TEXT_BASE	       0x0
+#define CONFIG_SYS_TEXT_BASE	       0x00002400
 #endif
 
 #if 0

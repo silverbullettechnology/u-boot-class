@@ -12,26 +12,39 @@ SECTIONS
 {
 	. = 0x00000000;
 
-	. = ALIGN(4);
-	.text :
+	.vectors :
 	{
 		*(.__image_copy_start)
 		*(.vectors)
+	}
+
+	.start :
+	{
 		CPUDIR/start.o (.text*)
+		CPUDIR/built-in.o(.text*)
+	}
+	
+	. = ALIGN(4);
+	    
+	.data : 
+	{
+		*(.data*)
+	}
+	
+	/* Hardware config (PLL etc.) 1K config data goes into this space */ 
+	. = 8K;
+	
+	.text :
+	{
+		/*CPUDIR/start.o (.text*)*/
 		*(.text*)
 	}
 
+	
 	. = ALIGN(4);
 	.rodata : { *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) }
 
-	. = ALIGN(4);
-	.data : {
-		*(.data*)
-	}
 
-	. = ALIGN(8192);
-
-	. = . + 1024;
 
 	/*. = ALIGN(4);*/
 	.u_boot_list : {
