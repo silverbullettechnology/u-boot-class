@@ -263,14 +263,14 @@ int arch_cpu_init(void)
 	return 0;
 }
 
-#if 0
 int board_postclk_init(void)
 {
+#if 0
 	set_ldo_voltage(LDO_SOC, 1175);	/* Set VDDSOC to 1.175V */
 
+#endif
 	return 0;
 }
-#endif
 
 #ifndef CONFIG_SYS_DCACHE_OFF
 void enable_caches(void)
@@ -342,9 +342,10 @@ const struct boot_mode soc_boot_modes[] = {
 };
 #endif
 
-#if 0
 void s_init(void)
 {
+#if 0
+
 	struct anatop_regs *anatop = (struct anatop_regs *)ANATOP_BASE_ADDR;
 	int is_6q = is_cpu_type(MXC_CPU_MX6Q);
 	u32 mask480;
@@ -373,8 +374,8 @@ void s_init(void)
 	writel(mask528, &anatop->pfd_528_set);
 	writel(mask480, &anatop->pfd_480_clr);
 	writel(mask528, &anatop->pfd_528_clr);
-}
 #endif
+}
 
 
 #if 0
@@ -477,3 +478,20 @@ void v7_outer_cache_disable(void)
 	clrbits_le32(&pl310->pl310_ctrl, L2X0_CTRL_EN);
 }
 #endif /* !CONFIG_SYS_L2CACHE_OFF */
+
+void reset_cpu(ulong addr)
+{
+#if 0
+	struct watchdog_regs *wdog = (struct watchdog_regs *)WDOG1_BASE_ADDR;
+
+	writew(WCR_WDE, &wdog->wcr);
+	writew(0x5555, &wdog->wsr);
+	writew(0xaaaa, &wdog->wsr);	/* load minimum 1/2 second timeout */
+	while (1) {
+		/*
+		 * spin for .5 seconds before reset
+		 */
+	}
+#endif
+}
+

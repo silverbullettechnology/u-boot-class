@@ -20,6 +20,8 @@
 #define CONFIG_MX6
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
+#else
+#define CONFIG_S3MA
 #endif
 
 #if 0
