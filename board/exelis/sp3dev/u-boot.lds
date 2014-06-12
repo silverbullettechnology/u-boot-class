@@ -21,24 +21,27 @@ SECTIONS
 	.start :
 	{
 		CPUDIR/start.o (.text*)
-		CPUDIR/built-in.o(.text*)
+		CPUDIR*(.text*)
+		BOARDDIR*(.text*)
 	}
 	
 	. = ALIGN(4);
 	    
+	/* Hardware config (PLL etc.) 1K config data goes into this space */ 
+	. = 8K; 
+	
+	. = 9K;
+	
+	.text :
+	{
+		*(.text*)
+	}
+
 	.data : 
 	{
 		*(.data*)
 	}
 	
-	/* Hardware config (PLL etc.) 1K config data goes into this space */ 
-	. = 8K;
-	
-	.text :
-	{
-		/*CPUDIR/start.o (.text*)*/
-		*(.text*)
-	}
 
 	
 	. = ALIGN(4);
