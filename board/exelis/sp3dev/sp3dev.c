@@ -7,77 +7,25 @@
 
 #include <common.h>
 #include <asm/io.h>
-#if 0
 #include <asm/arch/clock.h>
-#include <asm/arch/imx-regs.h>
-#include <asm/arch/iomux.h>
-#endif
+#include <asm/arch/ddr.h>
 #include <asm/arch/sys_proto.h>
 #include <malloc.h>
-#if 0
-#include <asm/arch/mx6-pins.h>
-#endif
 #include <asm/errno.h>
-#if 0
-#include <asm/gpio.h>
-#include <asm/imx-common/iomux-v3.h>
-#include <asm/imx-common/mxc_i2c.h>
-#include <asm/imx-common/sata.h>
-#include <asm/imx-common/boot_mode.h>
-#include <asm/imx-common/video.h>
-#endif
 #include <mmc.h>
-#if 0
-#include <fsl_esdhc.h>
-#endif
 #include <micrel.h>
 #include <miiphy.h>
 #include <netdev.h>
-#if 0
-#include <asm/arch/crm_regs.h>
-#include <asm/arch/mxc_hdmi.h>
-#endif
 #include <i2c.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#if 0
-#define GP_USB_OTG_PWR	IMX_GPIO_NR(3, 22)
-
-#define UART_PAD_CTRL  (PAD_CTL_PUS_100K_UP |			\
-	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm |			\
-	PAD_CTL_SRE_FAST  | PAD_CTL_HYS)
-
-#define USDHC_PAD_CTRL (PAD_CTL_PUS_47K_UP |			\
-	PAD_CTL_SPEED_LOW | PAD_CTL_DSE_80ohm |			\
-	PAD_CTL_SRE_FAST  | PAD_CTL_HYS)
-
-#define ENET_PAD_CTRL  (PAD_CTL_PUS_100K_UP |			\
-	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm | PAD_CTL_HYS)
-
-#define SPI_PAD_CTRL (PAD_CTL_HYS | PAD_CTL_SPEED_MED |		\
-	PAD_CTL_DSE_40ohm     | PAD_CTL_SRE_FAST)
-
-#define BUTTON_PAD_CTRL (PAD_CTL_PUS_100K_UP |			\
-	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm | PAD_CTL_HYS)
-
-#define I2C_PAD_CTRL	(PAD_CTL_PUS_100K_UP |			\
-	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm | PAD_CTL_HYS |	\
-	PAD_CTL_ODE | PAD_CTL_SRE_FAST)
-
-#define WEAK_PULLUP	(PAD_CTL_PUS_100K_UP |			\
-	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm | PAD_CTL_HYS |	\
-	PAD_CTL_SRE_SLOW)
-
-#define WEAK_PULLDOWN	(PAD_CTL_PUS_100K_DOWN |		\
-	PAD_CTL_SPEED_MED | PAD_CTL_DSE_40ohm |			\
-	PAD_CTL_HYS | PAD_CTL_SRE_SLOW)
-
-#define OUTPUT_40OHM (PAD_CTL_SPEED_MED|PAD_CTL_DSE_40ohm)
-#endif
 
 int dram_init(void)
 {
+	s3ma_ddr_clock_enable();
+	s3ma_ddr_setup();
+
 	gd->ram_size = ((ulong)CONFIG_DDR_MB * 1024 * 1024);
 
 	return 0;

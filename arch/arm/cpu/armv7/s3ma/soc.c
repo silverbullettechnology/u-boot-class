@@ -12,10 +12,8 @@
 #include <asm/errno.h>
 #include <asm/io.h>
 #include <asm/arch/s3ma-regs.h>
-#if 0
 #include <asm/arch/clock.h>
-#endif
-
+#include <asm/arch/ddr.h>
 #include <asm/arch/sys_proto.h>
 
 #if 0
@@ -67,7 +65,7 @@ u32 get_cpu_rev(void)
 	return (type << 12) | (reg + 0x10);
 #else
 /* This may not be needed at all, but...
- * FIXME -Figure out how to get silicon revision
+ * TODO -Figure out how to get silicon revision
 */
 
 	return 0;
@@ -282,99 +280,12 @@ void enable_caches(void)
 }
 #endif
 
-#if 0
-#if defined(CONFIG_FEC_MXC)
-void imx_get_mac_from_fuse(int dev_id, unsigned char *mac)
-{
-	struct ocotp_regs *ocotp = (struct ocotp_regs *)OCOTP_BASE_ADDR;
-	struct fuse_bank *bank = &ocotp->bank[4];
-	struct fuse_bank4_regs *fuse =
-			(struct fuse_bank4_regs *)bank->fuse_regs;
-
-	u32 value = readl(&fuse->mac_addr_high);
-	mac[0] = (value >> 8);
-	mac[1] = value ;
-
-	value = readl(&fuse->mac_addr_low);
-	mac[2] = value >> 24 ;
-	mac[3] = value >> 16 ;
-	mac[4] = value >> 8 ;
-	mac[5] = value ;
-
-}
-#endif
-#endif
-
-#if 0
-void boot_mode_apply(unsigned cfg_val)
-{
-	unsigned reg;
-	struct src *psrc = (struct src *)SRC_BASE_ADDR;
-	writel(cfg_val, &psrc->gpr9);
-	reg = readl(&psrc->gpr10);
-	if (cfg_val)
-		reg |= 1 << 28;
-	else
-		reg &= ~(1 << 28);
-	writel(reg, &psrc->gpr10);
-}
-/*
- * cfg_val will be used for
- * Boot_cfg4[7:0]:Boot_cfg3[7:0]:Boot_cfg2[7:0]:Boot_cfg1[7:0]
- * After reset, if GPR10[28] is 1, ROM will copy GPR9[25:0]
- * to SBMR1, which will determine the boot device.
- */
-const struct boot_mode soc_boot_modes[] = {
-	{"normal",	MAKE_CFGVAL(0x00, 0x00, 0x00, 0x00)},
-	/* reserved value should start rom usb */
-	{"usb",		MAKE_CFGVAL(0x01, 0x00, 0x00, 0x00)},
-	{"sata",	MAKE_CFGVAL(0x20, 0x00, 0x00, 0x00)},
-	{"escpi1:0",	MAKE_CFGVAL(0x30, 0x00, 0x00, 0x08)},
-	{"escpi1:1",	MAKE_CFGVAL(0x30, 0x00, 0x00, 0x18)},
-	{"escpi1:2",	MAKE_CFGVAL(0x30, 0x00, 0x00, 0x28)},
-	{"escpi1:3",	MAKE_CFGVAL(0x30, 0x00, 0x00, 0x38)},
-	/* 4 bit bus width */
-	{"esdhc1",	MAKE_CFGVAL(0x40, 0x20, 0x00, 0x00)},
-	{"esdhc2",	MAKE_CFGVAL(0x40, 0x28, 0x00, 0x00)},
-	{"esdhc3",	MAKE_CFGVAL(0x40, 0x30, 0x00, 0x00)},
-	{"esdhc4",	MAKE_CFGVAL(0x40, 0x38, 0x00, 0x00)},
-	{NULL,		0},
-};
-#endif
 
 void s_init(void)
 {
-#if 0
-
-	struct anatop_regs *anatop = (struct anatop_regs *)ANATOP_BASE_ADDR;
-	int is_6q = is_cpu_type(MXC_CPU_MX6Q);
-	u32 mask480;
-	u32 mask528;
-
-	/* Due to hardware limitation, on MX6Q we need to gate/ungate all PFDs
-	 * to make sure PFD is working right, otherwise, PFDs may
-	 * not output clock after reset, MX6DL and MX6SL have added 396M pfd
-	 * workaround in ROM code, as bus clock need it
-	 */
-
-	mask480 = ANATOP_PFD_CLKGATE_MASK(0) |
-		ANATOP_PFD_CLKGATE_MASK(1) |
-		ANATOP_PFD_CLKGATE_MASK(2) |
-		ANATOP_PFD_CLKGATE_MASK(3);
-	mask528 = ANATOP_PFD_CLKGATE_MASK(0) |
-		ANATOP_PFD_CLKGATE_MASK(1) |
-		ANATOP_PFD_CLKGATE_MASK(3);
-
-	/*
-	 * Don't reset PFD2 on DL/S
-	 */
-	if (is_6q)
-		mask528 |= ANATOP_PFD_CLKGATE_MASK(2);
-	writel(mask480, &anatop->pfd_480_set);
-	writel(mask528, &anatop->pfd_528_set);
-	writel(mask480, &anatop->pfd_480_clr);
-	writel(mask528, &anatop->pfd_528_clr);
-#endif
+	s3ma_setup_pll();
+//	s3ma_ddr_clock_enable();
+//	s3ma_ddr_setup();
 }
 
 

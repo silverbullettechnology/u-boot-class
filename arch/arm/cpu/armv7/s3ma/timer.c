@@ -12,8 +12,8 @@
 #include <div64.h>
 #if 0
 #include <asm/arch/imx-regs.h>
-#include <asm/arch/clock.h>
 #endif
+#include <asm/arch/clock.h>
 
 #if 0
 /* General purpose timers registers */
