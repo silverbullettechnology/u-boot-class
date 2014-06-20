@@ -10,29 +10,21 @@
 #include <common.h>
 #include <asm/io.h>
 #include <div64.h>
-#if 0
-#include <asm/arch/imx-regs.h>
-#endif
 #include <asm/arch/clock.h>
 
-#if 0
-/* General purpose timers registers */
-struct mxc_gpt {
-	unsigned int control;
-	unsigned int prescaler;
-	unsigned int status;
-	unsigned int nouse[6];
-	unsigned int counter;
+/* MPCore Global timer registers */
+struct globaltimer {
+	u32 cnt_l; /* 0x00 */
+	u32 cnt_h;
+	u32 ctl;
+	u32 stat;
+	u32 cmp_l; /* 0x10 */
+	u32 cmp_h;
+	u32 inc;
 };
 
-static struct mxc_gpt *cur_gpt = (struct mxc_gpt *)GPT1_BASE_ADDR;
+//static struct globaltimer * gt = (struct globaltimer *)GT_CNTL;
 
-/* General purpose timers bitfields */
-#define GPTCR_SWR		(1 << 15)	/* Software reset */
-#define GPTCR_FRR		(1 << 9)	/* Freerun / restart */
-#define GPTCR_CLKSOURCE_32	(4 << 6)	/* Clock source */
-#define GPTCR_TEN		1		/* Timer enable */
-#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -52,6 +44,29 @@ static inline unsigned long long us_to_tick(unsigned long long usec)
 	do_div(usec, 1000000);
 #endif
 	return usec;
+}
+
+static inline void read_timer_count(uint32_t* high_word_p, uint32_t* low_word_p)
+{
+	/* Per ARM spec
+	 * To get the value from the Global Timer Counter register proceed as follows:
+	 * 1. Read the upper 32-bit timer counter register
+	 * 2. Read the lower 32-bit timer counter register
+	 * 3. Read the upper 32-bit timer counter register again.
+	 * If the value is different to the 32-bit upper value read previously,
+	 * go back to step 2. Otherwise the 64-bit timer counter value is correct.
+	 */
+	struct globaltimer * gt = (struct globaltimer *)GT_CNTL;
+	uint32_t high;
+	uint32_t low;
+
+	do{
+		high = readl(&gt->cnt_h);
+		low = readl(&gt->cnt_l);
+	}while(high != readl(&gt->cnt_h));
+
+	*high_word_p = high;
+	*low_word_p = low;
 }
 
 int timer_init(void)
@@ -75,6 +90,27 @@ int timer_init(void)
 	gd->arch.tbl = __raw_readl(&cur_gpt->counter);
 	gd->arch.tbu = 0;
 #endif
+	struct globaltimer * gt = (struct globaltimer *)GT_CNTL;
+	uint32_t upper,lower;
+
+	/* Reset and turn Global Timer off */
+	writel(GT_CNTL_REG_RESET, &gt->ctl);
+	/* Make timer tick at 1000*CONFIG_SYS_HZ rate */
+	clrbits_le32(&gt->ctl,PRESCALER_BITMASK);
+	setbits_le32(&gt->ctl,(lldiv((uint64_t)gd->bus_clk, (uint32_t)1000*CONFIG_SYS_HZ) - 1)<< PRESCALER_SHIFT);
+	/* Disable interrupts */
+	clrbits_le32(&gt->ctl, IRQ_EN_BITMASK);
+	/* Clear counter value */
+	writel(0,&gt->cnt_l);
+	writel(0,&gt->cnt_h);
+	/* Enable timer */
+	setbits_le32(&gt->ctl, TIMER_EN_BITMASK);
+
+	read_timer_count(&upper,&lower);
+
+	gd->arch.tbu = (ulong)upper;
+	gd->arch.tbl = (ulong)lower;
+
 	return 0;
 }
 
@@ -84,7 +120,7 @@ unsigned long long get_ticks(void)
 	ulong now = __raw_readl(&cur_gpt->counter); /* current tick value */
 
 	/* increment tbu if tbl has rolled over */
-	if (now < gd->arch.tbl)
+	if (now < gd->arch.tlbl)
 		gd->arch.tbu++;
 	gd->arch.tbl = now;
 #endif

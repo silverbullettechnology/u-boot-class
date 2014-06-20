@@ -10,32 +10,17 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#if 0
-#include "mx6_common.h"
-#else
 #include "s3ma_common.h"
-#endif
 
-#if 0
-#define CONFIG_MX6
-#define CONFIG_DISPLAY_CPUINFO
-#define CONFIG_DISPLAY_BOARDINFO
-#else
 #define CONFIG_S3MA
-#endif
 
-#if 0
-#define CONFIG_MACH_TYPE	3769
-#else
+/*This one has to be defined by
+ * http://www.arm.linux.org.uk/developer/machines/
+ * We don't havethe number assigned, so just pick something for now
+ */
 #define CONFIG_MACH_TYPE	5000
-#endif
 
-#if 0
-#include <asm/arch/imx-regs.h>
-#include <asm/imx-common/gpio.h>
-#else
 #include <asm/arch/s3ma-regs.h>
-#endif
 
 #if 0
 #define CONFIG_CMDLINE_TAG
@@ -45,6 +30,10 @@
 #endif
 
 #define CONFIG_SYS_GENERIC_BOARD
+
+/* System clock rates */
+#define CONFIG_CPU_CLK_HZ			768000000
+#define CONFIG_PERIPHCLK_HZ			(CONFIG_CPU_CLK_HZ/4)
 
 /* Size of malloc() pool */
 #if 0
