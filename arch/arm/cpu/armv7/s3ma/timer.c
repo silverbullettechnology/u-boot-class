@@ -123,10 +123,17 @@ unsigned long long get_ticks(void)
 	if (now < gd->arch.tlbl)
 		gd->arch.tbu++;
 	gd->arch.tbl = now;
+#else
+	uint32_t upper,lower;
+
+	read_timer_count(&upper,&lower);
+	gd->arch.tbu = upper;
+	gd->arch.tbl = lower;
 #endif
 	return (((unsigned long long)gd->arch.tbu) << 32) | gd->arch.tbl;
 }
 
+#if 0
 ulong get_timer_masked(void)
 {
 	/*
@@ -137,10 +144,15 @@ ulong get_timer_masked(void)
 	 */
 	return tick_to_time(get_ticks());
 }
+#endif
 
 ulong get_timer(ulong base)
 {
+#if 0
 	return get_timer_masked() - base;
+#else
+	return tick_to_time(get_ticks()) - base;
+#endif
 }
 
 /* delay x useconds AND preserve advance timstamp value */
@@ -165,5 +177,5 @@ ulong get_tbclk(void)
 #if 0
 	return MXC_CLK32;
 #endif
-	return 0;
+	return 1000;
 }
