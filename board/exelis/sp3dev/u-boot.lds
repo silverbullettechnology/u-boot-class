@@ -12,30 +12,20 @@ SECTIONS
 {
 	. = 0x00000000;
 
-	.vectors :
+	. = ALIGN(4);
+	.text :
 	{
 		*(.__image_copy_start)
-		*(.vectors)
-	}
-
-	.start :
-	{
 		CPUDIR/start.o (.text*)
 		CPUDIR*(.text*)
 		BOARDDIR*(.text*)
-	}
-	
-	. = ALIGN(4);
-	    
 	/* Hardware config (PLL etc.) 1K config data goes into this space */ 
-	. = 8K; 
-	
-	. = 9K;
-	
-	.text :
-	{
+		. = 8K;
+		*(.por_config*)
+	/* Rest of the text section */
 		*(.text*)
-	}
+	
+	}	
 
 	.data : 
 	{

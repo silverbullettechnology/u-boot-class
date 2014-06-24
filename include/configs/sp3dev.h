@@ -221,7 +221,7 @@
 #if 0
 #define CONFIG_SYS_TEXT_BASE	       0x17800000
 #else
-#define CONFIG_SYS_TEXT_BASE	       0x00002400
+#define CONFIG_SYS_TEXT_BASE	       0x00000000
 #endif
 
 #if 0

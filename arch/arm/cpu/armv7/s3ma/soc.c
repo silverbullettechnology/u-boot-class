@@ -12,6 +12,7 @@
 #include <asm/errno.h>
 #include <asm/io.h>
 #include <asm/arch/s3ma-regs.h>
+#include <asm/arch/boot_mode.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/ddr.h>
 #include <asm/arch/sys_proto.h>
@@ -37,6 +38,10 @@ struct scu_regs {
 	u32	invalidate;
 	u32	fpga_rev;
 };
+
+const uint32_t por_config[POR_CONFIG_LEN] __attribute__ ((section (".por_config"))) = {POR_CONFIG};
+
+
 
 u32 get_cpu_rev(void)
 {

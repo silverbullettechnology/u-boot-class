@@ -12,15 +12,28 @@
 #include <asm/io.h>
 #include <asm/errno.h>
 #include <asm/arch/s3ma-regs.h>
+#include <asm/arch/boot_mode.h>
 #include <asm/arch/clock.h>
 #include <asm/arch/sys_proto.h>
 
+/* Place holder for pll config */
+static uint32_t	pll_config[3];
 
 DECLARE_GLOBAL_DATA_PTR;
 
 void s3ma_setup_pll(void)
 {
 	/* TODO: Configure PLL settings */
+	/* Read por data and modify if needed
+	 * For now just reference por record,
+	 * so linker keeps por structure in the image
+	 */
+	int i;
+	for(i = 0; i < sizeof(pll_config)/sizeof(pll_config[0]); i++)
+	{
+		pll_config[i] =  por_config[i];
+	}
+
 
 	/* Initialize values for clock rates */
 	gd->cpu_clk = CONFIG_CPU_CLK_HZ;

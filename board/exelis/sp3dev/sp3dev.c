@@ -20,6 +20,9 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+/* Declare Power on reset configuration space data
+ * used by hardware bootloader
+ */
 
 int dram_init(void)
 {
