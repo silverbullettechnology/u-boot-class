@@ -14,6 +14,8 @@
 
 #define CONFIG_S3MA
 
+#define CONFIG_RTL_SIMULATION
+
 /*This one has to be defined by
  * http://www.arm.linux.org.uk/developer/machines/
  * We don't havethe number assigned, so just pick something for now
