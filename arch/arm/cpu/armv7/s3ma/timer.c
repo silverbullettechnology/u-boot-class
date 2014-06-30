@@ -13,7 +13,7 @@
 #include <asm/arch/clock.h>
 
 /* MPCore Global timer registers */
-struct globaltimer {
+typedef struct globaltimer {
 	u32 cnt_l; /* 0x00 */
 	u32 cnt_h;
 	u32 ctl;
@@ -21,9 +21,9 @@ struct globaltimer {
 	u32 cmp_l; /* 0x10 */
 	u32 cmp_h;
 	u32 inc;
-};
+}GTIMER, * GTIMER_PTR;
 
-//static struct globaltimer * gt = (struct globaltimer *)GT_CNTL;
+//static struct globaltimer * gt = (struct globaltimer *)GT_CNTR_L;
 
 
 DECLARE_GLOBAL_DATA_PTR;
@@ -56,7 +56,7 @@ static inline void read_timer_count(uint32_t* high_word_p, uint32_t* low_word_p)
 	 * If the value is different to the 32-bit upper value read previously,
 	 * go back to step 2. Otherwise the 64-bit timer counter value is correct.
 	 */
-	struct globaltimer * gt = (struct globaltimer *)GT_CNTL;
+	GTIMER_PTR gt = (GTIMER_PTR)(GT_CNTR_L);
 	uint32_t high;
 	uint32_t low;
 
@@ -90,8 +90,8 @@ int timer_init(void)
 	gd->arch.tbl = __raw_readl(&cur_gpt->counter);
 	gd->arch.tbu = 0;
 #endif
-	struct globaltimer * gt = (struct globaltimer *)GT_CNTL;
 	uint32_t upper,lower;
+	GTIMER_PTR gt = (GTIMER_PTR)(GT_CNTR_L);
 
 	/* Reset and turn Global Timer off */
 	writel(GT_CNTL_REG_RESET, &gt->ctl);
@@ -102,6 +102,7 @@ int timer_init(void)
 	clrbits_le32(&gt->ctl, IRQ_EN_BITMASK);
 	/* Clear counter value */
 	writel(0,&gt->cnt_l);
+
 	writel(0,&gt->cnt_h);
 	/* Enable timer */
 	setbits_le32(&gt->ctl, TIMER_EN_BITMASK);
