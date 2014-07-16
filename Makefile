@@ -537,7 +537,11 @@ else
 
 endif # $(dot-config)
 
+ifeq ($(CONFIG_DEBUG_BUILD),)
 KBUILD_CFLAGS += -Os #-fomit-frame-pointer
+else
+KBUILD_CFLAGS += -O0 
+endif
 
 ifdef BUILD_TAG
 KBUILD_CFLAGS += -DBUILD_TAG='"$(BUILD_TAG)"'

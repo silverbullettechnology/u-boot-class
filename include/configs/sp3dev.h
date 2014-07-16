@@ -12,9 +12,11 @@
 
 #include "s3ma_common.h"
 
+#define CONFIG_DEBUG_BUILD
 #define CONFIG_S3MA
 
 #define CONFIG_RTL_SIMULATION
+#define CONFIG_RUN_ON_QEMU
 
 /*This one has to be defined by
  * http://www.arm.linux.org.uk/developer/machines/
@@ -41,7 +43,7 @@
 #if 0
 #define CONFIG_SYS_MALLOC_LEN		(10 * 1024 * 1024)
 #else
-#define CONFIG_SYS_MALLOC_LEN		(128 * 1024)
+#define CONFIG_SYS_MALLOC_LEN		(64 * 1024)
 #endif
 
 #define CONFIG_BOARD_EARLY_INIT_F
@@ -380,14 +382,19 @@
 #define PHYS_SDRAM		       MMDC0_ARB_BASE_ADDR
 
 #define CONFIG_DDR_MB					1024
+#define CONFIG_S3MA_OCM_RAM_SIZE		(OCM_S_SIZE)
+
 #if 0
 #define CONFIG_SYS_SDRAM_BASE	       PHYS_SDRAM
 #define CONFIG_SYS_INIT_RAM_ADDR       IRAM_BASE_ADDR
 #define CONFIG_SYS_INIT_RAM_SIZE       IRAM_SIZE
 #else
-#define CONFIG_SYS_INIT_RAM_ADDR       OCM_S_ABSOLUTE_BASE
-#define CONFIG_SYS_INIT_RAM_SIZE       0x8000
-#define CONFIG_SYS_SDRAM_BASE	       (OCM_S_ABSOLUTE_BASE+CONFIG_SYS_INIT_RAM_SIZE)
+//#define CONFIG_SYS_INIT_RAM_ADDR       OCM_S_ABSOLUTE_BASE
+//#define CONFIG_SYS_INIT_RAM_SIZE       0x8000
+//#define CONFIG_SYS_SDRAM_BASE	       (OCM_S_ABSOLUTE_BASE+CONFIG_SYS_INIT_RAM_SIZE)
+#define CONFIG_SYS_INIT_RAM_ADDR       0x500//SYS_INIT_RAM_BASE
+#define CONFIG_SYS_INIT_RAM_SIZE       (0x2000 - CONFIG_SYS_INIT_RAM_ADDR) //SYS_INIT_RAM_SIZE
+#define CONFIG_SYS_SDRAM_BASE	       (OCM_S_ABSOLUTE_BASE)
 #endif
 
 #define CONFIG_SYS_INIT_SP_OFFSET \
@@ -406,7 +413,7 @@
 #define CONFIG_SYS_NO_FLASH
 
 #define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_ENV_SIZE			(8 * 1024)
+#define CONFIG_ENV_SIZE			1024//(8 * 1024)
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(6 * 64 * 1024)

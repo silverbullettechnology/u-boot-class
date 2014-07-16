@@ -26,10 +26,11 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int dram_init(void)
 {
+#ifndef CONFIG_RUN_ON_QEMU
 	s3ma_ddr_clock_enable();
 	s3ma_ddr_setup();
-
-	gd->ram_size = ((ulong)CONFIG_DDR_MB * 1024 * 1024);
+#endif
+	gd->ram_size = ((ulong)CONFIG_S3MA_OCM_RAM_SIZE);
 
 	return 0;
 }

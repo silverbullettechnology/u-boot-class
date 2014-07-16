@@ -16,12 +16,18 @@ SECTIONS
 	.text :
 	{
 		*(.__image_copy_start)
+		*(.vectors)
 		CPUDIR/start.o (.text*)
-		CPUDIR*(.text*)
-		BOARDDIR*(.text*)
+
+/*		CPUDIR*(.text*) 
+ *		BOARDDIR*(.text*) 
+ */
+	
+	
 	/* Hardware config (PLL etc.) 1K config data goes into this space */ 
 		. = 8K;
 		*(.por_config*)
+
 	/* Rest of the text section */
 		*(.text*)
 	
