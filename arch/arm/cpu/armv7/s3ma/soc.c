@@ -288,8 +288,7 @@ void enable_caches(void)
 
 void s_init(void)
 {
-#ifdef CONFIG_RTL_SIMULATION
-	/* Disable clocks to speedup simulation */
+	/* Disable clocks not needed */
 	setbits_le32(CRT_CLK_DIS, (DMA_DIS_BITMASK | USB_DIS_BITMASK | SD_DIS_BITMASK));
 
 	setbits_le32(CRT_WFE_DIS, (WFE_AHB_DIS_BITMASK | WFE_APB_DIS_BITMASK | \
@@ -303,7 +302,6 @@ void s_init(void)
 
 	setbits_le32(CRT_RF_DIS, WFE_DIS_BITMASK);
 	setbits_le32(CRT_MDM_DIS, MDM_DIS_BITMASK);
-#endif
 
 	s3ma_setup_pll();
 //	s3ma_ddr_clock_enable();

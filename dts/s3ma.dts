@@ -41,6 +41,7 @@
                     compatible = "arm,cortex-a9";
                     reg = <0>;
              };
+/*
              cpu@1 {
                     compatible = "arm,cortex-a9";
                     reg = <1>;
@@ -53,7 +54,7 @@
                     compatible = "arm,cortex-a9";
                     reg = <3>;
              };
-        
+ */       
     };
     
      soc {
@@ -95,6 +96,12 @@
                       compatible = "arm,pl011";
                       reg = <0x080a2000 0x1000 >;
                       interrupts = < 2 0 >;
+                     };
+                     
+    		  sdhci0: sdhci@080d0000 {
+                      compatible = "generic-sdhci";
+                      reg = <0x080d0000 0x1000 >;
+                      interrupts = < 3 0 >;
                      };
       };
  };

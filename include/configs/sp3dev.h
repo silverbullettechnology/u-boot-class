@@ -12,11 +12,17 @@
 
 #include "s3ma_common.h"
 
-#define CONFIG_DEBUG_BUILD
+/***********************/
+
+/* Custom build options for debugging  */
+
+//#define CONFIG_DEBUG_BUILD
+#define CONFIG_RUN_ON_QEMU
+
+/***********************/
+
 #define CONFIG_S3MA
 
-#define CONFIG_RTL_SIMULATION
-#define CONFIG_RUN_ON_QEMU
 
 /*This one has to be defined by
  * http://www.arm.linux.org.uk/developer/machines/
@@ -124,6 +130,11 @@
 #define CONFIG_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC
+
+#define CONFIG_MMC_SDMA
+#ifndef CONFIG_RUN_ON_QEMU
+#define CONFIG_MMC_SDMA
+#endif
 #define CONFIG_BOUNCE_BUFFER
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT

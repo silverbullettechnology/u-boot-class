@@ -80,3 +80,8 @@ void s3ma_ddr_phy_clk_sel_192(void)
 //	mon_puts("  END CHANGE FREQUENCY OF DDR I/F: 384->192\n");
 }
 
+void s3ma_sdhc_clk_enable(void)
+{
+	clrbits_le32(CRT_CLK_DIS, SD_DIS_BITMASK);
+
+}
