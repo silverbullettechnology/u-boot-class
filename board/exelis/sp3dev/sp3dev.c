@@ -54,12 +54,18 @@ int board_mmc_init(bd_t *bis)
 
 	host->name = "s3ma_sdhci";
 	host->ioaddr = (void *)(SD_S_ABSOLUTE_BASE);
-	add_sdhci(host, 48000000, 24000000);
+#ifndef CONFIG_RUN_ON_QEMU
+	add_sdhci(host, 0, 0);
+#else
+	add_sdhci(host, 48000000, 48000000);
+#endif
 	return 0;
 
 
 }
 #endif
+
+#if 0
 int board_mmc_getcd(struct mmc *mmc)
 {
 	int ret = 0;
@@ -67,6 +73,8 @@ int board_mmc_getcd(struct mmc *mmc)
 
 	return ret;
 }
+#endif
+
 #ifdef CONFIG_USB_EHCI_MX6
 int board_ehci_hcd_init(int port)
 {
