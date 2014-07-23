@@ -85,3 +85,9 @@ void s3ma_sdhc_clk_enable(void)
 	clrbits_le32(CRT_CLK_DIS, SD_DIS_BITMASK);
 
 }
+void s3ma_sdhc_clk_disable(void)
+{
+	setbits_le32(CRT_CLK_DIS, SD_DIS_BITMASK);
+
+}
+
