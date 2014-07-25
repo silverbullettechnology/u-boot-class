@@ -190,4 +190,7 @@ U_BOOT_CMD(gpio, 3, 0, do_gpio,
 	"query and control gpio pins",
 	"<input|set|clear|toggle> <pin>\n"
 	"    - input/set/clear/toggle the specified pin\n"
-	"gpio status [<bank> | <pin>]");
+#ifdef gpio_status
+	"gpio status [<bank> | <pin>]"
+#endif
+);

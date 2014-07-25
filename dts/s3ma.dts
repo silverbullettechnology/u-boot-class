@@ -124,5 +124,18 @@
               		   compatible = "pl022";
               		   reg = <0x080a8000 0x1000>;
               		  };
+			  gpio0:  gpio@0x080a9000 {
+			  		  compatible = "pl061";
+			  		  reg = <0x080a9000	0x1000>;
+			  		  };              		  
+			  gpio1:  gpio@0x080aa000 {
+			  		  compatible = "pl061";
+			  		  reg = <0x080aa000	0x1000>;
+			  		  };              		  
+			  gpio2:  gpio@0x080ab000 {
+			  		  compatible = "pl061";
+			  		  reg = <0x080ab000	0x1000>;
+			  		  };              		  
+
       };
  };
