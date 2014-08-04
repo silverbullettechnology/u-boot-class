@@ -9,7 +9,7 @@
 
 #include <asm/arch/s3ma-regs.h>
 
-#define CONFIG_USB_DWC2_REG_ADDR	(USB0_S_ABSOLUTE_BASE)
+//#define CONFIG_USB_DWC2_REG_ADDR	(USB0_S_ABSOLUTE_BASE)
 
 
 

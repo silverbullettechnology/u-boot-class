@@ -20,7 +20,9 @@
 #include <netdev.h>
 #include <i2c.h>
 #include <spi.h>
-
+#ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
+#include <usb/s3c_udc.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -97,14 +99,30 @@ int board_ehci_power(int port, int on)
 
 #endif
 
+#ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
 
+static int s3ma_phy_control(int on)
+{
+	return 0;
+}
+
+struct s3c_plat_otg_data s3ma_otg_data = {
+	.phy_control	= s3ma_phy_control,
+	//.regs_phy	= EXYNOS4X12_USBPHY_BASE,
+	.regs_otg	= (USB0_S_ABSOLUTE_BASE),
+	//.usb_phy_ctrl	= EXYNOS4X12_USBPHY_CONTROL,
+	//.usb_flags	= PHY0_SLEEP,
+};
+#endif
 
 int board_eth_init(bd_t *bis)
 {
 
-#ifdef CONFIG_CI_UDC
+#ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
+
 	/* For otg ethernet*/
 	usb_eth_initialize(bis);
+	return s3c_udc_probe(&s3ma_otg_data);
 #endif
 	return 0;
 }

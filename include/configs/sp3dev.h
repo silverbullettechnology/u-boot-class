@@ -145,19 +145,26 @@
 #endif
 
 /* USB Configs */
-
+#if 1
+//#define CONFIG_USB_GADGET
+//#define CONFIG_USB_GADGET_DUALSPEED
+//#define CONFIG_USB_GADGET_S3C_UDC_OTG
+//#define CONFIG_USB_DEVICE
+//#define CONFIG_USB_ETHER
+//#define CONFIG_USB_ETH_CDC
+//#define CONFIG_USB_MAX_CONTROLLER_COUNT	2
+#else
 #define CONFIG_CMD_USB
-//#define CONFIG_CMD_DFU
-#define CONFIG_USB_DWC2_OTG
-#define CONFIG_USB_GADGET
-#define CONFIG_USB_ETHER
-#define CONFIG_USB_ETH_RNDIS
+#define CONFIG_USB_DEVICE
 #define CONFIG_USB_ETH_CDC
+#define CONFIG_USB_TTY
 #define CONFIG_USBD_HS
 #define CONFIG_USB_ULPI
 #define CONFIG_USB_ULPI_VIEWPORT
 #define CONFIG_ULPI_REF_CLK		60000000
 #define CONFIG_USB_MAX_CONTROLLER_COUNT	2
+#endif
+
 /* Miscellaneous commands */
 #if 0
 #define CONFIG_CMD_BMODE
