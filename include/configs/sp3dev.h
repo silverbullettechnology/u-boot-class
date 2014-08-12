@@ -17,7 +17,7 @@
 /* Custom build options for debugging  */
 
 //#define CONFIG_DEBUG_BUILD
-#define CONFIG_RUN_ON_QEMU
+//#define CONFIG_RUN_ON_QEMU
 
 /***********************/
 
@@ -26,7 +26,7 @@
 
 /*This one has to be defined by
  * http://www.arm.linux.org.uk/developer/machines/
- * We don't havethe number assigned, so just pick something for now
+ * We don't have the number assigned, so just pick something for now
  */
 #define CONFIG_MACH_TYPE	5000
 
@@ -105,6 +105,7 @@
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
+#define	CONFIG_SYS_MMC_MAX_DEVICE	1
 
 /* SPI bus configs */
 #define CONFIG_CMD_SPI
@@ -120,6 +121,7 @@
  * SATA Configs
  */
 #if 0
+
 #ifdef CONFIG_CMD_SATA
 #define CONFIG_DWC_AHSATA
 #define CONFIG_SYS_SATA_MAX_DEVICE	1
@@ -450,4 +452,15 @@
 #endif
 #endif
 
+/*
+ * AD9361
+ */
+#define CONFIG_AD9361
+
+/*
+ * Standalone applications
+ */
+
+#define CONFIG_STANDALONE_LOAD_ADDR		0x80000000
+#define CONFIG_API
 #endif	       /* __CONFIG_H */
