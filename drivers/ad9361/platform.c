@@ -42,7 +42,10 @@
 /******************************************************************************/
 //#include "stdint.h"
 #include <common.h>
-#include "util.h"
+#include <asm/gpio.h>
+#include <ad9361/platform.h>
+#include <ad9361/util.h>
+
 
 /***************************************************************************//**
  * @brief usleep
@@ -94,6 +97,14 @@ void platform_gpio_init(uint32_t device_id)
 *******************************************************************************/
 void platform_gpio_direction(uint8_t pin, uint8_t direction)
 {
+	if(0 == gpio_request(pin, NULL))
+	{
+		if(1 == direction)
+			gpio_direction_output(pin, 0);
+		else
+			gpio_direction_input(pin);
+
+	}
 
 }
 
@@ -102,15 +113,17 @@ void platform_gpio_direction(uint8_t pin, uint8_t direction)
 *******************************************************************************/
 bool platform_gpio_is_valid(int number)
 {
-	return 0;
+	if(0 == gpio_request(number, NULL))
+		return 1;
+	else
+		return 0;
 }
-
 /***************************************************************************//**
  * @brief gpio_data
 *******************************************************************************/
 void platform_gpio_data(uint8_t pin, uint8_t data)
 {
-
+	gpio_set_value(pin, data);
 }
 
 /***************************************************************************//**
@@ -118,7 +131,7 @@ void platform_gpio_data(uint8_t pin, uint8_t data)
 *******************************************************************************/
 void platform_gpio_set_value(unsigned gpio, int value)
 {
-
+	platform_gpio_data(gpio, value);
 }
 
 /***************************************************************************//**
@@ -126,7 +139,7 @@ void platform_gpio_set_value(unsigned gpio, int value)
 *******************************************************************************/
 void platform_udelay(unsigned long usecs)
 {
-
+	udelay(usecs);
 }
 
 /***************************************************************************//**
@@ -134,7 +147,7 @@ void platform_udelay(unsigned long usecs)
 *******************************************************************************/
 void platform_mdelay(unsigned long msecs)
 {
-
+	mdelay(msecs);
 }
 
 /***************************************************************************//**

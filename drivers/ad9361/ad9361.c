@@ -46,9 +46,9 @@
 //#include <stdlib.h>
 //#include <string.h>
 #include <common.h>
-#include "ad9361.h"
-#include "platform.h"
-#include "util.h"
+#include <ad9361/ad9361.h>
+#include <ad9361/platform.h>
+#include <ad9361/util.h>
 
 /******************************************************************************/
 /********************** Macros and Constants Definitions **********************/
@@ -82,7 +82,7 @@ static int32_t ad9361_spi_readm(struct spi_device *spi, uint32_t reg,
 	buf[0] = cmd >> 8;
 	buf[1] = cmd & 0xFF;
 
-	ret = spi_write_then_read(spi, &buf[0], 2, rbuf, num);
+	ret = platform_spi_write_then_read(spi, &buf[0], 2, rbuf, num);
 	if (ret < 0) {
 		dev_err(&spi->dev, "Read Error %d", ret);
 		return ret;
@@ -173,7 +173,7 @@ int32_t ad9361_spi_write(struct spi_device *spi,
 	buf[1] = cmd & 0xFF;
 	buf[2] = val;
 
-	ret = spi_write_then_read(spi, buf, 3, NULL, 0);
+	ret = platform_spi_write_then_read(spi, buf, 3, NULL, 0);
 	if (ret < 0) {
 		dev_err(&spi->dev, "Write Error %d", ret);
 		return ret;
@@ -249,7 +249,7 @@ static int32_t ad9361_spi_writem(struct spi_device *spi,
 
 	memcpy(&buf[2], tbuf, num);
 
-	ret = spi_write_then_read(spi, buf, num + 2, NULL, 0);
+	ret = platform_spi_write_then_read(spi, buf, num + 2, NULL, 0);
 	if (ret < 0) {
 		dev_err(&spi->dev, "Write Error %d", ret);
 		return ret;
