@@ -46,19 +46,271 @@
 //#include <stdlib.h>
 //#include <string.h>
 #include <common.h>
+#include <malloc.h>
 #include <ad9361/ad9361.h>
+#include <ad9361/ad9361_api.h>
 #include <ad9361/platform.h>
 #include <ad9361/util.h>
+
 
 /******************************************************************************/
 /********************** Macros and Constants Definitions **********************/
 /******************************************************************************/
 #define DEBUG
+const AD9361_InitParam default_init_param = {
+	/* Reference Clock */
+	40000000UL,	//reference_clk_rate
+	/* Base Configuration */
+	1,		//two_rx_two_tx_mode_enable *** adi,2rx-2tx-mode-enable
+	1,		//frequency_division_duplex_mode_enable *** adi,frequency-division-duplex-mode-enable
+	0,		//tdd_use_dual_synth_mode_enable *** adi,tdd-use-dual-synth-mode-enable
+	0,		//tdd_skip_vco_cal_enable *** adi,tdd-skip-vco-cal-enable
+	0,		//tx_fastlock_delay_ns *** adi,tx-fastlock-delay-ns
+	0,		//rx_fastlock_delay_ns *** adi,rx-fastlock-delay-ns
+	0,		//rx_fastlock_pincontrol_enable *** adi,rx-fastlock-pincontrol-enable
+	0,		//tx_fastlock_pincontrol_enable *** adi,tx-fastlock-pincontrol-enable
+	0,		//external_rx_lo_enable *** adi,external-rx-lo-enable
+	0,		//external_tx_lo_enable *** adi,external-tx-lo-enable
+	5,		//dc_offset_tracking_update_event_mask *** adi,dc-offset-tracking-update-event-mask
+	6,		//dc_offset_attenuation_high_range *** adi,dc-offset-tracking-update-event-mask
+	5,		//dc_offset_attenuation_low_range *** adi,dc-offset-tracking-update-event-mask
+	0x28,	//dc_offset_count_high_range *** adi,dc-offset-tracking-update-event-mask
+	0x32,	//dc_offset_count_low_range *** adi,dc-offset-tracking-update-event-mask
+	0,		//tdd_use_fdd_vco_tables_enable *** adi,tdd-use-fdd-vco-tables-enable
+	0,		//split_gain_table_mode_enable *** adi,split-gain-table-mode-enable
+	/* ENSM Control */
+	0,		//ensm_enable_pin_pulse_mode_enable *** adi,ensm-enable-pin-pulse-mode-enable
+	0,		//ensm_enable_txnrx_control_enable *** adi,ensm-enable-txnrx-control-enable
+	/* LO Control */
+	2400000000UL,	//rx_synthesizer_frequency_hz *** adi,rx-synthesizer-frequency-hz
+	2400000000UL,	//tx_synthesizer_frequency_hz *** adi,tx-synthesizer-frequency-hz
+	/* Rate & BW Control */
+	{983040000, 245760000, 122880000, 61440000, 30720000, 30720000},//uint32_t	rx_path_clock_frequencies[6] *** adi,rx-path-clock-frequencies
+	{983040000, 122880000, 122880000, 61440000, 30720000, 30720000},//uint32_t	tx_path_clock_frequencies[6] *** adi,tx-path-clock-frequencies
+	18000000,//rf_rx_bandwidth_hz *** adi,rf-rx-bandwidth-hz
+	18000000,//rf_tx_bandwidth_hz *** adi,rf-tx-bandwidth-hz
+	/* RF Port Control */
+	0,		//rx_rf_port_input_select *** adi,rx-rf-port-input-select
+	0,		//tx_rf_port_input_select *** adi,tx-rf-port-input-select
+	/* TX Attenuation Control */
+	10000,	//tx_attenuation_mdB *** adi,tx-attenuation-mdB
+	0,		//update_tx_gain_in_alert_enable *** adi,update-tx-gain-in-alert-enable
+	/* Reference Clock Control */
+	0,		//xo_disable_use_ext_refclk_enable *** adi,xo-disable-use-ext-refclk-enable
+	{8, 5920},	//dcxo_coarse_and_fine_tune[2] *** adi,dcxo-coarse-and-fine-tune
+	0,		//clk_output_mode_select *** adi,clk-output-mode-select
+	/* Gain Control */
+	2,		//gc_rx1_mode *** adi,gc-rx1-mode
+	2,		//gc_rx2_mode *** adi,gc-rx2-mode
+	58,		//gc_adc_large_overload_thresh *** adi,gc-adc-large-overload-thresh
+	4,		//gc_adc_ovr_sample_size *** adi,gc-adc-ovr-sample-size
+	47,		//gc_adc_small_overload_thresh *** adi,gc-adc-small-overload-thresh
+	8192,	//gc_dec_pow_measurement_duration *** adi,gc-dec-pow-measurement-duration
+	0,		//gc_dig_gain_enable *** adi,gc-dig-gain-enable
+	800,	//gc_lmt_overload_high_thresh *** adi,gc-lmt-overload-high-thresh
+	704,	//gc_lmt_overload_low_thresh *** adi,gc-lmt-overload-low-thresh
+	24,		//gc_low_power_thresh *** adi,gc-low-power-thresh
+	15,		//gc_max_dig_gain *** adi,gc-max-dig-gain
+	/* Gain MGC Control */
+	2,		//mgc_dec_gain_step *** adi,mgc-dec-gain-step
+	2,		//mgc_inc_gain_step *** adi,mgc-inc-gain-step
+	0,		//mgc_rx1_ctrl_inp_enable *** adi,mgc-rx1-ctrl-inp-enable
+	0,		//mgc_rx2_ctrl_inp_enable *** adi,mgc-rx2-ctrl-inp-enable
+	0,		//mgc_split_table_ctrl_inp_gain_mode *** adi,mgc-split-table-ctrl-inp-gain-mode
+	/* Gain AGC Control */
+	10,		//agc_adc_large_overload_exceed_counter *** adi,agc-adc-large-overload-exceed-counter
+	2,		//agc_adc_large_overload_inc_steps *** adi,agc-adc-large-overload-inc-steps
+	0,		//agc_adc_lmt_small_overload_prevent_gain_inc_enable *** adi,agc-adc-lmt-small-overload-prevent-gain-inc-enable
+	10,		//agc_adc_small_overload_exceed_counter *** adi,agc-adc-small-overload-exceed-counter
+	4,		//agc_dig_gain_step_size *** adi,agc-dig-gain-step-size
+	3,		//agc_dig_saturation_exceed_counter *** adi,agc-dig-saturation-exceed-counter
+	1000,	// agc_gain_update_interval_us *** adi,agc-gain-update-interval-us
+	0,		//agc_immed_gain_change_if_large_adc_overload_enable *** adi,agc-immed-gain-change-if-large-adc-overload-enable
+	0,		//agc_immed_gain_change_if_large_lmt_overload_enable *** adi,agc-immed-gain-change-if-large-lmt-overload-enable
+	10,		//agc_inner_thresh_high *** adi,agc-inner-thresh-high
+	1,		//agc_inner_thresh_high_dec_steps *** adi,agc-inner-thresh-high-dec-steps
+	12,		//agc_inner_thresh_low *** adi,agc-inner-thresh-low
+	1,		//agc_inner_thresh_low_inc_steps *** adi,agc-inner-thresh-low-inc-steps
+	10,		//agc_lmt_overload_large_exceed_counter *** adi,agc-lmt-overload-large-exceed-counter
+	2,		//agc_lmt_overload_large_inc_steps *** adi,agc-lmt-overload-large-inc-steps
+	10,		//agc_lmt_overload_small_exceed_counter *** adi,agc-lmt-overload-small-exceed-counter
+	5,		//agc_outer_thresh_high *** adi,agc-outer-thresh-high
+	2,		//agc_outer_thresh_high_dec_steps *** adi,agc-outer-thresh-high-dec-steps
+	18,		//agc_outer_thresh_low *** adi,agc-outer-thresh-low
+	2,		//agc_outer_thresh_low_inc_steps *** adi,agc-outer-thresh-low-inc-steps
+	1,		//agc_attack_delay_extra_margin_us; *** adi,agc-attack-delay-extra-margin-us
+	0,		//agc_sync_for_gain_counter_enable *** adi,agc-sync-for-gain-counter-enable
+	/* Fast AGC */
+	64,		//fagc_dec_pow_measuremnt_duration ***  adi,fagc-dec-pow-measurement-duration
+	260,	//fagc_state_wait_time_ns ***  adi,fagc-state-wait-time-ns
+		/* Fast AGC - Low Power */
+	0,		//fagc_allow_agc_gain_increase ***  adi,fagc-allow-agc-gain-increase-enable
+	5,		//fagc_lp_thresh_increment_time ***  adi,fagc-lp-thresh-increment-time
+	1,		//fagc_lp_thresh_increment_steps ***  adi,fagc-lp-thresh-increment-steps
+		/* Fast AGC - Lock Level */
+	10,		//fagc_lock_level ***  adi,fagc-lock-level */
+	1,		//fagc_lock_level_lmt_gain_increase_en ***  adi,fagc-lock-level-lmt-gain-increase-enable
+	5,		//fagc_lock_level_gain_increase_upper_limit ***  adi,fagc-lock-level-gain-increase-upper-limit
+		/* Fast AGC - Peak Detectors and Final Settling */
+	1,		//fagc_lpf_final_settling_steps ***  adi,fagc-lpf-final-settling-steps
+	1,		//fagc_lmt_final_settling_steps ***  adi,fagc-lmt-final-settling-steps
+	3,		//fagc_final_overrange_count ***  adi,fagc-final-overrange-count
+		/* Fast AGC - Final Power Test */
+	0,		//fagc_gain_increase_after_gain_lock_en ***  adi,fagc-gain-increase-after-gain-lock-enable
+		/* Fast AGC - Unlocking the Gain */
+		/* 0 = MAX Gain, 1 = Optimized Gain, 2 = Set Gain */
+	0,		//fagc_gain_index_type_after_exit_rx_mode ***  adi,fagc-gain-index-type-after-exit-rx-mode
+	1,		//fagc_use_last_lock_level_for_set_gain_en ***  adi,fagc-use-last-lock-level-for-set-gain-enable
+	1,		//fagc_rst_gla_stronger_sig_thresh_exceeded_en ***  adi,fagc-rst-gla-stronger-sig-thresh-exceeded-enable
+	5,		//fagc_optimized_gain_offset ***  adi,fagc-optimized-gain-offset
+	10,		//fagc_rst_gla_stronger_sig_thresh_above_ll ***  adi,fagc-rst-gla-stronger-sig-thresh-above-ll
+	1,		//fagc_rst_gla_engergy_lost_sig_thresh_exceeded_en ***  adi,fagc-rst-gla-engergy-lost-sig-thresh-exceeded-enable
+	1,		//fagc_rst_gla_engergy_lost_goto_optim_gain_en ***  adi,fagc-rst-gla-engergy-lost-goto-optim-gain-enable
+	10,		//fagc_rst_gla_engergy_lost_sig_thresh_below_ll ***  adi,fagc-rst-gla-engergy-lost-sig-thresh-below-ll
+	8,		//fagc_energy_lost_stronger_sig_gain_lock_exit_cnt ***  adi,fagc-energy-lost-stronger-sig-gain-lock-exit-cnt
+	1,		//fagc_rst_gla_large_adc_overload_en ***  adi,fagc-rst-gla-large-adc-overload-enable
+	1,		//fagc_rst_gla_large_lmt_overload_en ***  adi,fagc-rst-gla-large-lmt-overload-enable
+	0,		//fagc_rst_gla_en_agc_pulled_high_en ***  adi,fagc-rst-gla-en-agc-pulled-high-enable
+	0,		//fagc_rst_gla_if_en_agc_pulled_high_mode ***  adi,fagc-rst-gla-if-en-agc-pulled-high-mode
+	64,		//fagc_power_measurement_duration_in_state5 ***  adi,fagc-power-measurement-duration-in-state5
+	/* RSSI Control */
+	1,		//rssi_delay *** adi,rssi-delay
+	1000,	//rssi_duration *** adi,rssi-duration
+	3,		//rssi_restart_mode *** adi,rssi-restart-mode
+	0,		//rssi_unit_is_rx_samples_enable *** adi,rssi-unit-is-rx-samples-enable
+	1,		//rssi_wait *** adi,rssi-wait
+	/* Aux ADC Control */
+	256,	//aux_adc_decimation *** adi,aux-adc-decimation
+	40000000UL,	//aux_adc_rate *** adi,aux-adc-rate
+	/* AuxDAC Control */
+	1,		//aux_dac_manual_mode_enable ***  adi,aux-dac-manual-mode-enable
+	0,		//aux_dac1_default_value_mV ***  adi,aux-dac1-default-value-mV
+	0,		//aux_dac1_active_in_rx_enable ***  adi,aux-dac1-active-in-rx-enable
+	0,		//aux_dac1_active_in_tx_enable ***  adi,aux-dac1-active-in-tx-enable
+	0,		//aux_dac1_active_in_alert_enable ***  adi,aux-dac1-active-in-alert-enable
+	0,		//aux_dac1_rx_delay_us ***  adi,aux-dac1-rx-delay-us
+	0,		//aux_dac1_tx_delay_us ***  adi,aux-dac1-tx-delay-us
+	0,		//aux_dac2_default_value_mV ***  adi,aux-dac2-default-value-mV
+	0,		//aux_dac2_active_in_rx_enable ***  adi,aux-dac2-active-in-rx-enable
+	0,		//aux_dac2_active_in_tx_enable ***  adi,aux-dac2-active-in-tx-enable
+	0,		//aux_dac2_active_in_alert_enable ***  adi,aux-dac2-active-in-alert-enable
+	0,		//aux_dac2_rx_delay_us ***  adi,aux-dac2-rx-delay-us
+	0,		//aux_dac2_tx_delay_us ***  adi,aux-dac2-tx-delay-us
+	/* Temperature Sensor Control */
+	256,	//temp_sense_decimation *** adi,temp-sense-decimation
+	1000,	//temp_sense_measurement_interval_ms *** adi,temp-sense-measurement-interval-ms
+	0xCE,	//temp_sense_offset_signed *** adi,temp-sense-offset-signed
+	1,		//temp_sense_periodic_measurement_enable *** adi,temp-sense-periodic-measurement-enable
+	/* Control Out Setup */
+	0xFF,	//ctrl_outs_enable_mask *** adi,ctrl-outs-enable-mask
+	0,		//ctrl_outs_index *** adi,ctrl-outs-index
+	/* External LNA Control */
+	0,		//elna_settling_delay_ns *** adi,elna-settling-delay-ns
+	0,		//elna_gain_mdB *** adi,elna-gain-mdB
+	0,		//elna_bypass_loss_mdB *** adi,elna-bypass-loss-mdB
+	0,		//elna_rx1_gpo0_control_enable *** adi,elna-rx1-gpo0-control-enable
+	0,		//elna_rx2_gpo1_control_enable *** adi,elna-rx2-gpo1-control-enable
+	/* Digital Interface Control */
+	1,		//pp_tx_swap_enable *** adi,pp-tx-swap-enable
+	1,		//pp_rx_swap_enable *** adi,pp-rx-swap-enable
+	0,		//tx_channel_swap_enable *** adi,tx-channel-swap-enable
+	0,		//rx_channel_swap_enable *** adi,rx-channel-swap-enable
+	1,		//rx_frame_pulse_mode_enable *** adi,rx-frame-pulse-mode-enable
+	1,		//two_t_two_r_timing_enable *** adi,2t2r-timing-enable
+	0,		//invert_data_bus_enable *** adi,invert-data-bus-enable
+	0,		//invert_data_clk_enable *** adi,invert-data-clk-enable
+	0,		//fdd_alt_word_order_enable *** adi,fdd-alt-word-order-enable
+	0,		//invert_rx_frame_enable *** adi,invert-rx-frame-enable
+	0,		//fdd_rx_rate_2tx_enable *** adi,fdd-rx-rate-2tx-enable
+	0,		//swap_ports_enable *** adi,swap-ports-enable
+	0,		//single_data_rate_enable *** adi,single-data-rate-enable
+	1,		//lvds_mode_enable *** adi,lvds-mode-enable
+	0,		//half_duplex_mode_enable *** adi,half-duplex-mode-enable
+	0,		//single_port_mode_enable *** adi,single-port-mode-enable
+	0,		//full_port_enable *** adi,full-port-enable
+	0,		//full_duplex_swap_bits_enable *** adi,full-duplex-swap-bits-enable
+	0,		//delay_rx_data *** adi,delay-rx-data
+	0,		//rx_data_clock_delay *** adi,rx-data-clock-delay
+	4,		//rx_data_delay *** adi,rx-data-delay
+	7,		//tx_fb_clock_delay *** adi,tx-fb-clock-delay
+	0,		//tx_data_delay *** adi,tx-data-delay
+	150,	//lvds_bias_mV *** adi,lvds-bias-mV
+	1,		//lvds_rx_onchip_termination_enable *** adi,lvds-rx-onchip-termination-enable
+	0,		//rx1rx2_phase_inversion_en *** adi,rx1-rx2-phase-inversion-enable
+	/* Tx Monitor Control */
+	37000,	//low_high_gain_threshold_mdB *** adi,txmon-low-high-thresh
+	0,		//low_gain_dB *** adi,txmon-low-gain
+	24,		//high_gain_dB *** adi,txmon-high-gain
+	0,		//tx_mon_track_en *** adi,txmon-dc-tracking-enable
+	0,		//one_shot_mode_en *** adi,txmon-one-shot-mode-enable
+	511,	//tx_mon_delay *** adi,txmon-delay
+	8192,	//tx_mon_duration *** adi,txmon-duration
+	2,		//tx1_mon_front_end_gain *** adi,txmon-1-front-end-gain
+	2,		//tx2_mon_front_end_gain *** adi,txmon-2-front-end-gain
+	48,		//tx1_mon_lo_cm *** adi,txmon-1-lo-cm
+	48,		//tx2_mon_lo_cm *** adi,txmon-2-lo-cm
+	/* GPIO definitions */
+	-1,		//gpio_resetb;	/* reset-gpios */
+	/* MCS Sync */
+	-1,		//gpio_sync;		/* sync-gpios */
+	-1,		//gpio_cal_sw1;	/* cal-sw1-gpios */
+	-1		//gpio_cal_sw2;	/* cal-sw2-gpios */
+};
+
+const AD9361_RXFIRConfig rx_fir_config = {
+	3, // rx;
+	0, // rx_gain;
+	1, // rx_dec;
+	{0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 -4, -6, -37, 35, 186, 86, -284, 315,
+	 107, 219, -4, 271, 558, -307, -1182, -356,
+	 658, 157, 207, 1648, 790, -2525, -2553, 748,
+	 865, -476, 3737, 6560, -3583, -14731, -5278, 14819,
+	 14819, -5278, -14731, -3583, 6560, 3737, -476, 865,
+	 748, -2553, -2525, 790, 1648, 207, 157, 658,
+	 -356, -1182, -307, 558, 271, -4, 219, 107,
+	 -315, -284, 86, 186, 35, -37, -6, -4,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0} // rx_coef[128];
+};
+
+const AD9361_TXFIRConfig tx_fir_config = {
+	3, // tx;
+	-6, // tx_gain;
+	1, // tx_inc;
+	{0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 -4, -6, -37, 35, 186, 86, -284, 315,
+	 107, 219, -4, 271, 558, -307, -1182, -356,
+	 658, 157, 207, 1648, 790, -2525, -2553, 748,
+	 865, -476, 3737, 6560, -3583, -14731, -5278, 14819,
+	 14819, -5278, -14731, -3583, 6560, 3737, -476, 865,
+	 748, -2553, -2525, 790, 1648, 207, 157, 658,
+	 -356, -1182, -307, 558, 271, -4, 219, 107,
+	 -315, -284, 86, 186, 35, -37, -6, -4,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0,
+	 0, 0, 0, 0, 0, 0, 0, 0} // tx_coef[128];
+};
+
+
 
 static const char *ad9361_ensm_states[] = {
 	"sleep", "", "", "", "", "alert", "tx", "tx flush",
 	"rx", "rx_flush", "fdd", "fdd_flush"
 };
+
+struct ad9361_rf_phy ad9361_rf_phy;
+struct ad9361_rf_phy *ad9361_phy = &ad9361_rf_phy;
+
 
 /**
  * SPI multiple bytes register read.
@@ -299,6 +551,7 @@ int32_t ad9361_reset(struct ad9361_rf_phy *phy)
  */
 static int32_t ad9361_hdl_loopback(struct ad9361_rf_phy *phy, bool enable)
 {
+#if 0
 	struct axiadc_converter *conv = phy->adc_conv;
 	struct axiadc_state *st = phy->adc_state;
 	int32_t reg, chan;
@@ -321,6 +574,9 @@ static int32_t ad9361_hdl_loopback(struct ad9361_rf_phy *phy, bool enable)
 	}
 
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 /**
@@ -445,7 +701,7 @@ int32_t ad9361_bist_tone(struct ad9361_rf_phy *phy,
 
 	return ad9361_spi_write(phy->spi, REG_BIST_CONFIG, reg);
 }
-
+#if 0
 /**
  * Digital interface timing analysis.
  * @param phy The AD9361 state structure.
@@ -511,7 +767,7 @@ static ssize_t ad9361_dig_interface_timing_analysis(struct ad9361_rf_phy *phy,
 
 	return len;
 }
-
+#endif
 /**
  * Check the calibration done bit.
  * @param phy The AD9361 state structure.
@@ -531,7 +787,7 @@ static int32_t ad9361_check_cal_done(struct ad9361_rf_phy *phy, uint32_t reg,
 		if (state == done_state)
 			return 0;
 
-		msleep_interruptible(1);
+		platform_msleep_interruptible(1);
 	} while (timeout--);
 
 	dev_err(&phy->spi->dev, "Calibration TIMEOUT (0x%X, 0x%X)", reg, mask);
@@ -833,7 +1089,7 @@ static int32_t ad9361_rfpll_vco_init(struct ad9361_rf_phy *phy,
 
 	range = ad9361_rfvco_tableindex(ref_clk);
 
-	dev_dbg(&phy->spi->dev, "%s : vco_freq %llu : ref_clk %lu : range %d",
+	dev_dbg(&phy->spi->dev, "%s : vco_freq %llu : ref_clk %u : range %d",
 		__func__, vco_freq, ref_clk, range);
 
 	do_div(&vco_freq, 1000000UL); /* vco_freq in MHz */
@@ -984,7 +1240,7 @@ struct rf_rx_gain *rx_gain)
 int32_t ad9361_get_rx_gain(struct ad9361_rf_phy *phy,
 	uint32_t rx_id, struct rf_rx_gain *rx_gain)
 {
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	struct spi_device *spi = phy->spi;
 	uint32_t val, idx_reg;
 	uint8_t gain_ctl_shift, rx_enable_mask;
@@ -1056,7 +1312,7 @@ out:
 void ad9361_ensm_force_state(struct ad9361_rf_phy *phy, uint8_t ensm_state)
 {
 	struct spi_device *spi = phy->spi;
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	uint8_t dev_ensm_state;
 	int32_t rc;
 	uint32_t val;
@@ -1130,7 +1386,7 @@ out:
 static void ad9361_ensm_restore_prev_state(struct ad9361_rf_phy *phy)
 {
 	struct spi_device *spi = phy->spi;
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	int32_t rc;
 	uint32_t val;
 
@@ -1194,7 +1450,7 @@ out:
 static int32_t set_split_table_gain(struct ad9361_rf_phy *phy, uint32_t idx_reg,
 struct rf_rx_gain *rx_gain)
 {
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	struct spi_device *spi = phy->spi;
 	int32_t rc = 0;
 
@@ -1245,7 +1501,7 @@ static int32_t set_full_table_gain(struct ad9361_rf_phy *phy, uint32_t idx_reg,
 struct rf_rx_gain *rx_gain)
 {
 	struct spi_device *spi = phy->spi;
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	enum rx_gain_table_name tbl;
 	struct rx_gain_info *gain_info;
 	uint32_t val;
@@ -1290,7 +1546,7 @@ int32_t ad9361_set_rx_gain(struct ad9361_rf_phy *phy,
 	uint32_t rx_id, struct rf_rx_gain *rx_gain)
 {
 	struct spi_device *spi = phy->spi;
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	uint32_t val, idx_reg;
 	uint8_t gain_ctl_shift, ensm_state;
 	int32_t rc = 0;
@@ -1441,7 +1697,7 @@ int32_t ad9361_set_gain_ctrl_mode(struct ad9361_rf_phy *phy,
 		struct rf_gain_ctrl *gain_ctrl)
 {
 	struct spi_device *spi = phy->spi;
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	int32_t rc = 0;
 	uint32_t gain_ctl_shift, mode, dec_pow_meas_dur;
 	uint8_t val;
@@ -1596,7 +1852,7 @@ static int32_t ad9361_rx_adc_setup(struct ad9361_rf_phy *phy, uint32_t bbpll_fre
 	do_div(&tmp, 126906UL * phy->rxbbf_div);
 	bb_bw_Hz = tmp;
 
-	dev_dbg(&phy->spi->dev, "%s : BBBW %lu : ADCfreq %lu",
+	dev_dbg(&phy->spi->dev, "%s : BBBW %u : ADCfreq %u",
 		__func__, bb_bw_Hz, adc_sampl_freq_Hz);
 
 	dev_dbg(&phy->spi->dev, "c3_msb 0x%X : c3_lsb 0x%X : r2346 0x%X : ",
@@ -1624,7 +1880,7 @@ static int32_t ad9361_rx_adc_setup(struct ad9361_rf_phy *phy, uint32_t bbpll_fre
 	}
 
 	do_div(&invrc_tconst_1e6, 1000000000UL);
-#define ULONG_MAX ((1 << 8*sizeof(ulong))-1)
+#define ULONG_MAX (((uint64_t)1 << 8*sizeof(ulong))-1)
 	if (invrc_tconst_1e6 > ULONG_MAX)
 		dev_err(&phy->spi->dev, "invrc_tconst_1e6 > ULONG_MAX");
 
@@ -1639,11 +1895,11 @@ static int32_t ad9361_rx_adc_setup(struct ad9361_rf_phy *phy, uint32_t bbpll_fre
 	min_sqrt_term_1e3 = min_t(uint32_t, 1000U,
 		int_sqrt(maxsnr * scaled_adc_clk_1e6));
 
-	dev_dbg(&phy->spi->dev, "invrc_tconst_1e6 %llu, sqrt_inv_rc_tconst_1e3 %lu",
+	dev_dbg(&phy->spi->dev, "invrc_tconst_1e6 %llu, sqrt_inv_rc_tconst_1e3 %u",
 		invrc_tconst_1e6, sqrt_inv_rc_tconst_1e3);
-	dev_dbg(&phy->spi->dev, "scaled_adc_clk_1e6 %lu, inv_scaled_adc_clk_1e3 %lu",
+	dev_dbg(&phy->spi->dev, "scaled_adc_clk_1e6 %u, inv_scaled_adc_clk_1e3 %u",
 		scaled_adc_clk_1e6, inv_scaled_adc_clk_1e3);
-	dev_dbg(&phy->spi->dev, "tmp_1e3 %lu, sqrt_term_1e3 %lu, min_sqrt_term_1e3 %lu",
+	dev_dbg(&phy->spi->dev, "tmp_1e3 %u, sqrt_term_1e3 %u, min_sqrt_term_1e3 %u",
 		tmp_1e3, sqrt_term_1e3, min_sqrt_term_1e3);
 
 	data[0] = 0;
@@ -1735,7 +1991,7 @@ static int32_t ad9361_rx_tia_calib(struct ad9361_rf_phy *phy, uint32_t bb_bw_Hz)
 	uint8_t reg1E6 = ad9361_spi_read(phy->spi, REG_RX_BBF_R2346);
 	uint8_t reg1DB, reg1DF, reg1DD, reg1DC, reg1DE, temp;
 
-	dev_dbg(&phy->spi->dev, "%s : bb_bw_Hz %lu",
+	dev_dbg(&phy->spi->dev, "%s : bb_bw_Hz %u",
 		__func__, bb_bw_Hz);
 
 	bb_bw_Hz = clamp(bb_bw_Hz, 200000UL, 20000000UL);
@@ -1792,7 +2048,7 @@ static int32_t ad9361_rx_bb_analog_filter_calib(struct ad9361_rf_phy *phy,
 	uint8_t tmp;
 	int32_t ret;
 
-	dev_dbg(&phy->spi->dev, "%s : rx_bb_bw %lu bbpll_freq %lu",
+	dev_dbg(&phy->spi->dev, "%s : rx_bb_bw %u bbpll_freq %u",
 		__func__, rx_bb_bw, bbpll_freq);
 
 	rx_bb_bw = clamp(rx_bb_bw, 200000UL, 28000000UL);
@@ -1845,7 +2101,7 @@ static int32_t ad9361_tx_bb_analog_filter_calib(struct ad9361_rf_phy *phy,
 	uint32_t target, txbbf_div;
 	int32_t ret;
 
-	dev_dbg(&phy->spi->dev, "%s : tx_bb_bw %lu bbpll_freq %lu",
+	dev_dbg(&phy->spi->dev, "%s : tx_bb_bw %u bbpll_freq %u",
 		__func__, tx_bb_bw, bbpll_freq);
 
 	tx_bb_bw = clamp(tx_bb_bw, 625000UL, 20000000UL);
@@ -1887,7 +2143,7 @@ static int32_t ad9361_tx_bb_second_filter_calib(struct ad9361_rf_phy *phy,
 	uint32_t reg_conf, reg_res;
 	int32_t ret, i;
 
-	dev_dbg(&phy->spi->dev, "%s : tx_rf_bw %lu",
+	dev_dbg(&phy->spi->dev, "%s : tx_rf_bw %u",
 		__func__, tx_rf_bw);
 
 	tx_rf_bw = clamp(tx_rf_bw, 1060000UL, 40000000UL);
@@ -1952,7 +2208,7 @@ static int32_t ad9361_txrx_synth_cp_calib(struct ad9361_rf_phy *phy,
 {
 	uint32_t offs = tx ? 0x40 : 0;
 	uint32_t vco_cal_cnt;
-	dev_dbg(&phy->spi->dev, "%s : ref_clk_hz %lu : is_tx %d",
+	dev_dbg(&phy->spi->dev, "%s : ref_clk_hz %u : is_tx %d",
 		__func__, ref_clk_hz, tx);
 
 	ad9361_spi_write(phy->spi, REG_RX_LO_GEN_POWER_MODE + offs, 0x00);
@@ -2071,7 +2327,7 @@ static int32_t ad9361_rf_dc_offset_calib(struct ad9361_rf_phy *phy,
 static int32_t ad9361_tx_quad_calib(struct ad9361_rf_phy *phy,
 	uint32_t bw, int32_t rx_phase)
 {
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	struct spi_device *spi = phy->spi;
 	uint32_t clktf, clkrf;
 	int32_t txnco_word, rxnco_word, ret;
@@ -2088,13 +2344,13 @@ static int32_t ad9361_tx_quad_calib(struct ad9361_rf_phy *phy,
 	clkrf = clk_get_rate(phy, phy->ref_clk_scale[CLKRF_CLK]);
 	clktf = clk_get_rate(phy, phy->ref_clk_scale[CLKTF_CLK]);
 
-	dev_dbg(&phy->spi->dev, "%s : bw %lu clkrf %lu clktf %lu",
+	dev_dbg(&phy->spi->dev, "%s : bw %u clkrf %u clktf %u",
 		__func__, bw, clkrf, clktf);
 
 	txnco_word = DIV_ROUND_CLOSEST(bw * 8, clktf) - 1;
 	txnco_word = clamp_t(int, txnco_word, 0, 3);
 
-	dev_dbg(dev, "Tx NCO frequency: %lu (BW/4: %lu) txnco_word %d",
+	dev_dbg(dev, "Tx NCO frequency: %u (BW/4: %u) txnco_word %d",
 		clktf * (txnco_word + 1) / 32, bw / 4, txnco_word);
 
 	rxnco_word = txnco_word;
@@ -2137,7 +2393,7 @@ static int32_t ad9361_tx_quad_calib(struct ad9361_rf_phy *phy,
 		}
 	}
 	else
-		dev_err(dev, "Unhandled case in %s line %d clkrf %lu clktf %lu",
+		dev_err(dev, "Unhandled case in %s line %d clkrf %u clktf %u",
 		__func__, __LINE__, clkrf, clktf);
 
 
@@ -2325,7 +2581,7 @@ static int32_t ad9361_trx_ext_lo_control(struct ad9361_rf_phy *phy,
 static int32_t ad9361_set_ref_clk_cycles(struct ad9361_rf_phy *phy,
 	uint32_t ref_clk_hz)
 {
-	dev_dbg(&phy->spi->dev, "%s : ref_clk_hz %lu",
+	dev_dbg(&phy->spi->dev, "%s : ref_clk_hz %u",
 		__func__, ref_clk_hz);
 
 	return ad9361_spi_write(phy->spi, REG_REFERENCE_CLOCK_CYCLES,
@@ -3367,7 +3623,7 @@ int32_t ad9361_set_trx_clock_chain(struct ad9361_rf_phy *phy,
 	uint32_t *rx_path_clks,
 	uint32_t *tx_path_clks)
 {
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	int32_t ret, i, j, n;
 
 	dev_dbg(&phy->spi->dev, "%s", __func__);
@@ -3471,7 +3727,7 @@ int32_t ad9361_calculate_rf_clock_chain(struct ad9361_rf_phy *phy,
 	else
 		tx_intdec = phy->tx_fir_int;
 
-	dev_dbg(&phy->spi->dev, "%s: requested rate %lu TXFIR int %d RXFIR dec %d mode %s",
+	dev_dbg(&phy->spi->dev, "%s: requested rate %u TXFIR int %d RXFIR dec %d mode %s",
 		__func__, tx_sample_rate, tx_intdec, rx_intdec,
 		rate_gov ? "Nominal" : "Highest OSR");
 
@@ -3548,12 +3804,12 @@ int32_t ad9361_calculate_rf_clock_chain(struct ad9361_rf_phy *phy,
 	tx_path_clks[CLKTF_FREQ] = tx_path_clks[T1_FREQ] / clk_dividers[index_tx][3];
 	tx_path_clks[TX_SAMPL_FREQ] = tx_path_clks[CLKTF_FREQ] / tx_intdec;
 
-	dev_dbg(&phy->spi->dev, "%s: %lu %lu %lu %lu %lu %lu",
+	dev_dbg(&phy->spi->dev, "%s: %u %u %u %u %u %u",
 		__func__, rx_path_clks[BBPLL_FREQ], rx_path_clks[ADC_FREQ],
 		rx_path_clks[R2_FREQ], rx_path_clks[R1_FREQ],
 		rx_path_clks[CLKRF_FREQ], rx_path_clks[RX_SAMPL_FREQ]);
 
-	dev_dbg(&phy->spi->dev, "%s: %lu %lu %lu %lu %lu %lu",
+	dev_dbg(&phy->spi->dev, "%s: %u %u %u %u %u %u",
 		__func__, tx_path_clks[BBPLL_FREQ], tx_path_clks[ADC_FREQ],
 		tx_path_clks[R2_FREQ], tx_path_clks[R1_FREQ],
 		tx_path_clks[CLKRF_FREQ], tx_path_clks[RX_SAMPL_FREQ]);
@@ -4526,7 +4782,7 @@ static int32_t ad9361_parse_fir(struct ad9361_rf_phy *phy,
  */
 int32_t ad9361_validate_enable_fir(struct ad9361_rf_phy *phy)
 {
-	struct device *dev = &phy->spi->dev;
+//	struct device *dev = &phy->spi->dev;
 	int32_t ret;
 	uint32_t rx[6], tx[6];
 	uint32_t max;
@@ -4581,7 +4837,7 @@ int32_t ad9361_validate_enable_fir(struct ad9361_rf_phy *phy)
 		if (phy->tx_fir_ntaps > max) {
 			dev_err(dev,
 				"%s: Invalid: ratio ADC/2 / TX_SAMPL * 16 > TAPS"
-				"(max %d, adc %lu, tx %lu)",
+				"(max %d, adc %u, tx %u)",
 				__func__, max, rx[ADC_FREQ], tx[TX_SAMPL_FREQ]);
 			return -EINVAL;
 		}
@@ -4959,7 +5215,7 @@ int32_t ad9361_clk_factor_round_rate(struct refclk_scale *clk_priv, uint32_t rat
 int32_t ad9361_clk_factor_set_rate(struct refclk_scale *clk_priv, uint32_t rate,
 	uint32_t parent_rate)
 {
-	dev_dbg(&clk_priv->spi->dev, "%s: Rate %lu Hz Parent Rate %lu Hz",
+	dev_dbg(&clk_priv->spi->dev, "%s: Rate %u Hz Parent Rate %u Hz",
 		__func__, rate, parent_rate);
 
 	if (rate >= parent_rate) {
@@ -5061,7 +5317,7 @@ int32_t ad9361_bbpll_set_rate(struct refclk_scale *clk_priv, uint32_t rate,
 	uint8_t lf_defaults[3] = { 0x35, 0x5B, 0xE8 };
 	uint64_t temp;
 
-	dev_dbg(&spi->dev, "%s: Rate %lu Hz Parent Rate %lu Hz",
+	dev_dbg(&spi->dev, "%s: Rate %u Hz Parent Rate %u Hz",
 		__func__, rate, parent_rate);
 
 	/*
@@ -5189,7 +5445,7 @@ uint32_t ad9361_rfpll_recalc_rate(struct refclk_scale *clk_priv,
 	uint8_t buf[5];
 	uint32_t reg, div_mask, vco_div, profile;
 
-	dev_dbg(&clk_priv->spi->dev, "%s: Parent Rate %lu Hz",
+	dev_dbg(&clk_priv->spi->dev, "%s: Parent Rate %u Hz",
 		__func__, parent_rate);
 
 	switch (clk_priv->source) {
@@ -5264,7 +5520,7 @@ int32_t ad9361_rfpll_set_rate(struct refclk_scale *clk_priv, uint32_t rate,
 	uint32_t reg, div_mask, lock_reg, fract, integer;
 	int32_t vco_div, ret;
 
-	dev_dbg(&clk_priv->spi->dev, "%s: Rate %lu Hz Parent Rate %lu Hz",
+	dev_dbg(&clk_priv->spi->dev, "%s: Rate %u Hz Parent Rate %u Hz",
 		__func__, rate, parent_rate);
 
 	ad9361_fastlock_prepare(phy, clk_priv->source == TX_RFPLL, 0, false);
@@ -5575,6 +5831,7 @@ static int32_t ad9361_find_opt_delay(uint8_t *field, uint32_t *ret_start)
  */
 static int32_t ad9361_dig_tune(struct ad9361_rf_phy *phy, uint32_t max_freq)
 {
+#if 0
 	struct axiadc_converter *conv = phy->adc_conv;
 	struct axiadc_state *st = phy->adc_state;
 	int32_t ret, i, j, k, chan, t, num_chan, err = 0;
@@ -5725,10 +5982,10 @@ static int32_t ad9361_dig_tune(struct ad9361_rf_phy *phy, uint32_t max_freq)
 			return err;
 		}
 	}
-
+#endif
 	return -EINVAL;
 }
-
+#if 0
 /**
 * Setup the AD9361 device.
 * @param phy The AD9361 state structure.
@@ -5776,3 +6033,4 @@ int32_t ad9361_post_setup(struct ad9361_rf_phy *phy)
 		phy->pdata->rx_path_clks,
 		phy->pdata->tx_path_clks);
 }
+#endif

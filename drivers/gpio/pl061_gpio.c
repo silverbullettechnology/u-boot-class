@@ -18,16 +18,17 @@ static int gpio_direction(unsigned gpio,
 			  enum gpio_direction direction)
 {
 	struct gpio_regs *regs = (struct gpio_regs *)CONFIG_GPIO_BASE;
-	u32 val;
+	u32 val,addr;
 
-	val = readl(&regs->gpiodir);
+	addr = (u32)&regs->gpiodir;
+	val = readl(addr);
 
 	if (direction == GPIO_DIRECTION_OUT)
 		val |= 1 << gpio;
 	else
 		val &= ~(1 << gpio);
-
-	writel(val, &regs->gpiodir);
+	addr = (u32)&regs->gpiodir;
+	writel(val, addr);
 
 	return 0;
 }
@@ -35,8 +36,8 @@ static int gpio_direction(unsigned gpio,
 int gpio_set_value(unsigned gpio, int value)
 {
 	struct gpio_regs *regs = (struct gpio_regs *)CONFIG_GPIO_BASE;
-
-	writel(1 << gpio, &regs->gpiodata[DATA_REG_ADDR(gpio)]);
+	u32 addr = (u32)&regs->gpiodata[DATA_REG_ADDR(gpio)];
+	writel(1 << gpio, addr);
 
 	return 0;
 }
@@ -44,18 +45,20 @@ int gpio_set_value(unsigned gpio, int value)
 int gpio_get_value(unsigned gpio)
 {
 	struct gpio_regs *regs = (struct gpio_regs *)CONFIG_GPIO_BASE;
-	u32 val;
+	u32 val, addr;
 
-	val = readl(&regs->gpiodata[DATA_REG_ADDR(gpio)]);
+	addr = (u32)&regs->gpiodata[DATA_REG_ADDR(gpio)];
+	val = readl(addr);
 
 	return !!val;
 }
 
 int gpio_request(unsigned gpio, const char *label)
 {
-	int ret, bank, io;
+	int ret, bank;
+//	int io;
 
-	io = gpio % PINS_PER_BANK;
+//	io = gpio % PINS_PER_BANK;
 	bank = gpio / PINS_PER_BANK;
 
 	switch(bank){

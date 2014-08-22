@@ -42,7 +42,55 @@
 /******************************************************************************/
 #include <common.h>
 #include <exports.h>
+#include <linux/ctype.h>
 #include <ad9361/console.h>
+/*
+ * This one doesn't check for bad syntax or overflow,
+ * and is slow and inaccurate.
+ * But it's good enough for the occasional string literal...
+ */
+
+static
+double atof(const char *s)
+{
+	double a = 0.0;
+	int e = 0;
+	int c;
+	while ((c = *s++) != '\0' && isdigit(c)) {
+		a = a*10.0 + (c - '0');
+	}
+	if (c == '.') {
+		while ((c = *s++) != '\0' && isdigit(c)) {
+			a = a*10.0 + (c - '0');
+			e = e-1;
+		}
+	}
+	if (c == 'e' || c == 'E') {
+		int sign = 1;
+		int i = 0;
+		c = *s++;
+		if (c == '+')
+			c = *s++;
+		else if (c == '-') {
+			c = *s++;
+			sign = -1;
+		}
+		while (isdigit(c)) {
+			i = i*10 + (c - '0');
+			c = *s++;
+		}
+		e += i*sign;
+	}
+	while (e > 0) {
+		a *= 10.0;
+		e--;
+	}
+	while (e < 0) {
+		a *= 0.1;
+		e++;
+	}
+	return a;
+}
 
 /***************************************************************************//**
  * @brief Initializes the UART communication peripheral. If the value of the
@@ -138,9 +186,8 @@ char *int_to_str(long number, char base)
 	{
 		*buffer_ptr-- = '-';
 	}
-	*buffer_ptr++;
 
-	return buffer_ptr;
+	return buffer_ptr++;
 }
 
 /***************************************************************************//**
