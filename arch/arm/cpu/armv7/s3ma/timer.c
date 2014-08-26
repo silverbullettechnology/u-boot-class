@@ -56,7 +56,7 @@ static inline void read_timer_count(uint32_t* high_word_p, uint32_t* low_word_p)
 	 * If the value is different to the 32-bit upper value read previously,
 	 * go back to step 2. Otherwise the 64-bit timer counter value is correct.
 	 */
-	GTIMER_PTR gt = (GTIMER_PTR)(GT_CNTR_L);
+	GTIMER_PTR gt = (GTIMER_PTR)(GTIMER0_ABSOLUTE_BASE);
 	uint32_t high;
 	uint32_t low;
 
@@ -91,7 +91,7 @@ int timer_init(void)
 	gd->arch.tbu = 0;
 #endif
 	uint32_t upper,lower;
-	GTIMER_PTR gt = (GTIMER_PTR)(GT_CNTR_L);
+	GTIMER_PTR gt = (GTIMER_PTR)(GTIMER0_ABSOLUTE_BASE);
 
 	/* Reset and turn Global Timer off */
 	writel(GT_CNTL_REG_RESET, &gt->ctl);
