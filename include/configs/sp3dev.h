@@ -17,7 +17,7 @@
 /* Custom build options for debugging  */
 
 //#define CONFIG_DEBUG_BUILD
-//#define CONFIG_RUN_ON_QEMU
+#define CONFIG_RUN_ON_QEMU
 
 /***********************/
 
@@ -46,11 +46,7 @@
 #define CONFIG_PERIPHCLK_HZ			(CONFIG_CPU_CLK_HZ/4)
 
 /* Size of malloc() pool */
-#if 0
-#define CONFIG_SYS_MALLOC_LEN		(10 * 1024 * 1024)
-#else
 #define CONFIG_SYS_MALLOC_LEN		(64 * 1024)
-#endif
 
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_MISC_INIT_R

@@ -12,6 +12,8 @@
 #include <common.h>
 #include <command.h>
 #include <spi.h>
+#include <malloc.h>
+#include <linux/string.h>
 #include <ad9361/command.h>
 #include <ad9361/console.h>
 
@@ -56,7 +58,8 @@ int do_ad9361 (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	struct spi_slave *slave;
 	char  *cp = 0;
 	uchar tmp;
-	int   j;
+	char  *command_line = NULL;
+	int   i,len;
 	int   rcode = 0;
 	int   cmd = 0;
 	int   invalid_cmd = 0;
@@ -71,22 +74,64 @@ int do_ad9361 (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 	if ((flag & CMD_FLAG_REPEAT) == 0)
 	{
-		if (argc >= 2) {
+
+
+		if (argc > 2){
 			mode = CONFIG_DEFAULT_SPI_MODE;
 			bus = simple_strtoul(argv[1], &cp, 10);
+			/*
+			 * Allocate space for command line
+			 */
+			len = 0;
+
+			for(i = 2; i < argc; i++)
+			{
+				len += strlen(argv[i]);
+			}
+
+			command_line = calloc(len+argc, sizeof(char));
+			if(!command_line){
+				printf("%s - Memory allocation failed!!!\n",argv[0]);
+				return 1;
+			}
+
+			len = 0;
+			for(i = 2; i < argc; i++)
+			{
+				strcat(command_line,argv[i]);
+				strcat(command_line," ");
+			}
+
+		}
+		else if(argc == 2){
+			len = strlen(argv[1]);
+			command_line = calloc(len+argc, sizeof(char));
+			if(!command_line){
+				printf("%s - Memory allocation failed!!!\n",argv[0]);
+				return 1;
+			}
+			strcat(command_line, argv[1]);
+
+		}
+		else{
+			len = strlen("help?");
+			command_line = calloc(len+argc, sizeof(char));
+			if(!command_line){
+				printf("%s - Memory allocation failed!!!\n",argv[0]);
+				return 1;
+			}
+			strcat(command_line, "help?");
+
 		}
 
-		if (argc >= 3){
-			printf("Too many parameters\n");
-			return 1;
-		}
+		strcat(command_line, "\n");
 
 		invalid_cmd = 0;
 		for(cmd = 0; cmd < cmd_no; cmd++)
 		{
 			param_no = 0;
-			cmd_type = console_check_commands(argv[2], cmd_list[cmd].name,
-											  param, &param_no);
+			cmd_type = console_check_commands(command_line, cmd_list[cmd].name,
+												param, &param_no);
 			if(cmd_type == UNKNOWN_CMD)
 			{
 				invalid_cmd++;
@@ -94,15 +139,19 @@ int do_ad9361 (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			else
 			{
 				cmd_list[cmd].function(param, param_no);
+				break;
 			}
 		}
+
 		if(invalid_cmd == cmd_no)
 		{
-			printf("Invalid ad9361 command %s\n", argv[2]);
-			return 1;
+			printf("Invalid ad9361 command: %s\n", command_line);
+			rcode = 1;
 		}
 
 	}
+
+	if(0 == rcode){
 #if 0
 	slave = spi_setup_slave(bus, cs, 1000000, mode);
 	if (!slave) {
@@ -124,6 +173,10 @@ int do_ad9361 (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	spi_release_bus(slave);
 	spi_free_slave(slave);
 #endif
+	}
+
+	if(command_line)
+		free(command_line);
 	return rcode;
 }
 
