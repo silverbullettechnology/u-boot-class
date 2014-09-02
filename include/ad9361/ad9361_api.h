@@ -267,7 +267,7 @@ typedef struct
 /************************ Functions Declarations ******************************/
 /******************************************************************************/
 /* Initialize the AD9361 part. */
-struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param);
+struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param, struct spi_device * spi_dev);
 /* Set the Enable State Machine (ENSM) mode. */
 int32_t ad9361_set_en_state_machine_mode (struct ad9361_rf_phy *phy, uint32_t mode);
 /* Get the Enable State Machine (ENSM) mode. */
@@ -338,4 +338,10 @@ int32_t ad9361_get_tx_fir_en_dis (struct ad9361_rf_phy *phy, uint8_t *en_dis);
 int32_t ad9361_set_trx_path_clks(struct ad9361_rf_phy *phy, uint32_t *rx_path_clks, uint32_t *tx_path_clks);
 /* Get the RX and TX path rates. */
 int32_t ad9361_get_trx_path_clks(struct ad9361_rf_phy *phy, uint32_t *rx_path_clks, uint32_t *tx_path_clks);
+
+/******************************************************************************/
+/************************ Constants and variables ******************************/
+/******************************************************************************/
+extern const AD9361_InitParam default_init_param;
+
 #endif

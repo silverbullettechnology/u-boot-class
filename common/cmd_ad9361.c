@@ -14,6 +14,8 @@
 #include <spi.h>
 #include <malloc.h>
 #include <linux/string.h>
+#include <ad9361/ad9361.h>
+#include <ad9361/ad9361_api.h>
 #include <ad9361/command.h>
 #include <ad9361/console.h>
 
@@ -35,12 +37,18 @@
 /*
  * Values from last command.
  */
-static unsigned int	bus = 0;
-static unsigned int	cs = 0;
-static unsigned int	mode = 0;
+static unsigned int bus = 0;
+static unsigned int cs = 0;
+static unsigned int mode = 0;
 //static int   		bitlen;
 //static uchar 		dout[MAX_SPI_BYTES];
 //static uchar 		din[MAX_SPI_BYTES];
+
+static struct ad9361_rf_phy* ad9361_phy_table[CONFIG_AD9361_MAX_DEVICE] = {
+NULL,
+NULL,
+NULL,
+NULL };
 
 /*
  * SPI read/write
@@ -53,30 +61,27 @@ static unsigned int	mode = 0;
  * The command prints out the hexadecimal string received via SPI.
  */
 
-int do_ad9361 (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
-{
+int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 	struct spi_slave *slave;
-	char  *cp = 0;
+	char *cp = 0;
 	uchar tmp;
-	char  *command_line = NULL;
-	int   i,len;
-	int   rcode = 0;
-	int   cmd = 0;
-	int   invalid_cmd = 0;
-	double				param[5]		 = {0, 0, 0, 0, 0};
-	char				param_no		 =  0;
-	int					cmd_type		 = -1;
+	char *command_line = NULL;
+	int i, len;
+	int rcode = 0;
+	int cmd = 0;
+	int invalid_cmd = 0;
+	double param[5] = { 0, 0, 0, 0, 0 };
+	char param_no = 0;
+	int cmd_type = -1;
 
 	/*
 	 * We use the last specified parameters, unless new ones are
 	 * entered.
 	 */
 
-	if ((flag & CMD_FLAG_REPEAT) == 0)
-	{
+	if ((flag & CMD_FLAG_REPEAT) == 0) {
 
-
-		if (argc > 2){
+		if (argc > 2) {
 			mode = CONFIG_DEFAULT_SPI_MODE;
 			bus = simple_strtoul(argv[1], &cp, 10);
 			/*
@@ -84,40 +89,36 @@ int do_ad9361 (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			 */
 			len = 0;
 
-			for(i = 2; i < argc; i++)
-			{
+			for (i = 2; i < argc; i++) {
 				len += strlen(argv[i]);
 			}
 
-			command_line = calloc(len+argc, sizeof(char));
-			if(!command_line){
-				printf("%s - Memory allocation failed!!!\n",argv[0]);
+			command_line = calloc(len + argc, sizeof(char));
+			if (!command_line) {
+				printf("%s - Memory allocation failed!!!\n", argv[0]);
 				return 1;
 			}
 
 			len = 0;
-			for(i = 2; i < argc; i++)
-			{
-				strcat(command_line,argv[i]);
-				strcat(command_line," ");
+			for (i = 2; i < argc; i++) {
+				strcat(command_line, argv[i]);
+				strcat(command_line, " ");
 			}
 
-		}
-		else if(argc == 2){
+		} else if (argc == 2) {
 			len = strlen(argv[1]);
-			command_line = calloc(len+argc, sizeof(char));
-			if(!command_line){
-				printf("%s - Memory allocation failed!!!\n",argv[0]);
+			command_line = calloc(len + argc, sizeof(char));
+			if (!command_line) {
+				printf("%s - Memory allocation failed!!!\n", argv[0]);
 				return 1;
 			}
 			strcat(command_line, argv[1]);
 
-		}
-		else{
+		} else {
 			len = strlen("help?");
-			command_line = calloc(len+argc, sizeof(char));
-			if(!command_line){
-				printf("%s - Memory allocation failed!!!\n",argv[0]);
+			command_line = calloc(len + argc, sizeof(char));
+			if (!command_line) {
+				printf("%s - Memory allocation failed!!!\n", argv[0]);
 				return 1;
 			}
 			strcat(command_line, "help?");
@@ -126,67 +127,68 @@ int do_ad9361 (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		strcat(command_line, "\n");
 
-		invalid_cmd = 0;
-		for(cmd = 0; cmd < cmd_no; cmd++)
-		{
-			param_no = 0;
-			cmd_type = console_check_commands(command_line, cmd_list[cmd].name,
-												param, &param_no);
-			if(cmd_type == UNKNOWN_CMD)
-			{
-				invalid_cmd++;
-			}
-			else
-			{
-				cmd_list[cmd].function(param, param_no);
-				break;
-			}
-		}
+		/*
+		 * Init AD9361 chip if needed
+		 */
 
-		if(invalid_cmd == cmd_no)
-		{
-			printf("Invalid ad9361 command: %s\n", command_line);
+		if (bus >= CONFIG_AD9361_MAX_DEVICE) {
+			printf("Invalid RFIC: %d\n", bus);
 			rcode = 1;
+		} else {
+			invalid_cmd = 0;
+			for (cmd = 0; cmd < cmd_no; cmd++) {
+				param_no = 0;
+				cmd_type = console_check_commands(command_line,
+						cmd_list[cmd].name, param, &param_no);
+				if (cmd_type == UNKNOWN_CMD) {
+					invalid_cmd++;
+				} else {
+					break;
+				}
+			}
+
+			if (invalid_cmd == cmd_no) {
+				printf("Invalid ad9361 command: %s\n", command_line);
+				rcode = 1;
+			}
+
+		}
+	}
+
+	if (0 == rcode) {
+
+		slave = spi_setup_slave(bus, cs, 1000000, mode);
+		if (!slave) {
+			printf("Invalid device %d:%d\n", bus, cs);
+			rcode = 1;
+		} else {
+
+			spi_claim_bus(slave);
+			/*
+			 * Init RFIC if needed
+			 */
+			if (NULL != ad9361_phy_table[bus]) {
+				ad9361_phy_table[bus] = ad9361_init(&default_init_param,
+						(struct spi_device*) slave);
+			} else {
+				ad9361_phy_table[bus]->spi = (struct spi_device*) slave;
+			}
+
+			cmd_list[cmd].function(param, param_no);
+
+			spi_release_bus(slave);
+			spi_free_slave(slave);
+
 		}
 
 	}
 
-	if(0 == rcode){
-#if 0
-	slave = spi_setup_slave(bus, cs, 1000000, mode);
-	if (!slave) {
-		printf("Invalid device %d:%d\n", bus, cs);
-		return 1;
-	}
-
-	spi_claim_bus(slave);
-	if(spi_xfer(slave, bitlen, dout, din,
-				SPI_XFER_BEGIN | SPI_XFER_END) != 0) {
-		printf("Error during SPI transaction\n");
-		rcode = 1;
-	} else {
-		for(j = 0; j < ((bitlen + 7) / 8); j++) {
-			printf("%02X", din[j]);
-		}
-		printf("\n");
-	}
-	spi_release_bus(slave);
-	spi_free_slave(slave);
-#endif
-	}
-
-	if(command_line)
+	if (command_line)
 		free(command_line);
 	return rcode;
 }
 
 /***************************************************/
 
-U_BOOT_CMD(
-	ad9361,	2,	1,	do_ad9361,
-	"AD9361 utility command",
-	"[<RFIC no>] <command> - Send and receive commands\n"
-	"<RFIC no>             - Identifies the AD9361 IC number\n"
-	"<command>             - Identifies the command\n"
-	"Type ad9361 help!       for available commands\n"
-);
+U_BOOT_CMD(ad9361, 2, 1, do_ad9361, "AD9361 utility command",
+		"[<RFIC no>] <command> - Send and receive commands\n" "<RFIC no>             - Identifies the AD9361 IC number\n" "<command>             - Identifies the command\n" "Type ad9361 help!       for available commands\n");

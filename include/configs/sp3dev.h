@@ -452,7 +452,7 @@
  * AD9361
  */
 #define CONFIG_AD9361
-
+#define CONFIG_AD9361_MAX_DEVICE 4
 /*
  * Standalone applications
  */
