@@ -42,6 +42,7 @@
 /******************************************************************************/
 //#include "stdint.h"
 #include <common.h>
+#include <spi.h>
 #include <asm/gpio.h>
 #include <ad9361/platform.h>
 #include <ad9361/util.h>
@@ -81,7 +82,16 @@ int platform_spi_write_then_read(struct spi_device *spi,
 		const unsigned char *txbuf, unsigned n_tx,
 		unsigned char *rxbuf, unsigned n_rx)
 {
-	return 0;
+	int rcode = 0;
+	struct spi_slave * slave = (struct spi_slave *)spi;
+
+	if(0 != spi_xfer(slave, n_tx*sizeof(*txbuf), txbuf, rxbuf,
+					SPI_XFER_BEGIN | SPI_XFER_END))
+	{
+		rcode = 1;
+	}
+
+	return rcode;
 }
 
 /***************************************************************************//**
