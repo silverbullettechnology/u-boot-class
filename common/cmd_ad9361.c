@@ -170,9 +170,13 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 			if (NULL != ad9361_phy_table[bus]) {
 				ad9361_phy_table[bus] = ad9361_init(&default_init_param,
 						(struct spi_device*) slave);
-			} else {
-				ad9361_phy_table[bus]->spi = (struct spi_device*) slave;
+				/* Initialize RESETB pin */
+				ad9361_phy_table[bus]->pdata->gpio_resetb = RESETB0_BITMASK << (bus * 8);
+
 			}
+
+			/* Initialize spi device pointer */
+			ad9361_phy_table[bus]->spi = (struct spi_device*) slave;
 
 			cmd_list[cmd].function(param, param_no);
 

@@ -43,8 +43,10 @@
 //#include "stdint.h"
 #include <common.h>
 #include <spi.h>
+#include <asm/io.h>
 #include <asm/gpio.h>
 #include <ad9361/platform.h>
+#include <ad9361/ad9361_api.h>
 #include <ad9361/util.h>
 
 
@@ -107,14 +109,6 @@ void platform_gpio_init(uint32_t device_id)
 *******************************************************************************/
 void platform_gpio_direction(uint8_t pin, uint8_t direction)
 {
-	if(0 == gpio_request(pin, NULL))
-	{
-		if(1 == direction)
-			gpio_direction_output(pin, 0);
-		else
-			gpio_direction_input(pin);
-
-	}
 
 }
 
@@ -123,7 +117,7 @@ void platform_gpio_direction(uint8_t pin, uint8_t direction)
 *******************************************************************************/
 bool platform_gpio_is_valid(int number)
 {
-	if(0 == gpio_request(number, NULL))
+	if(-1 != number)
 		return 1;
 	else
 		return 0;
@@ -133,7 +127,6 @@ bool platform_gpio_is_valid(int number)
 *******************************************************************************/
 void platform_gpio_data(uint8_t pin, uint8_t data)
 {
-	gpio_set_value(pin, data);
 }
 
 /***************************************************************************//**
@@ -141,7 +134,13 @@ void platform_gpio_data(uint8_t pin, uint8_t data)
 *******************************************************************************/
 void platform_gpio_set_value(unsigned gpio, int value)
 {
-	platform_gpio_data(gpio, value);
+	if(0 == value){
+		writel(gpio, (RF_CONTROL_RESET));
+	}
+	else{
+		writel(gpio, (RF_CONTROL_SET));
+
+	}
 }
 
 /***************************************************************************//**
