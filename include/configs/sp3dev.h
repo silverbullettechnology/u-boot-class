@@ -457,6 +457,6 @@
  * Standalone applications
  */
 
-#define CONFIG_STANDALONE_LOAD_ADDR		0x80000000
+#define CONFIG_STANDALONE_LOAD_ADDR		0x8000000
 #define CONFIG_API
 #endif	       /* __CONFIG_H */

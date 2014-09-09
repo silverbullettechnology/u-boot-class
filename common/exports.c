@@ -1,6 +1,10 @@
 #include <common.h>
 #include <exports.h>
 #include <spi.h>
+#ifdef CONFIG_AD9361
+#include <ad9361/ad9361.h>
+#include <ad9361/ad9361_api.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -34,6 +38,11 @@ unsigned long get_version(void)
 # define spi_claim_bus     dummy
 # define spi_release_bus   dummy
 # define spi_xfer          dummy
+#endif
+#ifndef CONFIG_AD9361
+#define ad9361_init				  dummy
+#define ad9361_reset              dummy
+#define ad9361_bist_loopback      dummy
 #endif
 
 void jumptable_init(void)
