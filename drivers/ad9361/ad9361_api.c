@@ -357,6 +357,9 @@ struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param, struct spi_devi
 	/* SPI interface */
 	phy->spi = spi_dev;
 
+	if(NULL == init_param)
+		init_param = &default_init_param;
+
 	/* Base Configuration */
 	phy->pdata->fdd = init_param->frequency_division_duplex_mode_enable;
 	phy->pdata->rx2tx2 = init_param->two_rx_two_tx_mode_enable;

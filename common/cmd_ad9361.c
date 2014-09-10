@@ -73,7 +73,7 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 	double param[5] = { 0, 0, 0, 0, 0 };
 	char param_no = 0;
 	int cmd_type = -1;
-
+	AD9361_InitParam * init_param_ptr = NULL;
 	/*
 	 * We use the last specified parameters, unless new ones are
 	 * entered.
@@ -167,21 +167,36 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 			/*
 			 * Init RFIC if needed
 			 */
-			if (NULL != ad9361_phy_table[bus]) {
-				ad9361_phy_table[bus] = ad9361_init(&default_init_param,
-						(struct spi_device*) slave);
-				/* Initialize RESETB pin */
-				ad9361_phy_table[bus]->pdata->gpio_resetb = RESETB0_BITMASK << (bus * 8);
+			if (NULL == ad9361_phy_table[bus]) {
+				if(init_param_ptr = malloc(sizeof(AD9361_InitParam)))
+				{
+					memcpy(init_param_ptr, &default_init_param, sizeof(AD9361_InitParam));
 
+					/* Initialize RESETB pin */
+					init_param_ptr->gpio_resetb = RESETB0_BITMASK << (bus * 8);
+
+					ad9361_phy_table[bus] = ad9361_init(init_param_ptr,
+							(struct spi_device*) slave);
+					free(init_param_ptr);
+
+
+				}
+				else{
+					rcode = 1;
+				}
+			}
+			else{
+				ad9361_phy_table[bus]->spi = (struct spi_device*)slave;
 			}
 
-			/* Initialize spi device pointer */
-			ad9361_phy_table[bus]->spi = (struct spi_device*) slave;
+			if(NULL != ad9361_phy_table[bus]){
 
-			cmd_list[cmd].function(param, param_no);
+				cmd_list[cmd].function(param, param_no);
+			}
 
 			spi_release_bus(slave);
 			spi_free_slave(slave);
+
 
 		}
 
@@ -189,6 +204,7 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 
 	if (command_line)
 		free(command_line);
+
 	return rcode;
 }
 
