@@ -36,7 +36,7 @@ int dram_init(void)
 	s3ma_ddr_clock_enable();
 	s3ma_ddr_setup();
 #endif
-	gd->ram_size = ((ulong)CONFIG_S3MA_OCM_RAM_SIZE);
+	gd->ram_size = ((ulong)CONFIG_S3MA_RAM_SIZE);
 
 	return 0;
 }

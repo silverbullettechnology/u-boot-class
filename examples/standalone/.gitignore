@@ -7,5 +7,6 @@
 /smc911x_eeprom
 /test_burst
 /timer
+/ad9361_test
 *.bin
 *.srec
