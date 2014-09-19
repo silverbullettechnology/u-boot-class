@@ -384,6 +384,13 @@ static int setup_dest_addr(void)
 #ifdef CONFIG_SYS_SDRAM_BASE
 	gd->ram_top = CONFIG_SYS_SDRAM_BASE;
 #endif
+#if defined(CONFIG_S3MA) && (CONFIG_POST & CONFIG_SYS_POST_MEMORY)
+	if (!(gd->post_log_res & CONFIG_SYS_POST_MEMORY)){
+		gd->ram_top = CONFIG_S3MA_OCM_RAM_BASE;
+		gd->ram_size = CONFIG_S3MA_OCM_RAM_SIZE;
+		printf("Relocating to OCM\n");
+	}
+#endif
 	gd->ram_top += get_effective_memsize();
 	gd->ram_top = board_get_usable_ram_top(gd->mon_len);
 	gd->relocaddr = gd->ram_top;
@@ -514,9 +521,16 @@ static int reserve_uboot(void)
 /* reserve memory for malloc() area */
 static int reserve_malloc(void)
 {
-	gd->start_addr_sp = gd->start_addr_sp - TOTAL_MALLOC_LEN;
+	int malloc_len = TOTAL_MALLOC_LEN;
+#if defined(CONFIG_S3MA) && (CONFIG_POST & CONFIG_SYS_POST_MEMORY)
+	if (!(gd->post_log_res & CONFIG_SYS_POST_MEMORY)){
+		malloc_len = (CONFIG_SYS_FALLBACK_MALLOC_LEN + CONFIG_ENV_SIZE);
+	}
+
+#endif
+	gd->start_addr_sp = gd->start_addr_sp - malloc_len;
 	debug("Reserving %dk for malloc() at: %08lx\n",
-			TOTAL_MALLOC_LEN >> 10, gd->start_addr_sp);
+			malloc_len >> 10, gd->start_addr_sp);
 	return 0;
 }
 

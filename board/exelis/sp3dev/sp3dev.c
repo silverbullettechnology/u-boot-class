@@ -23,6 +23,9 @@
 #ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
 #include <usb/s3c_udc.h>
 #endif
+#ifdef CONFIG_POST
+#include <post.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -158,7 +161,9 @@ int checkboard(void)
 
 int misc_init_r(void)
 {
-
+#ifdef CONFIG_POST
+	writel(0, (CONFIG_SYS_POST_WORD_ADDR));
+#endif
 	return 0;
 }
 
@@ -178,4 +183,25 @@ void spi_cs_deactivate(struct spi_slave *slave)
 {
 	/* TODO: Add Chip select de-assertion code */
 }
+
+#if (CONFIG_POST & CONFIG_SYS_POST_MEMORY)
+
+int arch_memory_test_prepare(u32 *vstart, u32 *size, phys_addr_t *phys_offset)
+{
+//	bd_t *bd = gd->bd;
+
+	*vstart = CONFIG_SYS_SDRAM_BASE;
+	*size = gd->ram_size;
+	gd->post_log_res |= CONFIG_SYS_POST_MEMORY;
+
+	return 0;
+}
+
+void arch_memory_failure_handle(void)
+{
+	/* Save result in global data structure */
+	gd->post_log_res &= ~CONFIG_SYS_POST_MEMORY;
+	return;
+}
+#endif
 

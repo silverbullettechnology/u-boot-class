@@ -258,11 +258,23 @@ static int initr_barrier(void)
 static int initr_malloc(void)
 {
 	ulong malloc_start;
+#if defined(CONFIG_S3MA) && (CONFIG_POST & CONFIG_SYS_POST_MEMORY)
+	int malloc_len = TOTAL_MALLOC_LEN;
+
+	if (!(gd->post_log_res & CONFIG_SYS_POST_MEMORY)){
+		malloc_len = (CONFIG_SYS_FALLBACK_MALLOC_LEN + CONFIG_ENV_SIZE);
+	}
+
+	malloc_start = gd->relocaddr - malloc_len;
+	mem_malloc_init((ulong)map_sysmem(malloc_start, malloc_len),
+			malloc_len);
+#else
 
 	/* The malloc area is immediately below the monitor copy in DRAM */
 	malloc_start = gd->relocaddr - TOTAL_MALLOC_LEN;
 	mem_malloc_init((ulong)map_sysmem(malloc_start, TOTAL_MALLOC_LEN),
 			TOTAL_MALLOC_LEN);
+#endif
 	return 0;
 }
 
