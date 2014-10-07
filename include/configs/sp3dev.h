@@ -123,7 +123,6 @@
 
 /* USB Configs */
 #if 1
-//#define CONFIG_CMD_USB
 #define CONFIG_USB_GADGET
 #define CONFIG_USB_GADGET_DUALSPEED
 #define CONFIG_USB_GADGET_S3C_UDC_OTG
