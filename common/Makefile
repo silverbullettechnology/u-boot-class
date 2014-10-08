@@ -246,5 +246,6 @@ obj-$(CONFIG_FIT_SIGNATURE) += image-sig.o
 obj-y += memsize.o
 obj-y += stdio.o
 obj-$(CONFIG_AD9361) += cmd_ad9361.o
+obj-$(CONFIG_S3MA) += cmd_uartrx.o
 
 CFLAGS_env_embedded.o := -Wa,--no-warn -DENV_CRC=$(shell tools/envcrc 2>/dev/null)
