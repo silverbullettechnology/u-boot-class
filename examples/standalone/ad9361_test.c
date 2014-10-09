@@ -258,7 +258,8 @@ int ad9361_test (int argc, char * const argv[])
 
 	printf("Using bus %d\n", bus);
 
-	slave = spi_setup_slave(bus, 0, 1000000, CONFIG_DEFAULT_SPI_MODE);
+	/* Data signals launched on the rising edge and sampled on falling edge */
+	slave = spi_setup_slave(bus, 0, 1000000, SPI_MODE_1);
 	if (!slave) {
 		printf("Invalid device %d:%d\n", bus, 0);
 		rcode = 1;
