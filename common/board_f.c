@@ -535,6 +535,9 @@ static int reserve_malloc(void)
 	}
 
 #endif
+#ifdef CONFIG_PALLADIUM
+	malloc_len = (CONFIG_SYS_FALLBACK_MALLOC_LEN + CONFIG_ENV_SIZE);
+#endif
 	gd->start_addr_sp = gd->start_addr_sp - malloc_len;
 	debug("Reserving %dk for malloc() at: %08lx\n",
 			malloc_len >> 10, gd->start_addr_sp);
