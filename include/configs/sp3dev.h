@@ -16,9 +16,9 @@
 
 /* Custom build options for debugging  */
 
-#define CONFIG_DEBUG_BUILD
-#define CONFIG_RUN_ON_QEMU
-
+//#define CONFIG_DEBUG_BUILD
+//#define CONFIG_RUN_ON_QEMU
+#define CONFIG_PALLADIUM
 /***********************/
 
 #define CONFIG_S3MA
@@ -460,8 +460,10 @@
 //#define CONFIG_API
 
 /*  Power-on self test */
+#ifndef CONFIG_PALLADIUM
 #define CONFIG_POST	(CONFIG_SYS_POST_MEMORY)
 #define CONFIG_SYS_POST_WORD_ADDR	(CONFIG_S3MA_OCM_RAM_BASE)
+#endif
 //#define CONFIG_POST_STD_LIST
 
 /* Memory test commands */

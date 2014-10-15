@@ -391,6 +391,13 @@ static int setup_dest_addr(void)
 		printf("Relocating to OCM\n");
 	}
 #endif
+
+#ifdef CONFIG_PALLADIUM
+	gd->ram_top = CONFIG_S3MA_OCM_RAM_BASE;
+	gd->ram_size = CONFIG_S3MA_OCM_RAM_SIZE;
+	printf("Relocating to OCM\n");
+#endif
+
 	gd->ram_top += get_effective_memsize();
 	gd->ram_top = board_get_usable_ram_top(gd->mon_len);
 	gd->relocaddr = gd->ram_top;
