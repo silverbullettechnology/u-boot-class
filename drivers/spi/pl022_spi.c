@@ -164,6 +164,11 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 		ps->regs = (void *)CONFIG_SYS_SPI_BASE3;
 		break;
 #endif
+#ifdef CONFIG_SYS_SPI_BASE4
+	case 4:
+		ps->regs = (void *)CONFIG_SYS_SPI_BASE4;
+		break;
+#endif
 	default:
 		free(ps);
 		return NULL;
