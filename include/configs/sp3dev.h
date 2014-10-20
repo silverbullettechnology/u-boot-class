@@ -15,10 +15,13 @@
 /***********************/
 
 /* Custom build options for debugging  */
-
+#define DEBUG
 //#define CONFIG_DEBUG_BUILD
 //#define CONFIG_RUN_ON_QEMU
 #define CONFIG_PALLADIUM
+#define CONFIG_SYS_ICACHE_OFF
+#define CONFIG_SYS_DCACHE_OFF
+#define CONFIG_SYS_L2CACHE_OFF
 /***********************/
 
 #define CONFIG_S3MA
@@ -385,8 +388,8 @@
 #define CONFIG_SYS_INIT_SP_ADDR \
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
-#define S3MA_L2_PL310_BASE		PL310_L2_ABSOLUTE_BASE
-#define L2_PL310_BASE			S3MA_L2_PL310_BASE
+#define S3MA_L2_PL310_BASE		(PL310_L2_ABSOLUTE_BASE)
+#define L2_PL310_BASE			(S3MA_L2_PL310_BASE)
 
 
 
