@@ -367,7 +367,6 @@ static int setup_dest_addr(void)
 	/*
 	 * Ram is setup, size stored in gd !!
 	 */
-	debug("Ram size: %08lX\n", (ulong)gd->ram_size);
 #if defined(CONFIG_SYS_MEM_TOP_HIDE)
 	/*
 	 * Subtract specified amount of memory to hide so that it won't
@@ -397,11 +396,13 @@ static int setup_dest_addr(void)
 	gd->ram_size = CONFIG_S3MA_OCM_RAM_SIZE;
 	printf("Relocating to OCM\n");
 #endif
+	debug("Ram size: %08lX\n", (ulong)gd->ram_size);
 
 	gd->ram_top += get_effective_memsize();
 	gd->ram_top = board_get_usable_ram_top(gd->mon_len);
 	gd->relocaddr = gd->ram_top;
 	debug("Ram top: %08lX\n", (ulong)gd->ram_top);
+
 #if defined(CONFIG_MP) && (defined(CONFIG_MPC86xx) || defined(CONFIG_E500))
 	/*
 	 * We need to make sure the location we intend to put secondary core
