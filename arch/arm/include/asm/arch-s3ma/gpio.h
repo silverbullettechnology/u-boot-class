@@ -1,7 +1,7 @@
 #ifndef __S3MA_GPIO_H
 #define __S3MA_GPIO_H
 
-#include <asm/pl061.h>
+//#include <asm/pl061.h>
 
 /* 1.8 V GPIO banks */
 #define GPIO18_0	(0)

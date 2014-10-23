@@ -31,7 +31,7 @@
 #   define CONFIG_DEFAULT_SPI_BUS	0
 #endif
 #ifndef CONFIG_DEFAULT_SPI_MODE
-#   define CONFIG_DEFAULT_SPI_MODE	SPI_MODE_0
+#   define CONFIG_DEFAULT_SPI_MODE	SPI_MODE_1
 #endif
 
 /*
