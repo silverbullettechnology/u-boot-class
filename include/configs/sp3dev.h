@@ -31,6 +31,7 @@
 #define CONFIG_MACH_TYPE	5000
 
 #include <asm/arch/s3ma-regs.h>
+#include <asm/arch/gpio.h>
 
 #if 0
 #define CONFIG_CMDLINE_TAG
@@ -401,7 +402,7 @@
 #define CONFIG_SPI_FLASH_SST
 
 # define CONFIG_SF_DEFAULT_BUS		(4)
-# define CONFIG_SF_DEFAULT_CS		(19) //GPIO33_3
+# define CONFIG_SF_DEFAULT_CS		(GPIO33_3) //GPIO33_3
 # define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 # define CONFIG_SF_DEFAULT_SPEED	(1000000)
 
