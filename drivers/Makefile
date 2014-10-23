@@ -15,3 +15,4 @@ obj-y += video/
 obj-y += watchdog/
 obj-$(CONFIG_QE) += qe/
 obj-$(CONFIG_AD9361) += ad9361/
+obj-y += dac/

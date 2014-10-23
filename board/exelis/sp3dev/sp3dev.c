@@ -161,9 +161,26 @@ int checkboard(void)
 
 int misc_init_r(void)
 {
+	ulong env;
+
 #ifdef CONFIG_POST
 	writel(0, (CONFIG_SYS_POST_WORD_ADDR));
 #endif
+
+#ifdef CONFIG_LT2640_DAC
+	/* Initialize the DAC setting from saved env variable */
+	env = getenv_ulong("dac", 10, 0xFFFFFFFF);
+	if(env == 0xFFFFFFFF)
+	{
+		setenv_ulong("dac",CONFIG_LT2640_DAC_DEFAULT);
+		spi_dac_set(CONFIG_LT2640_DAC_DEFAULT);
+	}
+	else
+	{
+		spi_dac_set(env);
+	}
+#endif
+
 	return 0;
 }
 

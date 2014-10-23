@@ -1,0 +1,1 @@
+obj-$(CONFIG_LT2640_DAC)	+= lt2640.o
