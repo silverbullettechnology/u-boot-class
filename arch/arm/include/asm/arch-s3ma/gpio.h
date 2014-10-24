@@ -31,14 +31,4 @@
 #define GPIO33_6    (22)
 #define GPIO33_7    (23)
 
-#ifndef __ASSEMBLY__
-int gpio_set_value(unsigned gpio, int value);
-int gpio_get_value(unsigned gpio);
-int gpio_request(unsigned gpio, const char *label);
-int gpio_free(unsigned gpio);
-void gpio_toggle_value(unsigned gpio);
-int gpio_direction_input(unsigned gpio);
-int gpio_direction_output(unsigned gpio, int value);
-#endif
-
 #endif	/* __S3MA_GPIO_H */

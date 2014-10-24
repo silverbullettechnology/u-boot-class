@@ -12,6 +12,7 @@
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/s3ma-regs.h>
 #include <asm/arch/gpio.h>
+#include <asm/gpio.h>
 #include <malloc.h>
 #include <asm/errno.h>
 #include <mmc.h>
