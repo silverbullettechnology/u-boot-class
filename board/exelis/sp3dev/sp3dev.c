@@ -11,6 +11,7 @@
 #include <asm/arch/ddr.h>
 #include <asm/arch/sys_proto.h>
 #include <asm/arch/s3ma-regs.h>
+#include <asm/arch/gpio.h>
 #include <malloc.h>
 #include <asm/errno.h>
 #include <mmc.h>
@@ -20,6 +21,9 @@
 #include <netdev.h>
 #include <i2c.h>
 #include <spi.h>
+#ifdef CONFIG_LT2640_DAC
+#include <dac.h>
+#endif
 #ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
 #include <usb/s3c_udc.h>
 #endif
@@ -173,6 +177,8 @@ int misc_init_r(void)
 	if(env == 0xFFFFFFFF)
 	{
 		setenv_ulong("dac",CONFIG_LT2640_DAC_DEFAULT);
+		saveenv();
+
 		spi_dac_set(CONFIG_LT2640_DAC_DEFAULT);
 	}
 	else
@@ -186,19 +192,85 @@ int misc_init_r(void)
 
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
-	/* TODO: Add Chip select check code */
+	int ret;
 
-	return 1;
+	switch(cs)
+	{
+#ifdef CONFIG_SPI_FLASH_SST
+	case CONFIG_SF_DEFAULT_CS:
+		if (bus == CONFIG_SF_DEFAULT_BUS)
+		{
+			ret = 1;
+		}
+		break;
+#endif
+#ifdef CONFIG_LT2640_DAC
+	case CONFIG_LT2640_DAC_CS:
+		if (bus == CONFIG_LT2640_DAC_BUS)
+		{
+			ret = 1;
+		}
+		break;
+#endif
+
+		/*TODO: Add AD9361 bus/cs checks here */
+
+	default:
+		ret = 0;
+		break;
+	}
+
+	return ret;
 }
 
 void spi_cs_activate(struct spi_slave *slave)
 {
-	/* TODO: Add Chip select assertion code */
+	switch(slave->cs)
+	{
+#ifdef CONFIG_SPI_FLASH_SST
+	case CONFIG_SF_DEFAULT_CS:
+		if (slave->bus == CONFIG_SF_DEFAULT_BUS)
+		{
+			gpio_set_value(slave->cs, 0);
+		}
+		break;
+#endif
+#ifdef CONFIG_LT2640_DAC
+	case CONFIG_LT2640_DAC_CS:
+		if (slave->bus == CONFIG_LT2640_DAC_BUS)
+		{
+			gpio_set_value(slave->cs, 0);
+		}
+		break;
+#endif
+	default:
+		break;
+	}
 }
 
 void spi_cs_deactivate(struct spi_slave *slave)
 {
-	/* TODO: Add Chip select de-assertion code */
+	switch(slave->cs)
+	{
+#ifdef CONFIG_SPI_FLASH_SST
+	case CONFIG_SF_DEFAULT_CS:
+		if (slave->bus == CONFIG_SF_DEFAULT_BUS)
+		{
+			gpio_set_value(slave->cs, 1);
+		}
+		break;
+#endif
+#ifdef CONFIG_LT2640_DAC
+	case CONFIG_LT2640_DAC_CS:
+		if (slave->bus == CONFIG_LT2640_DAC_BUS)
+		{
+			gpio_set_value(slave->cs, 1);
+		}
+		break;
+#endif
+	default:
+		break;
+	}
 }
 
 #if (CONFIG_POST & CONFIG_SYS_POST_MEMORY)

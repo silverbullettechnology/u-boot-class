@@ -25,6 +25,10 @@ static int do_spi_dac(cmd_tbl_t *cmdtp, int flag, int argc,
 		if (strcmp(cmd, "setenv") == 0)
 		{
 			ret = setenv_ulong("dac", spi_dac_get());
+			if(ret == 0)
+			{
+				ret = saveenv();
+			}
 		}
 		else if (strcmp(cmd, "getenv") == 0)
 		{
