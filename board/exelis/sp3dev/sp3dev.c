@@ -304,15 +304,8 @@ void arch_memory_failure_handle(void)
 #endif
 
 #ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
-int usb_lowlevel_stop(int index){
-/* TODO: Add lowleve_stop t Function */}
-
-int usb_lowlevel_init(int index, enum usb_init_type init, void **controller){
-/* TODO: Add lowlevel_init Function */}
-
-int submit_control_msg(struct usb_device *dev, unsigned long pipe, void *buffer,
-			int transfer_len, struct devrequest *setup){
-/* TODO: Add submit_control_msg Function */}
-
 void udc_disconnect(void){}
 #endif
+
+
+
