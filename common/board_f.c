@@ -1015,6 +1015,19 @@ void board_init_f(ulong boot_flags)
 	/* NOTREACHED - jump_to_copy() does not return */
 	hang();
 #endif
+
+	printf("Done with board_f sequence\n");
+
+	for(;;)
+	{
+		printf("\nInfinite loop, printing some values from GD structure\n");
+		printf("gd structure addr = %p\n", gd);
+		printf("gd->have_console = %lu\n", gd->have_console);
+		printf("gd->reloc_off = %lx\n", gd->reloc_off);
+		printf("gd->relocaddr = %lx\n", gd->relocaddr);
+
+
+	}
 }
 
 #ifdef CONFIG_X86
