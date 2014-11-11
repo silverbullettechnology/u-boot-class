@@ -1018,6 +1018,7 @@ void board_init_f(ulong boot_flags)
 
 	printf("Done with board_f sequence\n");
 
+#if 0
 	for(;;)
 	{
 		printf("\nInfinite loop, printing some values from GD structure\n");
@@ -1028,6 +1029,8 @@ void board_init_f(ulong boot_flags)
 
 
 	}
+#endif
+
 }
 
 #ifdef CONFIG_X86
