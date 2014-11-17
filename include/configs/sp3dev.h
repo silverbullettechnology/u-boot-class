@@ -17,11 +17,11 @@
 /* Custom build options for debugging  */
 #define DEBUG
 #define CONFIG_DEBUG_BUILD
-#define CONFIG_RUN_ON_QEMU
+//#define CONFIG_RUN_ON_QEMU
 //#define CONFIG_PALLADIUM
-//#define CONFIG_SYS_ICACHE_OFF
-//#define CONFIG_SYS_DCACHE_OFF
-//#define CONFIG_SYS_L2CACHE_OFF
+#define CONFIG_SYS_ICACHE_OFF
+#define CONFIG_SYS_DCACHE_OFF
+#define CONFIG_SYS_L2CACHE_OFF
 /***********************/
 
 #define CONFIG_S3MA
