@@ -16,7 +16,7 @@
 
 /* Custom build options for debugging  */
 #define DEBUG
-#define CONFIG_DEBUG_BUILD
+//#define CONFIG_DEBUG_BUILD
 //#define CONFIG_RUN_ON_QEMU
 #define CONFIG_PALLADIUM
 #define CONFIG_SYS_ICACHE_OFF
@@ -50,7 +50,11 @@
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN				(1024 * 1024)
+#ifndef CONFIG_PALLADIUM
 #define CONFIG_SYS_FALLBACK_MALLOC_LEN		(32 * 1024)
+#else
+#define CONFIG_SYS_FALLBACK_MALLOC_LEN		(16 * 1024)
+#endif
 
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_MISC_INIT_R
@@ -384,7 +388,7 @@
 //#define CONFIG_SYS_INIT_RAM_SIZE       0x8000
 //#define CONFIG_SYS_SDRAM_BASE	       (OCM_S_ABSOLUTE_BASE+CONFIG_SYS_INIT_RAM_SIZE)
 #define SYS_INIT_RAM_BASE				(CONFIG_S3MA_OCM_RAM_BASE)
-#define SYS_INIT_RAM_SIZE				0x2000
+#define SYS_INIT_RAM_SIZE				0x1000
 #if 0
 #define CONFIG_SYS_INIT_RAM_ADDR       0x500//SYS_INIT_RAM_BASE
 #define CONFIG_SYS_INIT_RAM_SIZE       (0x2000 - CONFIG_SYS_INIT_RAM_ADDR) //SYS_INIT_RAM_SIZE
@@ -412,7 +416,11 @@
 #define CONFIG_SYS_NO_FLASH
 
 #define CONFIG_ENV_IS_IN_MMC
+#ifndef CONFIG_PALLADIUM
 #define CONFIG_ENV_SIZE			(16 * 1024)
+#else
+#define CONFIG_ENV_SIZE			(4 * 1024)
+#endif
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(6 * 64 * 1024)

@@ -392,8 +392,8 @@ static int setup_dest_addr(void)
 #endif
 
 #ifdef CONFIG_PALLADIUM
-	gd->ram_top = CONFIG_S3MA_OCM_RAM_BASE;
-	gd->ram_size = CONFIG_S3MA_OCM_RAM_SIZE;
+	gd->ram_top = (CONFIG_S3MA_OCM_RAM_BASE + CONFIG_SYS_INIT_RAM_SIZE);
+	gd->ram_size = (CONFIG_S3MA_OCM_RAM_SIZE/2 - CONFIG_SYS_INIT_RAM_SIZE);
 	printf("Relocating to OCM\n");
 #endif
 	debug("Ram size: %08lX\n", (ulong)gd->ram_size);
