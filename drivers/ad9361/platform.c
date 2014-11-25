@@ -117,10 +117,7 @@ void platform_gpio_direction(uint8_t pin, uint8_t direction)
 *******************************************************************************/
 bool platform_gpio_is_valid(int number)
 {
-	if(-1 != number)
 		return 1;
-	else
-		return 0;
 }
 /***************************************************************************//**
  * @brief gpio_data
@@ -143,6 +140,29 @@ void platform_gpio_set_value(unsigned gpio, int value)
 	}
 }
 
+/***************************************************************************//**
+ * @brief gpio_set_sync_value
+*******************************************************************************/
+void platform_gpio_set_sync_value(int value)
+{
+	if(0 == value)
+	{
+		writel(TRIGGER_RESET, RF_SYNC);
+	}
+	else
+	{
+		writel(TRIGGER_BITMASK, RF_SYNC);
+	}
+
+}
+
+/***************************************************************************//**
+ * @brief init_sync_pulse_shape
+*******************************************************************************/
+void platform_init_sync_pulse_shape(void)
+{
+	writel(0xffffffff, RF_SYNCPULSESHAPE);
+}
 /***************************************************************************//**
  * @brief udelay
 *******************************************************************************/
@@ -181,7 +201,7 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 *******************************************************************************/
 unsigned int platform_axiadc_read(struct axiadc_state *st, unsigned long reg)
 {
-
+	return readl(reg);
 }
 
 /***************************************************************************//**
@@ -189,5 +209,5 @@ unsigned int platform_axiadc_read(struct axiadc_state *st, unsigned long reg)
 *******************************************************************************/
 void platform_axiadc_write(struct axiadc_state *st, unsigned reg, unsigned val)
 {
-
+	writel(val, reg);
 }
