@@ -200,32 +200,57 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 /*
  *	Enable RFIC interface I/O pads
  */
-	addr = RF_IO_CTL0 + bus*sizeof(uint32_t);
+	/*
+	 * RF_IO_CTLx allows you to assert the PWRDN  and EXT_REF pins on the IO cells for each of the RFIC busses
+	 * Neither the RF_DriveX nor RF_IO_CTLx registers are initialized on a software reset.
+	 */
+
+	/*TODO: There is a discrepancy in the ASIC specification and include file. Correct bit names ?
+	 * Does _ENB mean we need to write 0 to activate or it's just a signal name?
+	 */
+
+	addr = (RF_IO_CTL0) + bus*sizeof(val);
 	val  = (uint32_t)1 << RX_ENB_SHIFT;
 	val |= (uint32_t)1 << RX_OEB_SHIFT;
 	val |= (uint32_t)1 << RX_REB_SHIFT;
 	val |= (uint32_t)1 << RX_CM_EMF_SHIFT;
-	writel(val, addr);
+	platform_axiadc_write(NULL,addr,val);
+
+	/*TODO: There is nothing in the ASIC specification about how to control the drive strength
+	 * or what all fields mean. Let's just write all zeros
+	 */
+	addr = (RF_DRIVE0);
+	addr += bus*sizeof(val);
+	val = 0;
+	platform_axiadc_write(NULL,addr,val);
 
 /*
  *	Turn off RFIC RX/TX by driving control pins low
  */
-	val = (ENABLE0_BITMASK | TXNRX0_BITMASK) << bus;
-	writel(val, RF_CONTROL_RESET);
+	val = (ENABLE0_BITMASK | TXNRX0_BITMASK) << (ENABLE1_SHIFT - ENABLE0_SHIFT)*bus;
+	platform_axiadc_write(NULL,(RF_CONTROL_RESET),val);
 
 /*
  * 	Turn off RX/TX in RF_CONFIG register
  */
-
-	writel(0,RF_CONFIG);
+	val = ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK|RX_INTERRUPT_EN_BITMASK|TX_INTERRUPT_EN_BITMASK);
+	platform_axiadc_write(NULL,val,(RF_CONFIG));
 
 /*
- *	Deselect associated RX/TX Channeles
+ *	clear enable bits for associated RX/TX Channels
  */
 	val = ((1<< 2*bus)|(1 << (2*bus+1))) << RX_CH_ENABLE_SHIFT;
 	val |= val << TX_CH_ENABLE_SHIFT;
 	val = ~val;
-	writel(val, RF_CHANNEL_EN);
+	platform_axiadc_write(NULL,(RF_CHANNEL_EN),val);
+/*
+ * 	Initialize ADC sign bit location and shift
+ * 	Keep the defaults for now
+ */
+	val = (12 << SIGN_BIT0_SHIFT)|(4 << ROTATE0_SHIFT);
+	val <<= (SIGN_BIT1_SHIFT - SIGN_BIT0_SHIFT)*bus;
+	platform_axiadc_write(NULL,(AD_FORMAT),val);
+
 }
 
 /***************************************************************************//**
