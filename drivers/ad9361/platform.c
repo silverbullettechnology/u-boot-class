@@ -117,7 +117,7 @@ void platform_gpio_direction(uint8_t pin, uint8_t direction)
 *******************************************************************************/
 bool platform_gpio_is_valid(int number)
 {
-		return 1;
+	return 1;
 }
 /***************************************************************************//**
  * @brief gpio_data
@@ -193,7 +193,39 @@ unsigned long platform_msleep_interruptible(unsigned int msecs)
 *******************************************************************************/
 void platform_axiadc_init(struct ad9361_rf_phy *phy)
 {
+	struct spi_slave *slave = phy->spi;
+	uint32_t bus = slave->bus;
+	uint32_t val = 0;
+	uint32_t addr = 0;
+/*
+ *	Enable RFIC interface I/O pads
+ */
+	addr = RF_IO_CTL0 + bus*sizeof(uint32_t);
+	val  = (uint32_t)1 << RX_ENB_SHIFT;
+	val |= (uint32_t)1 << RX_OEB_SHIFT;
+	val |= (uint32_t)1 << RX_REB_SHIFT;
+	val |= (uint32_t)1 << RX_CM_EMF_SHIFT;
+	writel(val, addr);
 
+/*
+ *	Turn off RFIC RX/TX by driving control pins low
+ */
+	val = (ENABLE0_BITMASK | TXNRX0_BITMASK) << bus;
+	writel(val, RF_CONTROL_RESET);
+
+/*
+ * 	Turn off RX/TX in RF_CONFIG register
+ */
+
+	writel(0,RF_CONFIG);
+
+/*
+ *	Deselect associated RX/TX Channeles
+ */
+	val = ((1<< 2*bus)|(1 << (2*bus+1))) << RX_CH_ENABLE_SHIFT;
+	val |= val << TX_CH_ENABLE_SHIFT;
+	val = ~val;
+	writel(val, RF_CHANNEL_EN);
 }
 
 /***************************************************************************//**
