@@ -205,19 +205,19 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 	val |= (uint32_t)1 << RX_OEB_SHIFT;
 	val |= (uint32_t)1 << RX_REB_SHIFT;
 	val |= (uint32_t)1 << RX_CM_EMF_SHIFT;
-	writel(val, addr);
+	platform_axiadc_write(NULL,addr,val);
 
 /*
  *	Turn off RFIC RX/TX by driving control pins low
  */
 	val = (ENABLE0_BITMASK | TXNRX0_BITMASK) << bus;
-	writel(val, RF_CONTROL_RESET);
+	platform_axiadc_write(NULL,RF_CONTROL_RESET,val);
 
 /*
  * 	Turn off RX/TX in RF_CONFIG register
  */
-
-	writel(0,RF_CONFIG);
+	val = ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK|RX_INTERRUPT_EN_BITMASK|TX_INTERRUPT_EN_BITMASK);
+	platform_axiadc_write(NULL,val,RF_CONFIG);
 
 /*
  *	Deselect associated RX/TX Channeles
@@ -225,7 +225,7 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 	val = ((1<< 2*bus)|(1 << (2*bus+1))) << RX_CH_ENABLE_SHIFT;
 	val |= val << TX_CH_ENABLE_SHIFT;
 	val = ~val;
-	writel(val, RF_CHANNEL_EN);
+	platform_axiadc_write(NULL,RF_CHANNEL_EN,val);
 }
 
 /***************************************************************************//**
