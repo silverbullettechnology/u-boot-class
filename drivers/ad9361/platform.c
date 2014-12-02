@@ -227,13 +227,16 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 /*
  *	Turn off RFIC RX/TX by driving control pins low
  */
+
 	val = (ENABLE0_BITMASK | TXNRX0_BITMASK) << (ENABLE1_SHIFT - ENABLE0_SHIFT)*bus;
 	platform_axiadc_write(NULL,(RF_CONTROL_RESET),val);
+
 
 /*
  * 	Turn off RX/TX in RF_CONFIG register
  */
 	val = ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK|RX_INTERRUPT_EN_BITMASK|TX_INTERRUPT_EN_BITMASK);
+
 	platform_axiadc_write(NULL,val,(RF_CONFIG));
 
 /*
