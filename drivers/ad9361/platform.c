@@ -193,7 +193,7 @@ unsigned long platform_msleep_interruptible(unsigned int msecs)
 *******************************************************************************/
 void platform_axiadc_init(struct ad9361_rf_phy *phy)
 {
-	struct spi_slave *slave = phy->spi;
+	struct spi_slave *slave = (struct spi_slave *)phy->spi;
 	uint32_t bus = slave->bus;
 	uint32_t val = 0;
 	uint32_t addr = 0;

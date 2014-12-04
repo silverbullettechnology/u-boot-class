@@ -65,9 +65,12 @@ static const char *ad9361_ensm_states[] = {
 	"rx", "rx_flush", "fdd", "fdd_flush"
 };
 
+#if 0
 struct ad9361_rf_phy ad9361_rf_phy;
 struct ad9361_rf_phy *ad9361_phy = &ad9361_rf_phy;
-
+#else
+struct ad9361_rf_phy *ad9361_phy = NULL;
+#endif
 
 /**
  * SPI multiple bytes register read.
