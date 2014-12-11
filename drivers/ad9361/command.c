@@ -636,6 +636,7 @@ void tx_loopback_test_en(double* param, char param_no)
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
 	uint16_t	pattern[] = {0x0000, 0xffff, 0xaaaa, 0x5555};
+	int32_t		status = 0;
 
 	if(NULL != ad9361_phy)
 	{
@@ -658,6 +659,14 @@ void tx_loopback_test_en(double* param, char param_no)
 	adc_rotate = platform_axiadc_read(NULL, (AD_FORMAT));
 	adc_rotate = (adc_rotate >> (8 * bus)) & ROTATE0_BITMASK;
 
+	/* Turn AD9361 loopback mode on */
+	status = ad9361_bist_loopback(ad9361_phy, 1);
+	if(status)
+	{
+		console_print("%s: Failed to setup tx->rx loopback mode\n", __func__);
+		return;
+	}
+
 	for (i = 0; i < ARRAY_SIZE((pattern)); i++)
 	{
 		/* Fill TX buffer with pattern
@@ -666,13 +675,57 @@ void tx_loopback_test_en(double* param, char param_no)
 		 * ADC samples are rotated left, so it would be logical to assume that
 		 * TX samples are shifted right
 		 */
-		uint16_t	*ptr = (uint16_t*)test_buf;
+		uint16_t	*tx_ptr = (uint16_t*)&test_buf[0];
+		uint16_t	*rx_ptr = (uint16_t*)test_buf[num_samples];
+
 		for(j = 0; j < num_samples*2; j++)
 		{
-			ptr[j] = pattern[i];
+			tx_ptr[j] = pattern[i];
 		}
-		/* Setup TX DMA registers */
+		console_print("Trying pattern %x\n", pattern[i]);
 
+		/* Setup TX DMA registers */
+		platform_axiadc_write(NULL, RF_WRITE_BASE, (uint32_t)&test_buf[0]);
+		platform_axiadc_write(NULL, RF_WRITE_TOP, (uint32_t)&test_buf[num_samples-1]);
+		platform_axiadc_write(NULL, RF_WRITE_COUNT, num_samples);
+
+		/* Setup RX DMA registers */
+		platform_axiadc_write(NULL, RF_READ_BASE, (uint32_t)&test_buf[num_samples]);
+		platform_axiadc_write(NULL, RF_READ_TOP, (uint32_t)&test_buf[2*num_samples-1]);
+		platform_axiadc_write(NULL, RF_READ_COUNT, num_samples);
+
+		/* Select both channels for TX and RX*/
+		platform_axiadc_write(NULL, RF_CHANNEL_EN, ((0x3 << RX_CH_ENABLE_SHIFT)|(0x3 << TX_CH_ENABLE_SHIFT)) << bus);
+		/* Select TX source */
+		platform_axiadc_write(NULL, TX_SOURCE, (0x55  << bus));
+		/* Enable transfer */
+		platform_axiadc_write(NULL, RF_CONFIG, RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK);
+
+		/* Wait for transfer to complete  */
+		while(platform_axiadc_read(NULL,RF_READ_COUNT_AXI) >0x0)
+		{
+			/* TODO:May want to add a timeout check here in case transfer never completes */
+		}
+
+		/* Disable transfer */
+		platform_axiadc_write(NULL, RF_CONFIG, ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK));
+
+		/* Compare buffers and identify errors along with associated channel */
+		status = 0;
+
+		for(j = 0; j < num_samples*2; j++)
+		{
+			if((tx_ptr[j] >> adc_rotate) != (rx_ptr[j] >> adc_rotate))
+			{
+				console_print("Error in sample %d: tx_sample= 0x%x rx_sample= 0x%x\n", j, tx_ptr[j] >> adc_rotate, rx_ptr[j] >> adc_rotate);
+				status = 1;
+			}
+		}
+
+		if(status)
+		{
+			console_print("Pattern %x test failed\n", pattern[i]);
+		}
 
 	}
 
