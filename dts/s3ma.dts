@@ -44,7 +44,7 @@
                     compatible = "arm,cortex-a9";
                     reg = <0>;
              };
-/*
+
              cpu@1 {
                     compatible = "arm,cortex-a9";
                     reg = <1>;
@@ -57,7 +57,7 @@
                     compatible = "arm,cortex-a9";
                     reg = <3>;
              };
- */       
+       
     };
     
      soc {

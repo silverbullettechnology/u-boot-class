@@ -15,10 +15,14 @@
 /***********************/
 
 /* Custom build options for debugging  */
-
+//#define DEBUG
 #define CONFIG_DEBUG_BUILD
 #define CONFIG_RUN_ON_QEMU
-
+//#define CONFIG_RTL_SIMULATION
+//#define CONFIG_PALLADIUM
+//#define CONFIG_SYS_ICACHE_OFF
+//#define CONFIG_SYS_DCACHE_OFF
+//#define CONFIG_SYS_L2CACHE_OFF
 /***********************/
 
 #define CONFIG_S3MA
@@ -67,24 +71,24 @@
 #endif
 #endif
 
-#if 0
-#define CONFIG_MXC_UART
-#define CONFIG_MXC_UART_BASE	       UART2_BASE
-#else
 #define CONFIG_PL011_SERIAL
-#define CONFIG_PL011_CLOCK	24000000
+#define CONFIG_PL011_CLOCK				38400000
 #define CONFIG_PL01x_PORTS				\
 			{(void *)CONFIG_SYS_SERIAL0,	\
 			 (void *)CONFIG_SYS_SERIAL1 }
 
 #define	CONFIG_SYS_SERIAL0	UART0_APB_ABSOLUTE_BASE
 #define	CONFIG_SYS_SERIAL1	UART1_APB_ABSOLUTE_BASE
+//#define CONFIG_PL011_SERIAL_FLUSH_ON_INIT
 
 #define CONFIG_CONS_INDEX	0
 
+#ifdef CONFIG_PALLADIUM
+#define CONFIG_BAUDRATE			1974857
+#else
 #define CONFIG_BAUDRATE			115200
-#define CONFIG_PL011_SERIAL_FLUSH_ON_INIT
 #endif
+
 
 
 /* I2C Configs */
@@ -116,34 +120,6 @@
 #define CONFIG_SYS_SPI_BASE3	(SPI3_APB_ABSOLUTE_BASE)
 #define CONFIG_SYS_SPI_BASE4	(SPI4_APB_ABSOLUTE_BASE)
 
-/*
- * SATA Configs
- */
-#if 0
-
-#ifdef CONFIG_CMD_SATA
-#define CONFIG_DWC_AHSATA
-#define CONFIG_SYS_SATA_MAX_DEVICE	1
-#define CONFIG_DWC_AHSATA_PORT_ID	0
-#define CONFIG_DWC_AHSATA_BASE_ADDR	SATA_ARB_BASE_ADDR
-#define CONFIG_LBA48
-#define CONFIG_LIBATA
-#endif
-
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_DHCP
-#define CONFIG_CMD_MII
-#define CONFIG_CMD_NET
-#define CONFIG_FEC_MXC
-#define CONFIG_MII
-#define IMX_FEC_BASE			ENET_BASE_ADDR
-#define CONFIG_FEC_XCV_TYPE		RGMII
-#define CONFIG_ETHPRIME			"FEC"
-#define CONFIG_FEC_MXC_PHYADDR		6
-#define CONFIG_PHYLIB
-#define CONFIG_PHY_MICREL
-#define CONFIG_PHY_MICREL_KSZ9021
-#endif
 
 /* USB Configs */
 #if 1
@@ -182,31 +158,9 @@
 
 #define CONFIG_SYS_CACHELINE_SIZE	32
 
-/* Framebuffer and LCD */
-#if 0
-#define CONFIG_VIDEO
-#define CONFIG_VIDEO_IPUV3
-#define CONFIG_CFB_CONSOLE
-#define CONFIG_VGA_AS_SINGLE_DEVICE
-#define CONFIG_SYS_CONSOLE_IS_IN_ENV
-#define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
-#define CONFIG_VIDEO_BMP_RLE8
-#define CONFIG_SPLASH_SCREEN
-#define CONFIG_BMP_16BPP
-#define CONFIG_VIDEO_LOGO
-#define CONFIG_IPUV3_CLK 260000000
-#define CONFIG_CMD_HDMIDETECT
-#define CONFIG_CONSOLE_MUX
-#define CONFIG_IMX_HDMI
-#define CONFIG_IMX_VIDEO_SKIP
-#endif
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
-#if 0
-#define CONFIG_CONS_INDEX	       1
-#define CONFIG_BAUDRATE			       115200
-#endif
 
 /* Command definition */
 #include <config_cmd_default.h>
@@ -217,11 +171,7 @@
 
 
 
-#if 0
-#define CONFIG_SYS_TEXT_BASE	       0x17800000
-#else
 #define CONFIG_SYS_TEXT_BASE	       0x00000000
-#endif
 
 #if 0
 #ifdef CONFIG_CMD_SATA
@@ -358,6 +308,7 @@
 #define CONFIG_SYS_CBSIZE	       1024
 
 /* Print Buffer Size */
+//#define CONFIG_SYS_VSNPRINTF
 #define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
 #define CONFIG_SYS_MAXARGS	       16
 #define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE
@@ -373,21 +324,14 @@
 
 #define CONFIG_DDR_SIZE					1024*1024*1024
 #define CONFIG_S3MA_OCM_RAM_BASE		(OCM_S_ABSOLUTE_BASE)
-#define CONFIG_S3MA_OCM_RAM_SIZE		(OCM_S_SIZE)
+#define CONFIG_S3MA_OCM_RAM_SIZE		(OCM_S_SIZE/2)//Upper half of OCM can not be used for execution
 #define CONFIG_S3MA_RAM_SIZE			(CONFIG_DDR_SIZE)
-#if 0
-#define CONFIG_SYS_SDRAM_BASE	       PHYS_SDRAM
-#define CONFIG_SYS_INIT_RAM_ADDR       IRAM_BASE_ADDR
-#define CONFIG_SYS_INIT_RAM_SIZE       IRAM_SIZE
-#else
-//#define CONFIG_SYS_INIT_RAM_ADDR       OCM_S_ABSOLUTE_BASE
-//#define CONFIG_SYS_INIT_RAM_SIZE       0x8000
-//#define CONFIG_SYS_SDRAM_BASE	       (OCM_S_ABSOLUTE_BASE+CONFIG_SYS_INIT_RAM_SIZE)
-#define CONFIG_SYS_INIT_RAM_ADDR       0x500//SYS_INIT_RAM_BASE
-#define CONFIG_SYS_INIT_RAM_SIZE       (0x2000 - CONFIG_SYS_INIT_RAM_ADDR) //SYS_INIT_RAM_SIZE
-//#define CONFIG_SYS_SDRAM_BASE	       (OCM_S_ABSOLUTE_BASE)
+
+#define SYS_INIT_RAM_BASE				(CONFIG_S3MA_OCM_RAM_BASE + CONFIG_S3MA_OCM_RAM_SIZE)//Use upper half of OCM
+#define SYS_INIT_RAM_SIZE				0x2000
+#define CONFIG_SYS_INIT_RAM_ADDR       SYS_INIT_RAM_BASE
+#define CONFIG_SYS_INIT_RAM_SIZE       SYS_INIT_RAM_SIZE
 #define CONFIG_SYS_SDRAM_BASE	       (PHYS_SDRAM)
-#endif
 
 #define CONFIG_SYS_INIT_SP_OFFSET \
 	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
@@ -459,17 +403,6 @@
 #endif
 #define CONFIG_CMD_FS_GENERIC
 
-/*
- * PCI express
- */
-#if 0
-#ifdef CONFIG_CMD_PCI
-#define CONFIG_PCI
-#define CONFIG_PCI_PNP
-#define CONFIG_PCI_SCAN_SHOW
-#define CONFIG_PCIE_IMX
-#endif
-#endif
 
 /*
  * AD9361
@@ -484,8 +417,10 @@
 //#define CONFIG_API
 
 /*  Power-on self test */
+#ifndef CONFIG_PALLADIUM
 #define CONFIG_POST	(CONFIG_SYS_POST_MEMORY)
 #define CONFIG_SYS_POST_WORD_ADDR	(CONFIG_S3MA_OCM_RAM_BASE)
+#endif
 //#define CONFIG_POST_STD_LIST
 
 /* Memory test commands */

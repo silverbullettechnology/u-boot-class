@@ -168,7 +168,10 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 			 * Init RFIC if needed
 			 */
 			if (NULL == ad9361_phy_table[bus]) {
-				if(init_param_ptr = malloc(sizeof(AD9361_InitParam)))
+
+				init_param_ptr = malloc(sizeof(AD9361_InitParam));
+
+				if(init_param_ptr)
 				{
 					memcpy(init_param_ptr, &default_init_param, sizeof(AD9361_InitParam));
 
@@ -190,7 +193,7 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 			}
 
 			if(NULL != ad9361_phy_table[bus]){
-
+				ad9361_phy = ad9361_phy_table[bus];
 				cmd_list[cmd].function(param, param_no);
 			}
 

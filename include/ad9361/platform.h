@@ -118,6 +118,9 @@ void platform_gpio_init(uint32_t device_id);
 void platform_gpio_direction(uint8_t pin, uint8_t direction);
 bool platform_gpio_is_valid(int number);
 void platform_gpio_set_value(unsigned gpio, int value);
+void platform_gpio_set_sync_value(int value);
+void platform_init_sync_pulse_shape(void);
+
 void platform_udelay(unsigned long usecs);
 void platform_mdelay(unsigned long msecs);
 unsigned long platform_msleep_interruptible(unsigned int msecs);

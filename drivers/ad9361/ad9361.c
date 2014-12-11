@@ -65,9 +65,12 @@ static const char *ad9361_ensm_states[] = {
 	"rx", "rx_flush", "fdd", "fdd_flush"
 };
 
+#if 0
 struct ad9361_rf_phy ad9361_rf_phy;
 struct ad9361_rf_phy *ad9361_phy = &ad9361_rf_phy;
-
+#else
+struct ad9361_rf_phy *ad9361_phy = NULL;
+#endif
 
 /**
  * SPI multiple bytes register read.
@@ -296,7 +299,6 @@ int32_t ad9361_reset(struct ad9361_rf_phy *phy)
 		dev_dbg(&phy->spi->dev, "%s: by SPI", __func__);
 		return 0;
 	}
-
 	return -ENODEV;
 }
 
@@ -3933,25 +3935,29 @@ static int32_t ad9361_mcs(struct ad9361_rf_phy *phy, int32_t step)
 			MCS_REFCLK_SCALE_EN, 1);
 		break;
 	case 2:
+/*
 		if(!platform_gpio_is_valid(phy->pdata->gpio_sync))
 			break;
+*/
 		/*
 		 * NOTE: This is not a regular GPIO -
 		 * HDL ensures Multi-chip Synchronization SYNC_IN Pulse Timing
 		 * relative to rising and falling edge of REF_CLK
 		 */
-		platform_gpio_set_value(phy->pdata->gpio_sync, 1);
-		platform_gpio_set_value(phy->pdata->gpio_sync, 0);
+		platform_gpio_set_sync_value(1);
+		platform_gpio_set_sync_value(0);
 		break;
 	case 3:
 		ad9361_spi_writef(phy->spi, REG_MULTICHIP_SYNC_AND_TX_MON_CTRL,
 			mcs_mask, MCS_BB_ENABLE | MCS_DIGITAL_CLK_ENABLE);
 		break;
 	case 4:
+/*
 		if(!platform_gpio_is_valid(phy->pdata->gpio_sync))
 			break;
-		platform_gpio_set_value(phy->pdata->gpio_sync, 1);
-		platform_gpio_set_value(phy->pdata->gpio_sync, 0);
+*/
+		platform_gpio_set_sync_value(1);
+		platform_gpio_set_sync_value(0);
 		break;
 	case 0:
 	case 5:
@@ -5789,5 +5795,9 @@ int32_t ad9361_post_setup(struct ad9361_rf_phy *phy)
 	return ad9361_set_trx_clock_chain(phy,
 		phy->pdata->rx_path_clks,
 		phy->pdata->tx_path_clks);
+#else
+	/* Initialize SYNC pulse shape register */
+	platform_init_sync_pulse_shape();
+	return 0;
 #endif
 }

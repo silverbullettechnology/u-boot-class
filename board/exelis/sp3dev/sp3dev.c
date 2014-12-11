@@ -43,7 +43,9 @@ int dram_init(void)
 {
 #ifndef CONFIG_RUN_ON_QEMU
 	s3ma_ddr_clock_enable();
+#ifndef CONFIG_PALLADIUM
 	s3ma_ddr_setup();
+#endif
 #endif
 	gd->ram_size = ((ulong)CONFIG_S3MA_RAM_SIZE);
 
