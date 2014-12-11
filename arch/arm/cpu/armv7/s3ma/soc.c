@@ -289,8 +289,11 @@ void enable_caches(void)
 void s_init(void)
 {
 	/* Disable clocks not needed */
-	setbits_le32(CRT_CLK_DIS, (DMA_DIS_BITMASK | USB_DIS_BITMASK | SD_DIS_BITMASK));
 
+#ifdef CONFIG_RTL_SIMULATION
+	/* These clocks will need a processor reset to re-enable */
+	setbits_le32(CRT_CLK_DIS, (DMA_DIS_BITMASK | USB_DIS_BITMASK | SD_DIS_BITMASK));
+#endif
 	setbits_le32(CRT_WFE_DIS, (WFE_AHB_DIS_BITMASK | WFE_APB_DIS_BITMASK | \
 			WFE_TX_DIS_BITMASK |WFE_RX_DIS_BITMASK |WFE_ADC_DAC_DIS_BITMASK));
 
