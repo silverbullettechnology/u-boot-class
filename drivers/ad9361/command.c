@@ -717,14 +717,19 @@ void tx_loopback_test_en(double* param, char param_no)
 		{
 			if((tx_ptr[j] >> adc_rotate) != (rx_ptr[j] >> adc_rotate))
 			{
-				console_print("Error in sample %d: tx_sample= 0x%x rx_sample= 0x%x\n", j, tx_ptr[j] >> adc_rotate, rx_ptr[j] >> adc_rotate);
+				console_print("Error in sample %d: tx_sample= 0x%x rx_sample= 0x%x\n", j/2, tx_ptr[j] >> adc_rotate, rx_ptr[j] >> adc_rotate);
 				status = 1;
 			}
 		}
 
 		if(status)
 		{
-			console_print("Pattern %x test failed\n", pattern[i]);
+			console_print("Pattern %x test: FAIL\n", pattern[i]);
+		}
+		else
+		{
+			console_print("Pattern %x test: PASS\n", pattern[i]);
+
 		}
 
 	}
