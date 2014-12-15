@@ -631,7 +631,7 @@ void set_rx_fir_en(double* param, char param_no) // "rx_fir_en=" command
 void tx_loopback_test_en(double* param, char param_no)
 {
 	uint32_t 	bus = 0;
-	uint32_t	*test_buf = NULL;
+	uint32_t	*test_buf = (uint32_t*)CONFIG_AD9361_RAM_BUFFER_ADDR;
 	uint32_t	num_samples = 8192;
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
@@ -645,14 +645,6 @@ void tx_loopback_test_en(double* param, char param_no)
 	else
 	{
 		console_print("%s: ad9361_phy structure is invalid\n",__func__);
-		return;
-	}
-
-	test_buf = calloc(num_samples*2, sizeof(*test_buf));
-
-	if(NULL == test_buf)
-	{
-		console_print("%s: Failed to allocate test buffer memory\n", __func__);
 		return;
 	}
 
@@ -731,11 +723,7 @@ void tx_loopback_test_en(double* param, char param_no)
 			console_print("Pattern %x test: PASS\n", pattern[i]);
 
 		}
-
 	}
-
-	if(test_buf)
-		free(test_buf);
 }
 
 #if 0
