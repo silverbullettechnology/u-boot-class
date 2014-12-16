@@ -31,7 +31,7 @@
 #ifdef CONFIG_POST
 #include <post.h>
 #endif
-
+#include <ad9361/platform.h>
 DECLARE_GLOBAL_DATA_PTR;
 
 /* Declare Power on reset configuration space data
@@ -142,6 +142,13 @@ int board_eth_init(bd_t *bis)
 
 int board_early_init_f(void)
 {
+#ifdef CONFIG_SP3DTC
+	/* Init ASFE GPIOs */
+	gpio_set_value(GPIO_AD1_TX1_PA_EN, 0);
+	gpio_set_value(GPIO_AD1_TX2_PA_EN, 0);
+	gpio_set_value(GPIO_AD2_TX1_PA_EN, 0);
+	gpio_set_value(GPIO_AD2_TX2_PA_EN, 0);
+#endif
 	return 0;
 }
 
