@@ -227,6 +227,9 @@ void dds_tx2_tone2_scale(double* param, char param_no);
 void set_dds_tx2_tone2_scale(double* param, char param_no);
 
 /* Runs DAC->ADC loopback test*/
-void tx_loopback_test_en(double* param, char param_no);
+void tx_loopback_test(double* param, char param_no);
+
+/* Enables/Disables ADC->DAC loopback test */
+void set_asfe_loopback_test(double* param, char param_no);
 
 #endif  // __COMMAND_H__

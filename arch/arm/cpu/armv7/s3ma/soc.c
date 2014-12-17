@@ -415,17 +415,7 @@ void v7_outer_cache_disable(void)
 
 void reset_cpu(ulong addr)
 {
-#if 0
-	struct watchdog_regs *wdog = (struct watchdog_regs *)WDOG1_BASE_ADDR;
-
-	writew(WCR_WDE, &wdog->wcr);
-	writew(0x5555, &wdog->wsr);
-	writew(0xaaaa, &wdog->wsr);	/* load minimum 1/2 second timeout */
-	while (1) {
-		/*
-		 * spin for .5 seconds before reset
-		 */
-	}
-#endif
+	/* Write trigger value to SW_RESET register */
+	writel(0x5B31F086, CRT_SW_RESET);
 }
 

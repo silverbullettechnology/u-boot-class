@@ -47,8 +47,11 @@ static unsigned int mode = 0;
 static struct ad9361_rf_phy* ad9361_phy_table[CONFIG_AD9361_MAX_DEVICE] = {
 NULL,
 NULL,
+#ifndef CONFIG_SP3DTC
 NULL,
-NULL };
+NULL
+#endif
+};
 
 /*
  * SPI read/write

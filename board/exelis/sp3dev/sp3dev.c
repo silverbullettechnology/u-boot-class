@@ -143,11 +143,8 @@ int board_eth_init(bd_t *bis)
 int board_early_init_f(void)
 {
 #ifdef CONFIG_SP3DTC
-	/* Init ASFE GPIOs */
-	gpio_set_value(GPIO_AD1_TX1_PA_EN, 0);
-	gpio_set_value(GPIO_AD1_TX2_PA_EN, 0);
-	gpio_set_value(GPIO_AD2_TX1_PA_EN, 0);
-	gpio_set_value(GPIO_AD2_TX2_PA_EN, 0);
+	/* Init ASFE PA control GPIOs */
+	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
 #endif
 	return 0;
 }
