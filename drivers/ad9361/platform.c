@@ -358,6 +358,13 @@ void platform_tr_tx_en(uint32_t mask)
 	else
 		printf("%s: Invalid TR switch control IO\n", __func__);
 }
+#else
+void platform_pa_bias_en(uint32_t mask){}
+void platform_pa_bias_dis(uint32_t mask){}
+void platform_lna_dis(uint32_t mask){}
+void platform_lna_en(uint32_t mask){}
+void platform_tr_rx_en(uint32_t mask){}
+void platform_tr_tx_en(uint32_t mask){}
 
 #endif /* CONFIG_SP3DTC */
 
