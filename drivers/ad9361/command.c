@@ -55,6 +55,7 @@
 command cmd_list[] = {
 	{"help?", "Displays all available commands.", "", get_help},
 	{"register?", "Gets the specified register value.", "", get_register},
+	{"aux_adc?", "Gets the AUX ADC value.", "", get_aux_adc},
 	{"tx_lo_freq?", "Gets current TX LO frequency [MHz].", "", get_tx_lo_freq},
 	{"tx_lo_freq=", "Sets the TX LO frequency [MHz].", "", set_tx_lo_freq},
 	{"tx_samp_freq?", "Gets current TX sampling frequency [Hz].", "", get_tx_samp_freq},
@@ -846,6 +847,19 @@ void set_asfe_loopback_test(double* param, char param_no)
 
 	}
 
+}
+
+/**************************************************************************//***
+ * @brief Gets current AUX ADC value.
+ *
+ * @return None.
+*******************************************************************************/
+void get_aux_adc(double* param, char param_no)
+{
+	int32_t	val;
+
+	val = ad9361_get_auxadc(ad9361_phy);
+	console_print("AUX ADC value = 0x%x\n", val);
 }
 
 #if 0

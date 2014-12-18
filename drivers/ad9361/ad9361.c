@@ -3103,7 +3103,7 @@ static int32_t ad9361_get_temp(struct ad9361_rf_phy *phy)
  * @param phy The AD9361 state structure.
  * @return The value in case of success, negative error code otherwise.
  */
-static int32_t ad9361_get_auxadc(struct ad9361_rf_phy *phy)
+int32_t ad9361_get_auxadc(struct ad9361_rf_phy *phy)
 {
 	uint32_t val;
 	uint8_t buf[2];
