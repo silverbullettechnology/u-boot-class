@@ -120,7 +120,7 @@ enum adc_data_sel {
 #define GPIO_AD1_TX1_PA_EN			GPIO33_6
 #define GPIO_AD1_TX2_PA_EN			GPIO33_2
 #define GPIO_AD2_TX1_PA_EN			GPIO33_4
-#define GPIO_AD2_TX2_PA_EN			GPIO33_2
+#define GPIO_AD2_TX2_PA_EN			GPIO33_1
 
 
 
