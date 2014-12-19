@@ -56,6 +56,8 @@ command cmd_list[] = {
 	{"help?", "Displays all available commands.", "", get_help},
 	{"register?", "Gets the specified register value.", "", get_register},
 	{"aux_adc?", "Gets the AUX ADC value.", "", get_aux_adc},
+	{"aux_dac?", "Gets the AUX DAC1 or DAC2 value [mV].", "", get_aux_dac},
+	{"aux_dac=", "Sets the AUX DAC1 or DAC2 value [mV].", "", set_aux_dac},
 	{"tx_lo_freq?", "Gets current TX LO frequency [MHz].", "", get_tx_lo_freq},
 	{"tx_lo_freq=", "Sets the TX LO frequency [MHz].", "", set_tx_lo_freq},
 	{"tx_samp_freq?", "Gets current TX sampling frequency [Hz].", "", get_tx_samp_freq},
@@ -788,9 +790,9 @@ void set_asfe_loopback_test(double* param, char param_no)
 			else
 			{
 				/* Setup AD9361 */
-				param[0]= 2500000000;
+				param[0]= 2500000000.0;
 				set_tx_lo_freq(param, param_no);
-				param[0]= 2400000000;
+				param[0]= 2400000000.0;
 				set_rx_lo_freq(param, param_no);
 				/* Setup ASFE for loopback */
 				platform_tr_rx_en(ASFE_AD2_TR_SWITCH);
@@ -858,8 +860,53 @@ void get_aux_adc(double* param, char param_no)
 {
 	int32_t	val;
 
-	val = ad9361_get_auxadc(ad9361_phy);
-	console_print("AUX ADC value = 0x%x\n", val);
+	if(param_no >= 1)
+	{
+		val = ad9361_get_auxadc(ad9361_phy);
+		console_print("AUX ADC value = 0x%x\n", val);
+	}
+	else
+	{
+		show_invalid_param_message(1);
+	}
+}
+
+/**************************************************************************//***
+ * @brief Gets current AUX DAC value.
+ *
+ * @return None.
+*******************************************************************************/
+void get_aux_dac(double* param, char param_no)
+{
+	if(param_no >= 1)
+	{
+		int32_t	val;
+		val = ad9361_auxdac_get(ad9361_phy, param[0]);
+		console_print("AUX DAC value = 0x%x\n", val);
+	}
+	else
+	{
+		show_invalid_param_message(1);
+	}
+}
+
+/**************************************************************************//***
+ * @brief Sets current AUX DAC value.
+ *
+ * @return None.
+*******************************************************************************/
+void set_aux_dac(double* param, char param_no)
+{
+	if(param_no >= 2)
+	{
+		ad9361_auxdac_set(ad9361_phy, param[0], param[1]);
+		console_print("AUX DAC value = %d\n", (int32_t)param[1]);
+	}
+	else
+	{
+		show_invalid_param_message(1);
+	}
+
 }
 
 #if 0

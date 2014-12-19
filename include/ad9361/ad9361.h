@@ -3876,5 +3876,8 @@ int32_t ad9361_bist_tone(struct ad9361_rf_phy *phy,
 						 uint32_t level_dB, uint32_t mask);
 int32_t ad9361_gpo_set(struct ad9361_rf_phy *phy, uint8_t gpo);
 int32_t ad9361_gpo_clear(struct ad9361_rf_phy *phy, uint8_t gpo);
+int32_t ad9361_get_auxadc(struct ad9361_rf_phy *phy);
+int32_t ad9361_auxdac_get(struct ad9361_rf_phy *phy, int32_t dac);
+int32_t ad9361_auxdac_set(struct ad9361_rf_phy *phy, int32_t dac, int32_t val_mV);
 
 #endif

@@ -235,4 +235,11 @@ void set_asfe_loopback_test(double* param, char param_no);
 /* Read AUX ADC value */
 void get_aux_adc(double* param, char param_no);
 
+/* Read AUX DAC value */
+void get_aux_dac(double* param, char param_no);
+
+/* Set AUX DAC value */
+void set_aux_dac(double* param, char param_no);
+
+
 #endif  // __COMMAND_H__
