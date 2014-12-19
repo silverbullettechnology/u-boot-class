@@ -180,7 +180,21 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 
 					/* Initialize RESETB pin */
 					init_param_ptr->gpio_resetb = RESETB0_BITMASK << (bus * 8);
+#ifdef CONFIG_SP3DTC
+					if(1 == bus)
+					{
+						ulong env;
+						/* Initialize the DAC setting from saved env variable */
+						env = getenv_ulong("dac", 10, 0xFFFFFFFF);
+						if(env == 0xFFFFFFFF)
+						{
+							setenv_ulong("dac", 0);
+							saveenv();
+						}
 
+						init_param_ptr->aux_dac1_default_value_mV = env;
+					 }
+#endif
 					ad9361_phy_table[bus] = ad9361_init(init_param_ptr,
 							(struct spi_device*) slave);
 					free(init_param_ptr);
