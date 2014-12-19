@@ -116,11 +116,10 @@ enum adc_data_sel {
 #define ASFE_AD1_TR_SWITCH			0x00000100
 #define ASFE_AD2_TR_SWITCH			0x00000200
 
-/* FIXME PIO_AD1_TX2_EN	and GPIO_AD2_TX2_EN need to be updated */
 #define GPIO_AD1_TX1_PA_EN			GPIO33_6
 #define GPIO_AD1_TX2_PA_EN			GPIO33_2
 #define GPIO_AD2_TX1_PA_EN			GPIO33_4
-#define GPIO_AD2_TX2_PA_EN			GPIO33_2
+#define GPIO_AD2_TX2_PA_EN			GPIO33_1
 
 
 
