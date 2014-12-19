@@ -45,8 +45,8 @@
 #include <spi.h>
 #include <ad9361/command.h>
 #include <ad9361/console.h>
+#include <ad9361/ad9361.h>
 #include <ad9361/ad9361_api.h>
-#include  <ad9361/ad9361.h>
 #include <ad9361/platform.h>
 
 /******************************************************************************/
@@ -55,6 +55,9 @@
 command cmd_list[] = {
 	{"help?", "Displays all available commands.", "", get_help},
 	{"register?", "Gets the specified register value.", "", get_register},
+	{"aux_adc?", "Gets the AUX ADC value.", "", get_aux_adc},
+	{"aux_dac?", "Gets the AUX DAC1 or DAC2 value [mV].", "", get_aux_dac},
+	{"aux_dac=", "Sets the AUX DAC1 or DAC2 value [mV].", "", set_aux_dac},
 	{"tx_lo_freq?", "Gets current TX LO frequency [MHz].", "", get_tx_lo_freq},
 	{"tx_lo_freq=", "Sets the TX LO frequency [MHz].", "", set_tx_lo_freq},
 	{"tx_samp_freq?", "Gets current TX sampling frequency [Hz].", "", get_tx_samp_freq},
@@ -83,7 +86,9 @@ command cmd_list[] = {
 	{"rx2_rf_gain=", "Sets the RX2 RF gain.", "", set_rx2_rf_gain},
 	{"rx_fir_en?", "Gets current RX FIR state.", "", get_rx_fir_en},
 	{"rx_fir_en=", "Sets the RX FIR state.", "", set_rx_fir_en},
-	{"tx_loopback_test_en=","Runs DAC->ADC loopback test.","",tx_loopback_test_en},
+	{"tx_loopback_test","Runs DAC->ADC loopback test.","",tx_loopback_test},
+	{"asic_loopback_test_en=","Enables/Disables ADC->DAC loopback test.","",set_asfe_loopback_test},
+
 #if 0
 	{"dds_tx1_tone1_freq?", "Gets current DDS TX1 Tone 1 frequency [Hz].", "", get_dds_tx1_tone1_freq},
 	{"dds_tx1_tone1_freq=", "Sets the DDS TX1 Tone 1 frequency [Hz].", "", set_dds_tx1_tone1_freq},
@@ -159,7 +164,7 @@ void get_register(double* param, char param_no) // "register?" command
 	if(param_no >= 1)
 	{
 		reg_addr = param[0];
-		reg_val = ad9361_spi_read(NULL, reg_addr);
+		reg_val = ad9361_spi_read(ad9361_phy->spi, reg_addr);
 		console_print("register[0x%x]=0x%x\n", reg_addr, reg_val);
 	}
 	else
@@ -628,10 +633,10 @@ void set_rx_fir_en(double* param, char param_no) // "rx_fir_en=" command
  *
  * @return None.
 *******************************************************************************/
-void tx_loopback_test_en(double* param, char param_no)
+void tx_loopback_test(double* param, char param_no)
 {
 	uint32_t 	bus = 0;
-	uint32_t	*test_buf = NULL;
+	uint32_t	*test_buf = (uint32_t*)CONFIG_AD9361_RAM_BUFFER_ADDR;
 	uint32_t	num_samples = 8192;
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
@@ -645,14 +650,6 @@ void tx_loopback_test_en(double* param, char param_no)
 	else
 	{
 		console_print("%s: ad9361_phy structure is invalid\n",__func__);
-		return;
-	}
-
-	test_buf = calloc(num_samples*2, sizeof(*test_buf));
-
-	if(NULL == test_buf)
-	{
-		console_print("%s: Failed to allocate test buffer memory\n", __func__);
 		return;
 	}
 
@@ -731,11 +728,185 @@ void tx_loopback_test_en(double* param, char param_no)
 			console_print("Pattern %x test: PASS\n", pattern[i]);
 
 		}
+	}
+}
+/**************************************************************************//***
+ * @brief Enables/Disables ADC->DAC loopback test
+ *
+ * @return None.
+*/
+void set_asfe_loopback_test(double* param, char param_no)
+{
+	uint32_t	*test_buf = (uint32_t*)CONFIG_AD9361_RAM_BUFFER_ADDR;
+	uint32_t	num_samples = 8192;
+	uint32_t en_dis= (uint32_t)param[0];
+	uint32_t bus = ((struct spi_slave *)ad9361_phy->spi)->bus;
+
+	if(param_no >= 1)
+	{
+		/* Disable any ongoing transfers first */
+		platform_axiadc_write(NULL, RF_CONFIG, ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK));
+		/* Turn all PAs off */
+		platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
+		/* Turn all LNAs off  */
+		platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA | ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+
+		if(1 == en_dis)
+		{
+			double param[4];
+			char   param_no;
+			/* Setup AD9361 */
+			param[0] = 4000000;
+			param_no = 1;
+			set_tx_samp_freq(param, param_no);
+			set_rx_samp_freq(param, param_no);
+
+			param[0] = 1000000;
+			param_no = 1;
+			set_tx_rf_bandwidth(param, param_no);
+			set_rx_rf_bandwidth(param, param_no);
+
+			param[0]= 30000;
+			set_tx1_attenuation(param, param_no);
+			set_tx2_attenuation(param, param_no);
+
+			param[0]= 0;
+			set_rx1_rf_gain(param, param_no);
+			set_rx2_rf_gain(param, param_no);
+
+			if(0 == bus)
+			{
+
+				param[0]= 300000000;
+				set_tx_lo_freq(param, param_no);
+				param[0]= 500000000;
+				set_rx_lo_freq(param, param_no);
+
+
+				/* Setup ASFE for loopback */
+				platform_lna_en(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
+				platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+			}
+			else
+			{
+				/* Setup AD9361 */
+				param[0]= 2500000000.0;
+				set_tx_lo_freq(param, param_no);
+				param[0]= 2400000000.0;
+				set_rx_lo_freq(param, param_no);
+				/* Setup ASFE for loopback */
+				platform_tr_rx_en(ASFE_AD2_TR_SWITCH);
+				platform_lna_en(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+			}
+
+			/* Setup digital ADC->DAC loopback */
+
+			/* Setup TX DMA registers */
+			platform_axiadc_write(NULL, RF_WRITE_BASE, (uint32_t)&test_buf[0]);
+			platform_axiadc_write(NULL, RF_WRITE_TOP, (uint32_t)&test_buf[num_samples-1]);
+			platform_axiadc_write(NULL, RF_WRITE_COUNT, num_samples);
+
+			/* Setup RX DMA registers */
+			platform_axiadc_write(NULL, RF_READ_BASE, (uint32_t)&test_buf[0]);
+			platform_axiadc_write(NULL, RF_READ_TOP, (uint32_t)&test_buf[num_samples-1]);
+			platform_axiadc_write(NULL, RF_READ_COUNT, num_samples);
+
+			/* Select both channels for TX and RX*/
+			platform_axiadc_write(NULL, RF_CHANNEL_EN, ((0x3 << RX_CH_ENABLE_SHIFT)|(0x3 << TX_CH_ENABLE_SHIFT)) << bus);
+			/* Select TX source */
+			platform_axiadc_write(NULL, TX_SOURCE, (0x55  << bus));
+			/* Enable RX transfer */
+			platform_axiadc_write(NULL, RF_CONFIG, RF_CONFIG_RX_ENABLE_BITMASK);
+			/* Enable TX transfer */
+			platform_axiadc_write(NULL, RF_CONFIG, RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK);
+
+		}
+		else
+		{
+			/* Disable digital sample transfer */
+			platform_axiadc_write(NULL, RF_CONFIG, ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK));
+
+			/* Disable PA and LNA */
+			if(0 == bus)
+			{
+				platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
+				platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+			}
+			else
+			{
+				platform_lna_en(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+			}
+
+		}
+
+
+	}
+	else
+	{
+		show_invalid_param_message(1);
 
 	}
 
-	if(test_buf)
-		free(test_buf);
+}
+
+/**************************************************************************//***
+ * @brief Gets current AUX ADC value.
+ *
+ * @return None.
+*******************************************************************************/
+void get_aux_adc(double* param, char param_no)
+{
+	int32_t	val;
+
+	if(param_no >= 1)
+	{
+		val = ad9361_get_auxadc(ad9361_phy);
+		console_print("AUX ADC value = 0x%x\n", val);
+	}
+	else
+	{
+		show_invalid_param_message(1);
+	}
+}
+
+/**************************************************************************//***
+ * @brief Gets current AUX DAC value.
+ *
+ * @return None.
+*******************************************************************************/
+void get_aux_dac(double* param, char param_no)
+{
+	if(param_no >= 1)
+	{
+		int32_t	val;
+		val = ad9361_auxdac_get(ad9361_phy, param[0]);
+		console_print("AUX DAC value = 0x%x\n", val);
+	}
+	else
+	{
+		show_invalid_param_message(1);
+	}
+}
+
+/**************************************************************************//***
+ * @brief Sets current AUX DAC value.
+ *
+ * @return None.
+*******************************************************************************/
+void set_aux_dac(double* param, char param_no)
+{
+	if(param_no >= 2)
+	{
+		ad9361_auxdac_set(ad9361_phy, param[0], param[1]);
+		console_print("AUX DAC value = %d\n", (int32_t)param[1]);
+	}
+	else
+	{
+		show_invalid_param_message(1);
+	}
+
 }
 
 #if 0

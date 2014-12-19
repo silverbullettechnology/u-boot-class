@@ -2943,7 +2943,7 @@ static int32_t ad9361_gc_setup(struct ad9361_rf_phy *phy, struct gain_control *c
  * @param val_mV The value.
  * @return 0 in case of success, negative error code otherwise.
  */
-static int32_t ad9361_auxdac_set(struct ad9361_rf_phy *phy, int32_t dac,
+int32_t ad9361_auxdac_set(struct ad9361_rf_phy *phy, int32_t dac,
 	int32_t val_mV)
 {
 	struct spi_device *spi = phy->spi;
@@ -2993,7 +2993,7 @@ static int32_t ad9361_auxdac_set(struct ad9361_rf_phy *phy, int32_t dac,
  * @param dac The DAC.
  * @return The value in case of success, negative error code otherwise.
  */
-static int32_t ad9361_auxdac_get(struct ad9361_rf_phy *phy, int32_t dac)
+int32_t ad9361_auxdac_get(struct ad9361_rf_phy *phy, int32_t dac)
 {
 
 	switch (dac) {
@@ -3103,7 +3103,7 @@ static int32_t ad9361_get_temp(struct ad9361_rf_phy *phy)
  * @param phy The AD9361 state structure.
  * @return The value in case of success, negative error code otherwise.
  */
-static int32_t ad9361_get_auxadc(struct ad9361_rf_phy *phy)
+int32_t ad9361_get_auxadc(struct ad9361_rf_phy *phy)
 {
 	uint32_t val;
 	uint8_t buf[2];
@@ -3140,12 +3140,22 @@ struct ctrl_outs_control *ctrl)
 static int32_t ad9361_gpo_setup(struct ad9361_rf_phy *phy)
 {
 	struct spi_device *spi = phy->spi;
+	uint8_t           val = 0;
 	/* FIXME later */
 
 	dev_dbg(&phy->spi->dev, "%s", __func__);
 
-	ad9361_spi_write(spi, 0x020, 0x00); // GPO Auto Enable Setup in RX and TX
-	ad9361_spi_write(spi, 0x027, 0x03); // GPO Manual and GPO auto value in ALERT
+	ad9361_spi_write(spi, REG_AUTO_GPO, GPO_ENABLE_AUTO_RX(0) | GPO_ENABLE_AUTO_TX(0)); // GPO Auto Enable Setup in RX and TX
+
+	ad9361_spi_write(spi, REG_EXTERNAL_LNA_CTRL, GPO_MANUAL_SELECT);
+
+	val = 0 | GPO_SET_MASK(GPO_ADX_RX1_LNA_BYPASS);
+	val |= GPO_SET_MASK(GPO_ADX_RX2_LNA_BYPASS);
+	val &= ~(GPO_SET_MASK(GPO_AD2_TR_N));
+	val = GPO_MANUAL_CTRL(val);
+	val |= GPO_INIT_STATE(0x03);
+	ad9361_spi_write(spi, REG_GPO_FORCE_AND_INIT, val); // GPO Manual and GPO auto value in ALERT
+
 	ad9361_spi_write(spi, 0x028, 0x00); // GPO_0 RX Delay
 	ad9361_spi_write(spi, 0x029, 0x00); // GPO_1 RX Delay
 	ad9361_spi_write(spi, 0x02a, 0x00); // GPO_2 RX Delay
@@ -5800,4 +5810,62 @@ int32_t ad9361_post_setup(struct ad9361_rf_phy *phy)
 	platform_init_sync_pulse_shape();
 	return 0;
 #endif
+}
+
+/* Set GPO pin.
+ * @param phy The AD9361 state structure.
+ * @param gpo GPO number
+ * @return 0 in case of success, negative error code otherwise.
+ */
+int32_t ad9361_gpo_set(struct ad9361_rf_phy *phy, uint8_t gpo)
+{
+	struct spi_device *spi = phy->spi;
+	int32_t val = 0;
+	int32_t status = 0;
+
+	dev_dbg(&phy->spi->dev, "%s", __func__);
+
+	val = ad9361_spi_read(spi, REG_EXTERNAL_LNA_CTRL);
+
+	if((GPO_MANUAL_SELECT & val))
+	{
+		val = ad9361_spi_read(spi, REG_GPO_FORCE_AND_INIT);
+		val |= GPO_MANUAL_CTRL(GPO_SET_MASK(gpo));
+		ad9361_spi_write(spi, REG_GPO_FORCE_AND_INIT, val);
+	}
+	else
+	{
+		dev_err(&phy->spi->dev, "Manual GPO mode is not enabled");
+		status = -EINVAL;
+	}
+	return status;
+}
+
+/* Clear GPO pin.
+ * @param phy The AD9361 state structure.
+ * @param gpo GPO number
+ * @return 0 in case of success, negative error code otherwise.
+ */
+int32_t ad9361_gpo_clear(struct ad9361_rf_phy *phy, uint8_t gpo)
+{
+	struct spi_device *spi = phy->spi;
+	int32_t val = 0;
+	int32_t status = 0;
+
+	dev_dbg(&phy->spi->dev, "%s", __func__);
+
+	val = ad9361_spi_read(spi, REG_EXTERNAL_LNA_CTRL);
+
+	if((GPO_MANUAL_SELECT & val))
+	{
+		val = ad9361_spi_read(spi, REG_GPO_FORCE_AND_INIT);
+		val &= ~GPO_MANUAL_CTRL(GPO_SET_MASK(gpo));
+		ad9361_spi_write(spi, REG_GPO_FORCE_AND_INIT, val);
+	}
+	else
+	{
+		dev_err(&phy->spi->dev, "Manual GPO mode is not enabled");
+		status = -EINVAL;
+	}
+	return status;
 }

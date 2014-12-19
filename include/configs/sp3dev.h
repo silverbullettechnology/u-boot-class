@@ -408,7 +408,15 @@
  * AD9361
  */
 #define CONFIG_AD9361
+#ifndef CONFIG_SP3DTC
 #define CONFIG_AD9361_MAX_DEVICE 4
+#else
+#define CONFIG_AD9361_MAX_DEVICE 2
+#endif
+#define CONFIG_AD9361_RAM_BUFFER_ADDR	(OCM_S_ABSOLUTE_BASE + CONFIG_S3MA_OCM_RAM_SIZE)
+#define CONFIG_AD9361_RAM_BUFFER_SIZE	(CONFIG_S3MA_OCM_RAM_SIZE)
+
+
 /*
  * Standalone applications
  */
@@ -430,6 +438,7 @@
 #define CONFIG_SYS_MEMTEST_SCRATCH     0
 
 /* DAC configs */
+#ifndef SP3DTC
 #define CONFIG_CMD_DAC
 #define CONFIG_LT2640_DAC
 #define CONFIG_LT2640_DAC_SPEED		(1000000)
@@ -437,5 +446,6 @@
 #define CONFIG_LT2640_DAC_CS		(GPIO33_7)
 #define CONFIG_LT2640_DAC_BUS		(4)
 #define CONFIG_LT2640_DAC_DEFAULT	(0)
+#endif
 
 #endif	       /* __CONFIG_H */

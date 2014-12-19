@@ -841,6 +841,15 @@
 */
 #define GPO_MANUAL_CTRL(x)		     (((x) & 0xF) << 4) /* GPO Manual Control<3:0> */
 #define GPO_INIT_STATE(x)		     (((x) & 0xF) << 0) /* GPO Init State<3:0> */
+#define GPO_SET_MASK(x)				 ((0x1 << (x) & 0xF ))/* Set mask for GPO number*/
+
+/* GPO bit mask */
+enum  gpo{
+	GPO_0 =	0,
+	GPO_1,
+	GPO_2,
+	GPO_3
+};
 
 /*
 *	REG_CTRL_OUTPUT_ENABLE
@@ -3865,4 +3874,10 @@ int32_t ad9361_bist_prbs(struct ad9361_rf_phy *phy, enum ad9361_bist_mode mode);
 int32_t ad9361_bist_tone(struct ad9361_rf_phy *phy,
 						 enum ad9361_bist_mode mode, uint32_t freq_Hz,
 						 uint32_t level_dB, uint32_t mask);
+int32_t ad9361_gpo_set(struct ad9361_rf_phy *phy, uint8_t gpo);
+int32_t ad9361_gpo_clear(struct ad9361_rf_phy *phy, uint8_t gpo);
+int32_t ad9361_get_auxadc(struct ad9361_rf_phy *phy);
+int32_t ad9361_auxdac_get(struct ad9361_rf_phy *phy, int32_t dac);
+int32_t ad9361_auxdac_set(struct ad9361_rf_phy *phy, int32_t dac, int32_t val_mV);
+
 #endif
