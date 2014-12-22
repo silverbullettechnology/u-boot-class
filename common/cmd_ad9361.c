@@ -188,7 +188,8 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 						env = getenv_ulong("dac", 10, 0xFFFFFFFF);
 						if(env == 0xFFFFFFFF)
 						{
-							setenv_ulong("dac", 0);
+							env = 0;
+							setenv_ulong("dac", env);
 							saveenv();
 						}
 

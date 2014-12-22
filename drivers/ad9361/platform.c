@@ -44,7 +44,6 @@
 #include <common.h>
 #include <spi.h>
 #include <asm/io.h>
-#include <asm/gpio.h>
 #include <ad9361/platform.h>
 #include <ad9361/ad9361_api.h>
 #include <ad9361/util.h>
@@ -358,6 +357,14 @@ void platform_tr_tx_en(uint32_t mask)
 	else
 		printf("%s: Invalid TR switch control IO\n", __func__);
 }
+
+void platform_asfe_init(void)
+{
+	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
+	platform_lna_dis(0|ASFE_AD1_RX1_LNA|ASFE_AD1_RX2_LNA|ASFE_AD2_RX1_LNA|ASFE_AD2_RX2_LNA);
+
+}
+
 #else
 void platform_pa_bias_en(uint32_t mask){}
 void platform_pa_bias_dis(uint32_t mask){}
@@ -365,6 +372,7 @@ void platform_lna_dis(uint32_t mask){}
 void platform_lna_en(uint32_t mask){}
 void platform_tr_rx_en(uint32_t mask){}
 void platform_tr_tx_en(uint32_t mask){}
+void platform_asfe_init(void){}
 
 #endif /* CONFIG_SP3DTC */
 

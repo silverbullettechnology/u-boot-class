@@ -43,7 +43,7 @@
 /***************************** Include Files **********************************/
 /******************************************************************************/
 //#include "stdint.h"
-#include "util.h"
+#include <ad9361/util.h>
 
 /******************************************************************************/
 /********************** Macros and Constants Definitions **********************/
@@ -157,5 +157,5 @@ void platform_lna_dis(uint32_t mask);
 void platform_lna_en(uint32_t mask);
 void platform_tr_rx_en(uint32_t mask);
 void platform_tr_tx_en(uint32_t mask);
-
+void platform_asfe_init(void);
 #endif
