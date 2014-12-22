@@ -999,7 +999,7 @@ struct rf_rx_gain *rx_gain)
 int32_t ad9361_get_rx_gain(struct ad9361_rf_phy *phy,
 	uint32_t rx_id, struct rf_rx_gain *rx_gain)
 {
-//	struct device *dev = &phy->spi->dev;
+	struct device *dev = &phy->spi->dev;
 	struct spi_device *spi = phy->spi;
 	uint32_t val, idx_reg;
 	uint8_t gain_ctl_shift, rx_enable_mask;

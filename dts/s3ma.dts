@@ -107,6 +107,15 @@
                       interrupts = < 3 0 >;
                      };
 
+		usb_0: ps7-usb@e0002000 {
+			compatible = "xlnx,ps7-usb-1.00.a";
+			dr_mode = "OTG";
+			interrupts = < 0 21 4 >;
+			phy_type = "ulpi";
+			reg = < 0xe0002000 0x1000 >;
+			xlnx,usb-reset = "MIO 7";
+		} ;
+
               spi0:	  ssi@0x080a4000 {
               		   compatible = "pl022";
               		   reg = <0x080a4000 0x1000>;
