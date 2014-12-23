@@ -224,6 +224,8 @@ int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 
 	default:
 		ret = 0;
+		if(bus < CONFIG_AD9361_MAX_DEVICE)
+			ret = 1;
 		break;
 	}
 

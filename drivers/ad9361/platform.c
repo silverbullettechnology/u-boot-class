@@ -311,9 +311,9 @@ void platform_pa_bias_dis(uint32_t mask)
 *******************************************************************************/
 void platform_lna_dis(uint32_t mask)
 {
-	if(ASFE_AD1_RX1_LNA & mask)
+	if((ASFE_AD1_RX1_LNA|ASFE_AD2_RX1_LNA) & mask)
 		ad9361_gpo_set(ad9361_phy,GPO_ADX_RX1_LNA_BYPASS);
-	else if(ASFE_AD1_RX2_LNA & mask)
+	else if((ASFE_AD1_RX2_LNA|ASFE_AD2_RX2_LNA) & mask)
 		ad9361_gpo_set(ad9361_phy,GPO_ADX_RX2_LNA_BYPASS);
 	else
 		printf("%s: Invalid LNA control IO\n", __func__);
@@ -324,9 +324,9 @@ void platform_lna_dis(uint32_t mask)
 *******************************************************************************/
 void platform_lna_en(uint32_t mask)
 {
-	if(ASFE_AD1_RX1_LNA & mask)
+	if((ASFE_AD1_RX1_LNA|ASFE_AD2_RX1_LNA) & mask)
 		ad9361_gpo_clear(ad9361_phy,GPO_ADX_RX1_LNA_BYPASS);
-	else if(ASFE_AD1_RX2_LNA & mask)
+	else if((ASFE_AD1_RX2_LNA|ASFE_AD2_RX2_LNA) & mask)
 		ad9361_gpo_clear(ad9361_phy,GPO_ADX_RX2_LNA_BYPASS);
 	else
 		printf("%s: Invalid LNA control IO\n", __func__);

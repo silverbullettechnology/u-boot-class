@@ -5835,7 +5835,7 @@ int32_t ad9361_gpo_set(struct ad9361_rf_phy *phy, uint8_t gpo)
 	}
 	else
 	{
-		dev_err(&phy->spi->dev, "Manual GPO mode is not enabled");
+		dev_err(&phy->spi->dev, "Manual GPO mode is not enabled\n");
 		status = -EINVAL;
 	}
 	return status;
@@ -5864,7 +5864,7 @@ int32_t ad9361_gpo_clear(struct ad9361_rf_phy *phy, uint8_t gpo)
 	}
 	else
 	{
-		dev_err(&phy->spi->dev, "Manual GPO mode is not enabled");
+		dev_err(&phy->spi->dev, "Manual GPO mode is not enabled\n");
 		status = -EINVAL;
 	}
 	return status;

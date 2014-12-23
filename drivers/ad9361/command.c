@@ -835,8 +835,8 @@ void set_asfe_loopback_test(double* param, char param_no)
 			}
 			else
 			{
-				platform_lna_en(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
-				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+				platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+				platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 			}
 
 		}
