@@ -391,11 +391,6 @@ static int setup_dest_addr(void)
 	}
 #endif
 
-#ifdef CONFIG_PALLADIUM
-	gd->ram_top = CONFIG_S3MA_OCM_RAM_BASE;
-	gd->ram_size = CONFIG_S3MA_OCM_RAM_SIZE;
-	printf("Relocating to OCM\n");
-#endif
 	debug("Ram size: %08lX\n", (ulong)gd->ram_size);
 
 	gd->ram_top += get_effective_memsize();
@@ -535,9 +530,6 @@ static int reserve_malloc(void)
 		malloc_len = (CONFIG_SYS_FALLBACK_MALLOC_LEN + CONFIG_ENV_SIZE);
 	}
 
-#endif
-#ifdef CONFIG_PALLADIUM
-	malloc_len = (CONFIG_SYS_FALLBACK_MALLOC_LEN + CONFIG_ENV_SIZE);
 #endif
 	gd->start_addr_sp = gd->start_addr_sp - malloc_len;
 	debug("Reserving %dk for malloc() at: %08lx\n",
