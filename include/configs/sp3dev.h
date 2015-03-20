@@ -15,14 +15,14 @@
 /***********************/
 
 /* Custom build options for debugging  */
-//#define DEBUG
-#define CONFIG_DEBUG_BUILD
-#define CONFIG_RUN_ON_QEMU
+#define DEBUG
+//#define CONFIG_DEBUG_BUILD
+//#define CONFIG_RUN_ON_QEMU
 //#define CONFIG_RTL_SIMULATION
-//#define CONFIG_PALLADIUM
-//#define CONFIG_SYS_ICACHE_OFF
-//#define CONFIG_SYS_DCACHE_OFF
-//#define CONFIG_SYS_L2CACHE_OFF
+#define CONFIG_PALLADIUM
+#define CONFIG_SYS_ICACHE_OFF
+#define CONFIG_SYS_DCACHE_OFF
+#define CONFIG_SYS_L2CACHE_OFF
 /***********************/
 
 #define CONFIG_S3MA
@@ -84,7 +84,7 @@
 #define CONFIG_CONS_INDEX	0
 
 #ifdef CONFIG_PALLADIUM
-#define CONFIG_BAUDRATE			1974857
+#define CONFIG_BAUDRATE			1268547
 #else
 #define CONFIG_BAUDRATE			115200
 #endif
@@ -322,7 +322,11 @@
 #define CONFIG_NR_DRAM_BANKS	       1
 #define PHYS_SDRAM		       		   (DMC_S_ABSOLUTE_BASE)
 
+#ifdef CONFIG_PALLADIUM
+#define CONFIG_DDR_SIZE					256*1024*1024
+#else
 #define CONFIG_DDR_SIZE					1024*1024*1024
+#endif
 #define CONFIG_S3MA_OCM_RAM_BASE		(OCM_S_ABSOLUTE_BASE)
 #define CONFIG_S3MA_OCM_RAM_SIZE		(OCM_S_SIZE/2)//Upper half of OCM can not be used for execution
 #define CONFIG_S3MA_RAM_SIZE			(CONFIG_DDR_SIZE)
