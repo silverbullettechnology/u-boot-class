@@ -88,11 +88,8 @@
 
 #define CONFIG_CONS_INDEX	0
 
-#ifdef CONFIG_PALLADIUM
-#define CONFIG_BAUDRATE			1974857
-#else
 #define CONFIG_BAUDRATE			115200
-#endif
+
 //#define CONFIG_PL011_SERIAL_FLUSH_ON_INIT
 #endif
 
