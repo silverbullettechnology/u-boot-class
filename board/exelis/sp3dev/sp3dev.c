@@ -64,12 +64,8 @@ int board_mmc_init(bd_t *bis)
 /* Enable SDHC controller clock  */
 	host->name = "s3ma_sdhci";
 	host->ioaddr = (void *)(SD_S_ABSOLUTE_BASE);
-#ifdef CONFIG_RUN_ON_QEMU
-	add_sdhci(host, 48000000, 48000000);
-#else
 	s3ma_sdhc_clk_enable();
 	add_sdhci(host, 0, 0);
-#endif
 	return 0;
 
 
