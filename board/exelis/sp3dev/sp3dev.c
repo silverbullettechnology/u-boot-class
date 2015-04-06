@@ -27,11 +27,11 @@
 #endif
 #ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
 #include <usb/s3c_udc.h>
+#include <usb.h>
 #endif
 #ifdef CONFIG_POST
 #include <post.h>
 #endif
-
 DECLARE_GLOBAL_DATA_PTR;
 
 /* Declare Power on reset configuration space data
@@ -139,9 +139,13 @@ int board_eth_init(bd_t *bis)
 
 
 
+extern void platform_asfe_init(void);
 
 int board_early_init_f(void)
 {
+	/* Init ASFE PA control GPIOs */
+//	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
+	platform_asfe_init();
 	return 0;
 }
 
@@ -220,6 +224,8 @@ int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 
 	default:
 		ret = 0;
+		if(bus < CONFIG_AD9361_MAX_DEVICE)
+			ret = 1;
 		break;
 	}
 
@@ -296,4 +302,10 @@ void arch_memory_failure_handle(void)
 	return;
 }
 #endif
+
+#ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
+void udc_disconnect(void){}
+#endif
+
+
 

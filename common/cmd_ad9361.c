@@ -47,8 +47,11 @@ static unsigned int mode = 0;
 static struct ad9361_rf_phy* ad9361_phy_table[CONFIG_AD9361_MAX_DEVICE] = {
 NULL,
 NULL,
+#ifndef CONFIG_SP3DTC
 NULL,
-NULL };
+NULL
+#endif
+};
 
 /*
  * SPI read/write
@@ -168,13 +171,31 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 			 * Init RFIC if needed
 			 */
 			if (NULL == ad9361_phy_table[bus]) {
-				if(init_param_ptr = malloc(sizeof(AD9361_InitParam)))
+
+				init_param_ptr = malloc(sizeof(AD9361_InitParam));
+
+				if(init_param_ptr)
 				{
 					memcpy(init_param_ptr, &default_init_param, sizeof(AD9361_InitParam));
 
 					/* Initialize RESETB pin */
 					init_param_ptr->gpio_resetb = RESETB0_BITMASK << (bus * 8);
+#ifdef CONFIG_SP3DTC
+					if(1 == bus)
+					{
+						ulong env;
+						/* Initialize the DAC setting from saved env variable */
+						env = getenv_ulong("dac", 10, 0xFFFFFFFF);
+						if(env == 0xFFFFFFFF)
+						{
+							env = 0;
+							setenv_ulong("dac", env);
+							saveenv();
+						}
 
+						init_param_ptr->aux_dac1_default_value_mV = env;
+					 }
+#endif
 					ad9361_phy_table[bus] = ad9361_init(init_param_ptr,
 							(struct spi_device*) slave);
 					free(init_param_ptr);
@@ -190,7 +211,7 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 			}
 
 			if(NULL != ad9361_phy_table[bus]){
-
+				ad9361_phy = ad9361_phy_table[bus];
 				cmd_list[cmd].function(param, param_no);
 			}
 
@@ -210,5 +231,5 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 
 /***************************************************/
 
-U_BOOT_CMD(ad9361, 2, 1, do_ad9361, "AD9361 utility command",
+U_BOOT_CMD(ad9361, 4, 1, do_ad9361, "AD9361 utility command",
 		"[<RFIC no>] <command> - Send and receive commands\n" "<RFIC no>             - Identifies the AD9361 IC number\n" "<command>             - Identifies the command\n" "Type ad9361 help!       for available commands\n");

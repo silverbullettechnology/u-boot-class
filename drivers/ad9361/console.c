@@ -44,52 +44,108 @@
 #include <exports.h>
 #include <linux/ctype.h>
 #include <ad9361/console.h>
-/*
- * This one doesn't check for bad syntax or overflow,
- * and is slow and inaccurate.
- * But it's good enough for the occasional string literal...
+
+/* Implementation of atof
+ * Copied from
+ * http://stackoverflow.com/questions/4392665/converting-string-to-float-without-atof-in-c
  */
 
+#define ZERO 48
+#define NINE 57
+#define MINUS 45
+#define DECPNT 46
+
 static
-double atof(const char *s)
+int strtoint_n(char* str, int n)
 {
-	double a = 0.0;
-	int e = 0;
-	int c;
-	while ((c = *s++) != '\0' && isdigit(c)) {
-		a = a*10.0 + (c - '0');
-	}
-	if (c == '.') {
-		while ((c = *s++) != '\0' && isdigit(c)) {
-			a = a*10.0 + (c - '0');
-			e = e-1;
-		}
-	}
-	if (c == 'e' || c == 'E') {
-		int sign = 1;
-		int i = 0;
-		c = *s++;
-		if (c == '+')
-			c = *s++;
-		else if (c == '-') {
-			c = *s++;
-			sign = -1;
-		}
-		while (isdigit(c)) {
-			i = i*10 + (c - '0');
-			c = *s++;
-		}
-		e += i*sign;
-	}
-	while (e > 0) {
-		a *= 10.0;
-		e--;
-	}
-	while (e < 0) {
-		a *= 0.1;
-		e++;
-	}
-	return a;
+    int sign = 1;
+    int place = 1;
+    int ret = 0;
+
+    int i;
+    for (i = n-1; i >= 0; i--, place *= 10)
+    {
+        int c = str[i];
+        switch (c)
+        {
+            case MINUS:
+                if (i == 0) sign = -1;
+                else return -1;
+                break;
+            default:
+                if (c >= ZERO && c <= NINE) ret += (c - ZERO) * place;
+                else return -1;
+        }
+    }
+
+    return sign * ret;
+}
+
+static
+float _float_fraction(char* str, int n)
+{
+    float place = 0.1f;
+    float ret = 0.0f;
+
+    int i;
+    for (i = 0; i < n; i++, place /= 10)
+    {
+        int c = str[i];
+        ret += (c - ZERO) * place;
+    }
+    return ret;
+}
+
+static
+float strtoflt(char* str)
+{
+    int n = 0;
+    int sign = 1;
+    int d = -1;
+    int ret = 0;
+
+    char* temp = str;
+    while (*temp != '\0')
+    {
+        switch (*temp)
+        {
+            case MINUS:
+                if (n == 0) sign = -1;
+                else return -1;
+                break;
+            case DECPNT:
+                if (d == -1) d = n;
+                else return -1;
+                break;
+            default:
+                if (*temp < ZERO && *temp > NINE) return -1;
+        }
+        n++;
+        temp++;
+    }
+
+    if (d == -1)
+    {
+        return (float)(strtoint_n(str, n));
+    }
+    else if (d == 0)
+    {
+        return _float_fraction((str+d+1), (n-d-1));
+    }
+    else if (sign == -1 && d == 1)
+    {
+        return (-1)*_float_fraction((str+d+1), (n-d-1));
+    }
+    else if (sign == -1)
+    {
+        ret = strtoint_n(str+1, d-1);
+        return (-1) * (ret + _float_fraction((str+d+1), (n-d-1)));
+    }
+    else
+    {
+        ret = strtoint_n(str, d);
+        return ret + _float_fraction((str+d+1), (n-d-1));
+    }
 }
 
 /***************************************************************************//**
@@ -448,12 +504,12 @@ int console_check_commands(char*	   received_cmd,
 					{
 						if(param_string[0] == '-')
 						{
-							*param = atof((const char*)(&param_string[1]));
+							*param = strtoflt(&param_string[1]);
 							*param *= (-1);
 						}
 						else
 						{
-							*param = atof((const char*)param_string);
+							*param = strtoflt(param_string);
 						}
 					}
 					param++;
@@ -493,12 +549,12 @@ int console_check_commands(char*	   received_cmd,
 				{
 					if(param_string[0] == '-')
 					{
-						*param = atof((const char*)(&param_string[1]));
+						*param = strtoflt(&param_string[1]);
 						*param *= (-1);
 					}
 					else
 					{
-						*param = atof((const char*)param_string);
+						*param = strtoflt(param_string);
 					}
 				}
 				*param_no += 1;

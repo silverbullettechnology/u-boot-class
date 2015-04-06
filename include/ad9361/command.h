@@ -226,4 +226,20 @@ void dds_tx2_tone2_scale(double* param, char param_no);
 /* Sets the DDS TX2 Tone 2 scale. */
 void set_dds_tx2_tone2_scale(double* param, char param_no);
 
+/* Runs DAC->ADC loopback test*/
+void tx_loopback_test(double* param, char param_no);
+
+/* Enables/Disables ADC->DAC loopback test */
+void set_asfe_loopback_test(double* param, char param_no);
+
+/* Read AUX ADC value */
+void get_aux_adc(double* param, char param_no);
+
+/* Read AUX DAC value */
+void get_aux_dac(double* param, char param_no);
+
+/* Set AUX DAC value */
+void set_aux_dac(double* param, char param_no);
+
+
 #endif  // __COMMAND_H__

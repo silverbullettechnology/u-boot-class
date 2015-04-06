@@ -289,8 +289,11 @@ void enable_caches(void)
 void s_init(void)
 {
 	/* Disable clocks not needed */
-	setbits_le32(CRT_CLK_DIS, (DMA_DIS_BITMASK | USB_DIS_BITMASK | SD_DIS_BITMASK));
 
+#ifdef CONFIG_RTL_SIMULATION
+	/* These clocks will need a processor reset to re-enable */
+	setbits_le32(CRT_CLK_DIS, (DMA_DIS_BITMASK | USB_DIS_BITMASK | SD_DIS_BITMASK));
+#endif
 	setbits_le32(CRT_WFE_DIS, (WFE_AHB_DIS_BITMASK | WFE_APB_DIS_BITMASK | \
 			WFE_TX_DIS_BITMASK |WFE_RX_DIS_BITMASK |WFE_ADC_DAC_DIS_BITMASK));
 
@@ -412,17 +415,7 @@ void v7_outer_cache_disable(void)
 
 void reset_cpu(ulong addr)
 {
-#if 0
-	struct watchdog_regs *wdog = (struct watchdog_regs *)WDOG1_BASE_ADDR;
-
-	writew(WCR_WDE, &wdog->wcr);
-	writew(0x5555, &wdog->wsr);
-	writew(0xaaaa, &wdog->wsr);	/* load minimum 1/2 second timeout */
-	while (1) {
-		/*
-		 * spin for .5 seconds before reset
-		 */
-	}
-#endif
+	/* Write trigger value to SW_RESET register */
+	writel(0x5B31F086, CRT_SW_RESET);
 }
 

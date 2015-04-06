@@ -44,7 +44,6 @@
 #include <common.h>
 #include <spi.h>
 #include <asm/io.h>
-#include <asm/gpio.h>
 #include <ad9361/platform.h>
 #include <ad9361/ad9361_api.h>
 #include <ad9361/util.h>
@@ -117,10 +116,7 @@ void platform_gpio_direction(uint8_t pin, uint8_t direction)
 *******************************************************************************/
 bool platform_gpio_is_valid(int number)
 {
-	if(-1 != number)
-		return 1;
-	else
-		return 0;
+	return 1;
 }
 /***************************************************************************//**
  * @brief gpio_data
@@ -143,6 +139,29 @@ void platform_gpio_set_value(unsigned gpio, int value)
 	}
 }
 
+/***************************************************************************//**
+ * @brief gpio_set_sync_value
+*******************************************************************************/
+void platform_gpio_set_sync_value(int value)
+{
+	if(0 == value)
+	{
+		writel(TRIGGER_RESET, RF_SYNC);
+	}
+	else
+	{
+		writel(TRIGGER_BITMASK, RF_SYNC);
+	}
+
+}
+
+/***************************************************************************//**
+ * @brief init_sync_pulse_shape
+*******************************************************************************/
+void platform_init_sync_pulse_shape(void)
+{
+	writel(0xffffffff, RF_SYNCPULSESHAPE);
+}
 /***************************************************************************//**
  * @brief udelay
 *******************************************************************************/
@@ -173,6 +192,66 @@ unsigned long platform_msleep_interruptible(unsigned int msecs)
 *******************************************************************************/
 void platform_axiadc_init(struct ad9361_rf_phy *phy)
 {
+	struct spi_slave *slave = (struct spi_slave *)phy->spi;
+	uint32_t bus = slave->bus;
+	uint32_t val = 0;
+	uint32_t addr = 0;
+/*
+ *	Enable RFIC interface I/O pads
+ */
+	/*
+	 * RF_IO_CTLx allows you to assert the PWRDN  and EXT_REF pins on the IO cells for each of the RFIC busses
+	 * Neither the RF_DriveX nor RF_IO_CTLx registers are initialized on a software reset.
+	 */
+
+	/*TODO: There is a discrepancy in the ASIC specification and include file. Correct bit names ?
+	 * Does _ENB mean we need to write 0 to activate or it's just a signal name?
+	 */
+
+	addr = (RF_IO_CTL0) + bus*sizeof(val);
+	val  = (uint32_t)1 << RX_ENB_SHIFT;
+	val |= (uint32_t)1 << RX_OEB_SHIFT;
+	val |= (uint32_t)1 << RX_REB_SHIFT;
+	val |= (uint32_t)1 << RX_CM_EMF_SHIFT;
+	platform_axiadc_write(NULL,addr,val);
+
+	/*TODO: There is nothing in the ASIC specification about how to control the drive strength
+	 * or what all fields mean. Let's just write all zeros
+	 */
+	addr = (RF_DRIVE0);
+	addr += bus*sizeof(val);
+	val = 0;
+	platform_axiadc_write(NULL,addr,val);
+
+/*
+ *	Turn off RFIC RX/TX by driving control pins low
+ */
+
+	val = (ENABLE0_BITMASK | TXNRX0_BITMASK) << (ENABLE1_SHIFT - ENABLE0_SHIFT)*bus;
+	platform_axiadc_write(NULL,(RF_CONTROL_RESET),val);
+
+
+/*
+ * 	Turn off RX/TX in RF_CONFIG register
+ */
+	val = ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK|RX_INTERRUPT_EN_BITMASK|TX_INTERRUPT_EN_BITMASK);
+
+	platform_axiadc_write(NULL,val,(RF_CONFIG));
+
+/*
+ *	clear enable bits for associated RX/TX Channels
+ */
+	val = ((1<< 2*bus)|(1 << (2*bus+1))) << RX_CH_ENABLE_SHIFT;
+	val |= val << TX_CH_ENABLE_SHIFT;
+	val = ~val;
+	platform_axiadc_write(NULL,(RF_CHANNEL_EN),val);
+/*
+ * 	Initialize ADC sign bit location and shift
+ * 	Keep the defaults for now
+ */
+	val = (12 << SIGN_BIT0_SHIFT)|(4 << ROTATE0_SHIFT);
+	val <<= (SIGN_BIT1_SHIFT - SIGN_BIT0_SHIFT)*bus;
+	platform_axiadc_write(NULL,(AD_FORMAT),val);
 
 }
 
@@ -181,7 +260,7 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 *******************************************************************************/
 unsigned int platform_axiadc_read(struct axiadc_state *st, unsigned long reg)
 {
-
+	return readl(reg);
 }
 
 /***************************************************************************//**
@@ -189,5 +268,111 @@ unsigned int platform_axiadc_read(struct axiadc_state *st, unsigned long reg)
 *******************************************************************************/
 void platform_axiadc_write(struct axiadc_state *st, unsigned reg, unsigned val)
 {
+	writel(val, reg);
+}
+
+#ifdef CONFIG_SP3DTC
+
+/***************************************************************************//**
+ * @brief platform_en_pa_bias
+*******************************************************************************/
+void platform_pa_bias_en(uint32_t mask)
+{
+	if(ASFE_AD1_TX1_PA_BIAS & mask)
+		gpio_set_value(GPIO_AD1_TX1_PA_EN, 1);
+	else if(ASFE_AD1_TX2_PA_BIAS & mask)
+		gpio_set_value(GPIO_AD1_TX2_PA_EN, 1);
+	else if(ASFE_AD2_TX1_PA_BIAS & mask)
+		gpio_set_value(GPIO_AD2_TX1_PA_EN, 1);
+	else if(ASFE_AD2_TX2_PA_BIAS & mask)
+		gpio_set_value(GPIO_AD2_TX2_PA_EN, 1);
+	else
+		printf("%s: Invalid PA control IO\n", __func__);
+}
+/***************************************************************************//**
+ * @brief platform_dis_pa_bias
+*******************************************************************************/
+void platform_pa_bias_dis(uint32_t mask)
+{
+	if(ASFE_AD1_TX1_PA_BIAS & mask)
+		gpio_set_value(GPIO_AD1_TX1_PA_EN, 0);
+	else if(ASFE_AD1_TX2_PA_BIAS & mask)
+		gpio_set_value(GPIO_AD1_TX2_PA_EN, 0);
+	else if(ASFE_AD2_TX1_PA_BIAS & mask)
+		gpio_set_value(GPIO_AD2_TX1_PA_EN, 0);
+	else if(ASFE_AD2_TX2_PA_BIAS & mask)
+		gpio_set_value(GPIO_AD2_TX2_PA_EN, 0);
+	else
+		printf("%s: Invalid PA control IO\n", __func__);
+}
+
+/***************************************************************************//**
+ * @brief platform_lna_dis
+*******************************************************************************/
+void platform_lna_dis(uint32_t mask)
+{
+	if((ASFE_AD1_RX1_LNA|ASFE_AD2_RX1_LNA) & mask)
+		ad9361_gpo_set(ad9361_phy,GPO_ADX_RX1_LNA_BYPASS);
+	else if((ASFE_AD1_RX2_LNA|ASFE_AD2_RX2_LNA) & mask)
+		ad9361_gpo_set(ad9361_phy,GPO_ADX_RX2_LNA_BYPASS);
+	else
+		printf("%s: Invalid LNA control IO\n", __func__);
+}
+
+/***************************************************************************//**
+ * @brief platform_lna_en
+*******************************************************************************/
+void platform_lna_en(uint32_t mask)
+{
+	if((ASFE_AD1_RX1_LNA|ASFE_AD2_RX1_LNA) & mask)
+		ad9361_gpo_clear(ad9361_phy,GPO_ADX_RX1_LNA_BYPASS);
+	else if((ASFE_AD1_RX2_LNA|ASFE_AD2_RX2_LNA) & mask)
+		ad9361_gpo_clear(ad9361_phy,GPO_ADX_RX2_LNA_BYPASS);
+	else
+		printf("%s: Invalid LNA control IO\n", __func__);
+}
+
+/***************************************************************************//**
+ * @brief platform_tr_rx_en
+*******************************************************************************/
+void platform_tr_rx_en(uint32_t mask)
+{
+	if(ASFE_AD2_TR_SWITCH & mask)
+		ad9361_gpo_clear(ad9361_phy,GPO_AD2_TR_N);
+	else if(ASFE_AD1_TR_SWITCH & mask)
+		ad9361_gpo_clear(ad9361_phy,GPO_AD2_TR_N);
+	else
+		printf("%s: Invalid TR switch control IO\n", __func__);
+}
+
+/***************************************************************************//**
+ * @brief platform_tr_tx_en
+*******************************************************************************/
+void platform_tr_tx_en(uint32_t mask)
+{
+	if(ASFE_AD2_TR_SWITCH & mask)
+		ad9361_gpo_set(ad9361_phy,GPO_AD2_TR_N);
+	else if(ASFE_AD1_TR_SWITCH & mask)
+		ad9361_gpo_set(ad9361_phy,GPO_AD2_TR_N);
+	else
+		printf("%s: Invalid TR switch control IO\n", __func__);
+}
+
+void platform_asfe_init(void)
+{
+	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
+	platform_lna_dis(0|ASFE_AD1_RX1_LNA|ASFE_AD1_RX2_LNA|ASFE_AD2_RX1_LNA|ASFE_AD2_RX2_LNA);
 
 }
+
+#else
+void platform_pa_bias_en(uint32_t mask){}
+void platform_pa_bias_dis(uint32_t mask){}
+void platform_lna_dis(uint32_t mask){}
+void platform_lna_en(uint32_t mask){}
+void platform_tr_rx_en(uint32_t mask){}
+void platform_tr_tx_en(uint32_t mask){}
+void platform_asfe_init(void){}
+
+#endif /* CONFIG_SP3DTC */
+

@@ -46,9 +46,11 @@
 //#include <stdint.h>
 //#include <stdio.h>
 //#include <stdlib.h>
-#include "ad9361.h"
-#include "ad9361_common.h"
-#include "common.h"
+#include <linux/compat.h>
+//#include <asm/gpio.h>
+#include <ad9361/ad9361.h>
+#include <ad9361/ad9361_common.h>
+#include <common.h>
 
 /******************************************************************************/
 /********************** Macros and Constants Definitions **********************/
@@ -56,9 +58,9 @@
 #define SUCCESS									0
 //#define ARRAY_SIZE(arr)							(sizeof(arr) / sizeof((arr)[0]))
 //#define min(x, y)								(((x) < (y)) ? (x) : (y))
-#define min_t(type, x, y)						(type)min((type)(x), (type)(y))
+//#define min_t(type, x, y)						(type)min((type)(x), (type)(y))
 //#define max(x, y)								(((x) > (y)) ? (x) : (y))
-#define max_t(type, x, y)						(type)max((type)(x), (type)(y))
+//#define max_t(type, x, y)						(type)max((type)(x), (type)(y))
 #define clamp(val, min_val, max_val)			(max(min((val), (max_val)), (min_val)))
 #define clamp_t(type, val, min_val, max_val)	(type)clamp((type)(val), (type)(min_val), (type)(max_val))
 //#define DIV_ROUND_UP(x, y)						(((x) + (y) - 1) / (y))
@@ -67,17 +69,19 @@
 #define CLK_IGNORE_UNUSED						BIT(3)
 #define CLK_GET_RATE_NOCACHE					BIT(6)
 
-#define dev_err(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
+//#define dev_err(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
 #define dev_warn(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
-#define dev_dbg(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
-#define dev_info(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
-#define printk(format, ...)			printf(format, ## __VA_ARGS__)
+//#define dev_dbg(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
+//#define dev_info(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
+//#define printk(format, ...)			printf(format, ## __VA_ARGS__)
 #define WARN(format, ...)			printf(format, ## __VA_ARGS__)
 #define pr_err						printf
 #define pr_warning					printf
 
+
 struct device {
 };
+
 
 struct spi_device {
 	struct device dev;

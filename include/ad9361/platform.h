@@ -43,7 +43,7 @@
 /***************************** Include Files **********************************/
 /******************************************************************************/
 //#include "stdint.h"
-#include "util.h"
+#include <ad9361/util.h>
 
 /******************************************************************************/
 /********************** Macros and Constants Definitions **********************/
@@ -103,6 +103,30 @@ enum adc_data_sel {
 	ADC_DATA_SEL_RAMP, /* TBD */
 };
 
+#define ASFE_AD1_TX1_PA_BIAS		0x00000001
+#define ASFE_AD1_TX2_PA_BIAS		0x00000002
+#define ASFE_AD2_TX1_PA_BIAS		0x00000004
+#define ASFE_AD2_TX2_PA_BIAS		0x00000008
+
+#define ASFE_AD1_RX1_LNA			0x00000010
+#define ASFE_AD1_RX2_LNA			0x00000020
+#define ASFE_AD2_RX1_LNA			0x00000040
+#define ASFE_AD2_RX2_LNA			0x00000080
+
+#define ASFE_AD1_TR_SWITCH			0x00000100
+#define ASFE_AD2_TR_SWITCH			0x00000200
+
+#define GPIO_AD1_TX1_PA_EN			GPIO33_6
+#define GPIO_AD1_TX2_PA_EN			GPIO33_2
+#define GPIO_AD2_TX1_PA_EN			GPIO33_4
+#define GPIO_AD2_TX2_PA_EN			GPIO33_1
+
+
+
+#define GPO_ADX_RX1_LNA_BYPASS		GPO_0
+#define GPO_ADX_RX2_LNA_BYPASS		GPO_1
+#define GPO_AD2_TR_N				GPO_3
+
 /******************************************************************************/
 /************************ Functions Declarations ******************************/
 /******************************************************************************/
@@ -118,11 +142,20 @@ void platform_gpio_init(uint32_t device_id);
 void platform_gpio_direction(uint8_t pin, uint8_t direction);
 bool platform_gpio_is_valid(int number);
 void platform_gpio_set_value(unsigned gpio, int value);
+void platform_gpio_set_sync_value(int value);
+void platform_init_sync_pulse_shape(void);
+
 void platform_udelay(unsigned long usecs);
 void platform_mdelay(unsigned long msecs);
 unsigned long platform_msleep_interruptible(unsigned int msecs);
 void platform_axiadc_init(struct ad9361_rf_phy *phy);
 unsigned int platform_axiadc_read(struct axiadc_state *st, unsigned long reg);
 void platform_axiadc_write(struct axiadc_state *st, unsigned reg, unsigned val);
-
+void platform_pa_bias_en(uint32_t mask);
+void platform_pa_bias_dis(uint32_t mask);
+void platform_lna_dis(uint32_t mask);
+void platform_lna_en(uint32_t mask);
+void platform_tr_rx_en(uint32_t mask);
+void platform_tr_tx_en(uint32_t mask);
+void platform_asfe_init(void);
 #endif
