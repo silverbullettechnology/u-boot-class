@@ -45,6 +45,11 @@ void s3ma_ddr_clock_enable(void)
 	clrbits_le32(CRT_CLK_DIS, DMC_DIS_BITMASK);
 }
 
+void s3ma_ddr_clock_disable(void)
+{
+	setbits_le32(CRT_CLK_DIS, DMC_DIS_BITMASK);
+}
+
 void s3ma_ddr_phy_clk_sel_384(void)
 {
 	//mon_puts("BEGIN CHANGE FREQUENCY OF DDR I/F: 192->384\n");

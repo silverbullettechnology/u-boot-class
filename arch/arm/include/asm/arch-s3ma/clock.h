@@ -11,6 +11,7 @@
 
 void s3ma_setup_pll(void);
 void s3ma_ddr_clock_enable(void);
+void s3ma_ddr_clock_disable(void);
 void s3ma_sdhc_clk_enable(void);
 void s3ma_sdhc_clk_disable(void);
 
