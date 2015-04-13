@@ -239,29 +239,11 @@ static void clear_mmdc_ch_mask(void)
 
 int arch_cpu_init(void)
 {
-#if 0
-	init_aips();
-#endif
-
-#if 0
-	/* Need to clear MMDC_CHx_MASK to make warm reset work. */
-	clear_mmdc_ch_mask();
-
-	/*
-	 * When low freq boot is enabled, ROM will not set AHB
-	 * freq, so we need to ensure AHB freq is 132MHz in such
-	 * scenario.
-	 */
-	if (mxc_get_clock(MXC_ARM_CLK) == 396000000)
-		set_ahb_rate(132000000);
-
-	imx_set_wdog_powerdown(false); /* Disable PDE bit of WMCR register */
-#endif
-
-#ifdef CONFIG_APBH_DMA
-	/* Start APBH DMA */
-	mxs_dma_init();
-#endif
+	/* Initialize Boot QSPI flash drive strength to max*/
+	setbits_le32(IO_CTL_E1_CFG,(uint32_t)0x00020000);
+	setbits_le32(IO_CTL_E2_CFG,(uint32_t)0x00020000);
+	/* Initialize Boot QSPI flash Slew Rate to fast */
+	setbits_le32(IO_CTL_SR_CFG,(uint32_t)0x00020000);
 
 	return 0;
 }
