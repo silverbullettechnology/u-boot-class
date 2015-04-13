@@ -42,7 +42,14 @@ void s3ma_setup_pll(void)
 
 void s3ma_ddr_clock_enable(void)
 {
+	/* Enable clocks in the MRU */
 	clrbits_le32(CRT_CLK_DIS, DMC_DIS_BITMASK);
+
+	/* Select 384MHz clock vs. 192 MHz */
+	setbits_le32(DDR_CFG, DDR_PHY_CLK_SEL_BITMASK);
+	/* Wait for DLL lock bit */
+//	while(0 == (readl(PUBL_PIR) & DLLLOCK_BITMASK));
+
 }
 
 void s3ma_ddr_clock_disable(void)

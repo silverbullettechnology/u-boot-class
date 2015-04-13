@@ -267,10 +267,8 @@ void s_init(void)
 {
 	/* Disable clocks not needed */
 
-#ifdef CONFIG_RTL_SIMULATION
-	/* These clocks will need a processor reset to re-enable */
 	setbits_le32(CRT_CLK_DIS, (DMA_DIS_BITMASK | USB_DIS_BITMASK | SD_DIS_BITMASK));
-#endif
+
 	setbits_le32(CRT_WFE_DIS, (WFE_AHB_DIS_BITMASK | WFE_APB_DIS_BITMASK | \
 			WFE_TX_DIS_BITMASK |WFE_RX_DIS_BITMASK |WFE_ADC_DAC_DIS_BITMASK));
 
@@ -302,8 +300,8 @@ void s_init(void)
 	setbits_le32(IO_CTL_SR_CFG,(uint32_t)0x00020000);
 
 	s3ma_setup_pll();
-	s3ma_ddr_clock_enable();
-	s3ma_ddr_setup();
+//	s3ma_ddr_clock_enable();
+//	s3ma_ddr_setup();
 }
 
 
