@@ -239,11 +239,6 @@ static void clear_mmdc_ch_mask(void)
 
 int arch_cpu_init(void)
 {
-	/* Initialize Boot QSPI flash drive strength to max*/
-	setbits_le32(IO_CTL_E1_CFG,(uint32_t)0x00020000);
-	setbits_le32(IO_CTL_E2_CFG,(uint32_t)0x00020000);
-	/* Initialize Boot QSPI flash Slew Rate to fast */
-	setbits_le32(IO_CTL_SR_CFG,(uint32_t)0x00020000);
 
 	return 0;
 }
@@ -284,6 +279,24 @@ void s_init(void)
 
 	setbits_le32(CRT_RF_DIS, WFE_DIS_BITMASK);
 	setbits_le32(CRT_MDM_DIS, MDM_DIS_BITMASK);
+/*
+	Per Aragio IO spec:
+	Slew Rate Control: SR = 0 – Slow, SR = 1 – Fast
+
+	Output Drive Strength Selection (E2, E1):
+	E2 (MSB) 	E1 (LSB) 	Rated Drive Strength
+	0 	        0 			2mA
+	0 	        1 			4mA
+	1 			0 			8mA
+	1 			1 			12mA
+*/
+
+	/* Initialize Boot QSPI flash drive strength to 8mA*/
+	clrbits_le32(IO_CTL_E1_CFG,(uint32_t)0x00020000);
+	setbits_le32(IO_CTL_E2_CFG,(uint32_t)0x00020000);
+
+	/* Initialize Boot QSPI flash Slew Rate to fast */
+	setbits_le32(IO_CTL_SR_CFG,(uint32_t)0x00020000);
 
 	s3ma_setup_pll();
 //	s3ma_ddr_clock_enable();
