@@ -22,6 +22,7 @@
 #define CONFIG_SYS_ICACHE_OFF
 #define CONFIG_SYS_DCACHE_OFF
 #define CONFIG_SYS_L2CACHE_OFF
+#define CONFIG_S3MA_IGNORE_BUS_ERROR
 /***********************/
 
 #define CONFIG_S3MA
