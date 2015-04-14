@@ -239,18 +239,29 @@ software_interrupt:
 
 	.align	5
 prefetch_abort:
+#if 1
+	subs	pc, lr, #4
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_prefetch_abort
 
 	.align	5
 data_abort:
+#if 1
+	subs	pc, lr, #4
+#endif
+
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_data_abort
 
 	.align	5
 not_used:
+#if 1
+	subs	pc, lr, #4
+#endif
+
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_not_used
