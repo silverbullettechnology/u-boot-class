@@ -307,8 +307,8 @@ void s_init(void)
 	setbits_le32(CRT_MDM_DIS, MDM_DIS_BITMASK);
 
 	s3ma_setup_pll();
-//	s3ma_ddr_clock_enable();
-//	s3ma_ddr_setup();
+	s3ma_ddr_clock_enable();
+	s3ma_ddr_setup();
 }
 
 
