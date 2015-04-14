@@ -42,7 +42,7 @@
  *
  *************************************************************************
  */
-
+#define CONFIG_S3MA_IGNORE_BUS_ERROR
 _start:
 
 #ifdef CONFIG_SYS_DV_NOR_BOOT_CFG
@@ -239,18 +239,29 @@ software_interrupt:
 
 	.align	5
 prefetch_abort:
+#ifdef CONFIG_S3MA_IGNORE_BUS_ERROR
+	subs	pc, lr, #4
+#endif
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_prefetch_abort
 
 	.align	5
 data_abort:
+#ifdef CONFIG_S3MA_IGNORE_BUS_ERROR
+	subs	pc, lr, #4
+#endif
+
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_data_abort
 
 	.align	5
 not_used:
+#ifdef CONFIG_S3MA_IGNORE_BUS_ERROR
+	subs	pc, lr, #4
+#endif
+
 	get_bad_stack
 	bad_save_user_regs
 	bl	do_not_used
