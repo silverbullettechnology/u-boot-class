@@ -37,7 +37,7 @@ static int s3ma_init_dmc_main(void)				// TODO: turn into separate LPDDR2_200 an
 	// -------------------------------
 
 	// simple check to make sure we can talk to DMC (if fail, stop immediately as no point in continuing)
-	if(readl(MEMC_CONFIG != 0x03111200))
+	if(0x03111200 != readl(MEMC_CONFIG))
 	{
 		return -1;
 	}
