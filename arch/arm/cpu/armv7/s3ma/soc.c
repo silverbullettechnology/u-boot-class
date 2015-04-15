@@ -292,7 +292,7 @@ void s_init(void)
 */
 
 	/* Initialize Boot QSPI flash drive strength to 8mA*/
-	clrbits_le32(IO_CTL_E1_CFG,(uint32_t)0x00020000);
+	setbits_le32(IO_CTL_E1_CFG,(uint32_t)0x00020000);
 	setbits_le32(IO_CTL_E2_CFG,(uint32_t)0x00020000);
 
 	/* Initialize Boot QSPI flash Slew Rate to fast */
