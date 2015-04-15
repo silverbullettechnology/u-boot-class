@@ -221,7 +221,11 @@ struct sdhci_host;
 /*
  * Host SDMA buffer boundary. Valid values from 4K to 512K in powers of 2.
  */
+#ifdef CONFIG_S3MA
+#define SDHCI_DEFAULT_BOUNDARY_SIZE	(4 * 1024)
+#else
 #define SDHCI_DEFAULT_BOUNDARY_SIZE	(512 * 1024)
+#endif
 #define SDHCI_DEFAULT_BOUNDARY_ARG	(7)
 struct sdhci_ops {
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
