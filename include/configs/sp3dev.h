@@ -16,7 +16,7 @@
 
 /* Custom build options for debugging  */
 #define DEBUG
-//#define CONFIG_DEBUG_BUILD
+#define CONFIG_DEBUG_BUILD
 //#define CONFIG_RUN_ON_QEMU
 //#define CONFIG_RTL_SIMULATION
 //#define CONFIG_PALLADIUM
@@ -348,7 +348,7 @@
 
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH
-
+/*
 #define CONFIG_CMD_SF
 #define CONFIG_CMD_SF_TEST
 #define CONFIG_SPI_FLASH
@@ -358,10 +358,13 @@
 # define CONFIG_SF_DEFAULT_CS		(GPIO33_3) //GPIO33_3
 # define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
 # define CONFIG_SF_DEFAULT_SPEED	(1000000)
+*/
 
-#if defined(CONFIG_RUN_ON_QEMU)
+//#if defined(CONFIG_RUN_ON_QEMU)
+#if 1
 #define CONFIG_ENV_IS_IN_MMC
 #define CONFIG_ENV_SIZE			(16 * 1024)
+
 #else
 #define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_SIZE			(16 * 1024)
@@ -422,7 +425,7 @@
  * Standalone applications
  */
 
-#define CONFIG_STANDALONE_LOAD_ADDR		0x8000000
+#define CONFIG_STANDALONE_LOAD_ADDR		0x80000000
 //#define CONFIG_API
 
 /*  Power-on self test */
@@ -440,6 +443,7 @@
 
 /* DAC configs */
 #ifndef SP3DTC
+/*
 #define CONFIG_CMD_DAC
 #define CONFIG_LT2640_DAC
 #define CONFIG_LT2640_DAC_SPEED		(1000000)
@@ -447,6 +451,6 @@
 #define CONFIG_LT2640_DAC_CS		(GPIO33_7)
 #define CONFIG_LT2640_DAC_BUS		(4)
 #define CONFIG_LT2640_DAC_DEFAULT	(0)
+*/
 #endif
-
 #endif	       /* __CONFIG_H */
