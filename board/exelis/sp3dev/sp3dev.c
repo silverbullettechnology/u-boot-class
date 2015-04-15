@@ -138,14 +138,16 @@ int board_eth_init(bd_t *bis)
 }
 
 
-
 extern void platform_asfe_init(void);
 
 int board_early_init_f(void)
 {
+#ifdef CONFIG_AD9361
+
 	/* Init ASFE PA control GPIOs */
 //	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
 	platform_asfe_init();
+#endif
 	return 0;
 }
 
@@ -172,13 +174,13 @@ int checkboard(void)
 
 int misc_init_r(void)
 {
-	ulong env;
 
 #ifdef CONFIG_POST
 	writel(0, (CONFIG_SYS_POST_WORD_ADDR));
 #endif
 
 #ifdef CONFIG_LT2640_DAC
+	ulong env;
 	/* Initialize the DAC setting from saved env variable */
 	env = getenv_ulong("dac", 10, 0xFFFFFFFF);
 	if(env == 0xFFFFFFFF)

@@ -23,7 +23,7 @@
 #define CONFIG_SYS_ICACHE_OFF
 #define CONFIG_SYS_DCACHE_OFF
 #define CONFIG_SYS_L2CACHE_OFF
-
+#define CONFIG_S3MA_IGNORE_BUS_ERROR
 /***********************/
 
 #define CONFIG_S3MA
@@ -104,7 +104,7 @@
 #define CONFIG_MMC
 #define CONFIG_CMD_MMC
 #define CONFIG_GENERIC_MMC
-#define CONFIG_MMC_SDMA
+//#define CONFIG_MMC_SDMA
 #define CONFIG_BOUNCE_BUFFER
 #define CONFIG_CMD_EXT2
 #define CONFIG_CMD_FAT
@@ -322,8 +322,8 @@
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS	       1
 #define PHYS_SDRAM		       		   (DMC_S_ABSOLUTE_BASE)
-
 #define CONFIG_DDR_SIZE					1024*1024*1024
+
 #define CONFIG_S3MA_OCM_RAM_BASE		(OCM_S_ABSOLUTE_BASE)
 #define CONFIG_S3MA_OCM_RAM_SIZE		(OCM_S_SIZE/2)//Upper half of OCM can not be used for execution
 #define CONFIG_S3MA_RAM_SIZE			(CONFIG_DDR_SIZE)
@@ -411,7 +411,7 @@
 /*
  * AD9361
  */
-#define CONFIG_AD9361
+//#define CONFIG_AD9361
 #ifndef CONFIG_SP3DTC
 #define CONFIG_AD9361_MAX_DEVICE 4
 #else
@@ -430,7 +430,7 @@
 
 /*  Power-on self test */
 #ifndef CONFIG_PALLADIUM
-#define CONFIG_POST	(CONFIG_SYS_POST_MEMORY)
+//#define CONFIG_POST	(CONFIG_SYS_POST_MEMORY)
 #define CONFIG_SYS_POST_WORD_ADDR	(CONFIG_S3MA_OCM_RAM_BASE)
 #endif
 //#define CONFIG_POST_STD_LIST
