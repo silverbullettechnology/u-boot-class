@@ -48,7 +48,7 @@ void s3ma_ddr_clock_enable(void)
 	/* Select 384MHz clock vs. 192 MHz */
 	setbits_le32(DDR_CFG, DDR_PHY_CLK_SEL_BITMASK);
 	/* Wait for DLL lock bit */
-//	while(0 == (readl(PUBL_PIR) & DLLLOCK_BITMASK));
+	while(0 == (readl(PUBL_PGSR) & DLDONE_BITMASK));
 
 }
 
@@ -72,6 +72,9 @@ void s3ma_ddr_phy_clk_sel_384(void)
 	clrbits_le32(CRT_CLK_DIS, (uint32_t)0x1 << (DMC_DIS_SHIFT + 2));// "ddr_phy_clk"
 	__udelay(1);
 
+	/* Wait for DLL lock bit */
+	while(0 == (readl(PUBL_PGSR) & DLDONE_BITMASK));
+
 	// mon_puts("  END CHANGE FREQUENCY OF DDR I/F: 192->384\n");
 }
 
@@ -88,6 +91,9 @@ void s3ma_ddr_phy_clk_sel_192(void)
 	// mon_puts("Enable clock to DDR I/F\n");
 	clrbits_le32(CRT_CLK_DIS, (uint32_t)0x1 << (DMC_DIS_SHIFT + 2)); // "ddr_phy_clk"
 	__udelay(1);
+
+	/* Wait for DLL lock bit */
+	while(0 == (readl(PUBL_PGSR) & DLDONE_BITMASK));
 
 //	mon_puts("  END CHANGE FREQUENCY OF DDR I/F: 384->192\n");
 }
