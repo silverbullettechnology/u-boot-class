@@ -113,7 +113,7 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 #define	CONFIG_SYS_MMC_MAX_DEVICE	1
-#define CONFIG_MMC_TRACE
+//#define CONFIG_MMC_TRACE
 
 /* SPI bus configs */
 #define CONFIG_CMD_SPI
