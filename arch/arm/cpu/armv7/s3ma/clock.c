@@ -37,7 +37,7 @@ void s3ma_setup_pll(void)
 
 	/* Initialize values for clock rates */
 	gd->cpu_clk = CONFIG_CPU_CLK_HZ;
-	gd->bus_clk = CONFIG_PERIPHCLK_HZ;
+	gd->bus_clk = CONFIG_APB_PERIPHCLK_HZ;
 }
 
 void s3ma_ddr_clock_enable(void)
