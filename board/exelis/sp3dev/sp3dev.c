@@ -40,14 +40,6 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int dram_init(void)
 {
-#if 0
-#ifndef CONFIG_RUN_ON_QEMU
-	s3ma_ddr_clock_enable();
-#ifndef CONFIG_PALLADIUM
-	s3ma_ddr_setup();
-#endif
-#endif
-#endif
 	gd->ram_size = ((ulong)CONFIG_S3MA_RAM_SIZE);
 
 	return 0;
@@ -310,6 +302,19 @@ void arch_memory_failure_handle(void)
 #ifdef CONFIG_USB_GADGET_S3C_UDC_OTG
 void udc_disconnect(void){}
 #endif
+
+int s3ma_dram_init(void)
+{
+#ifndef CONFIG_RUN_ON_QEMU
+	debug("Enabling DDR and PHY clocks\n");
+	s3ma_ddr_clock_enable();
+#ifndef CONFIG_PALLADIUM
+	debug("Setting up DDR ...\n");
+	s3ma_ddr_setup();
+#endif
+#endif
+	return 0;
+}
 
 
 

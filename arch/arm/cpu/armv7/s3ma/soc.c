@@ -292,20 +292,14 @@ void s_init(void)
 	1 			1 			12mA
 */
 
-	/* Initialize Boot QSPI flash drive strength to 8mA*/
-	clrbits_le32(IO_CTL_E1_CFG,(uint32_t)0x00020000);
+	/* Initialize Boot QSPI flash drive strength to max*/
+	setbits_le32(IO_CTL_E1_CFG,(uint32_t)0x00020000);
 	setbits_le32(IO_CTL_E2_CFG,(uint32_t)0x00020000);
-
 	/* Initialize Boot QSPI flash Slew Rate to fast */
 	setbits_le32(IO_CTL_SR_CFG,(uint32_t)0x00020000);
 
 	s3ma_setup_pll();
-#ifndef CONFIG_RUN_ON_QEMU
-	s3ma_ddr_clock_enable();
-#ifndef CONFIG_PALLADIUM
-	s3ma_ddr_setup();
-#endif
-#endif
+
 }
 
 

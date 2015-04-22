@@ -392,8 +392,8 @@ static int setup_dest_addr(void)
 #endif
 
 #ifdef CONFIG_PALLADIUM
-	gd->ram_top = CONFIG_S3MA_OCM_RAM_BASE;
-	gd->ram_size = CONFIG_S3MA_OCM_RAM_SIZE;
+	gd->ram_top = (CONFIG_S3MA_OCM_RAM_BASE + CONFIG_SYS_INIT_RAM_SIZE);
+	gd->ram_size = (CONFIG_S3MA_OCM_RAM_SIZE/2 - CONFIG_SYS_INIT_RAM_SIZE);
 	printf("Relocating to OCM\n");
 #endif
 	debug("Ram size: %08lX\n", (ulong)gd->ram_size);
@@ -801,6 +801,10 @@ static int mark_bootstage(void)
 	return 0;
 }
 
+#ifdef CONFIG_S3MA
+extern int s3ma_dram_init(void);
+#endif
+
 static init_fnc_t init_sequence_f[] = {
 #ifdef CONFIG_SANDBOX
 	setup_ram_buf,
@@ -869,6 +873,9 @@ static init_fnc_t init_sequence_f[] = {
 #endif
 	display_options,	/* say that we are here */
 	display_text_info,	/* show debugging info if required */
+#ifdef CONFIG_S3MA
+	s3ma_dram_init,
+#endif
 #if defined(CONFIG_MPC8260)
 	prt_8260_rsr,
 	prt_8260_clks,

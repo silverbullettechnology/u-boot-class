@@ -16,7 +16,7 @@
 
 /* Custom build options for debugging  */
 #define DEBUG
-#define CONFIG_DEBUG_BUILD
+//#define CONFIG_DEBUG_BUILD
 //#define CONFIG_RUN_ON_QEMU
 //#define CONFIG_RTL_SIMULATION
 //#define CONFIG_PALLADIUM
@@ -38,17 +38,9 @@
 #include <asm/arch/s3ma-regs.h>
 #include <asm/arch/gpio.h>
 
-#if 0
-#define CONFIG_CMDLINE_TAG
-#define CONFIG_SETUP_MEMORY_TAGS
-#define CONFIG_INITRD_TAG
-#define CONFIG_REVISION_TAG
-#endif
-
 #define CONFIG_SYS_GENERIC_BOARD
 
 /* System clock rates */
-
 #define CONFIG_SYS_REF_CLK_HZ		(38400000)
 #define CONFIG_CPU_CLK_HZ			(20 * CONFIG_SYS_REF_CLK_HZ)
 #define CONFIG_ARM_PERIPHCLK_HZ		(CONFIG_CPU_CLK_HZ/2)
@@ -56,7 +48,11 @@
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN				(1024 * 1024)
+#ifndef CONFIG_PALLADIUM
 #define CONFIG_SYS_FALLBACK_MALLOC_LEN		(32 * 1024)
+#else
+#define CONFIG_SYS_FALLBACK_MALLOC_LEN		(16 * 1024)
+#endif
 
 #define CONFIG_BOARD_EARLY_INIT_F
 #define CONFIG_MISC_INIT_R
@@ -67,13 +63,6 @@
 #define CONFIG_GPIO_BASE1	(GPIO1_APB_ABSOLUTE_BASE)
 #define CONFIG_GPIO_BASE2	(GPIO2_APB_ABSOLUTE_BASE)
 
-
-#if 0
-#define CONFIG_CMD_FUSE
-#ifdef CONFIG_CMD_FUSE
-#define CONFIG_MXC_OCOTP
-#endif
-#endif
 
 #define CONFIG_PL011_SERIAL
 #define CONFIG_PL011_CLOCK				38400000
@@ -87,12 +76,9 @@
 
 #define CONFIG_CONS_INDEX	0
 
-#ifdef CONFIG_PALLADIUM
-#define CONFIG_BAUDRATE			1974857
-#else
 #define CONFIG_BAUDRATE			115200
-#endif
 
+//#define CONFIG_PL011_SERIAL_FLUSH_ON_INIT
 
 
 /* I2C Configs */
@@ -113,6 +99,7 @@
 #define CONFIG_CMD_FAT
 #define CONFIG_DOS_PARTITION
 #define	CONFIG_SYS_MMC_MAX_DEVICE	1
+//#define CONFIG_MMC_TRACE
 
 /* SPI bus configs */
 #define CONFIG_CMD_SPI
@@ -123,7 +110,6 @@
 #define CONFIG_SYS_SPI_BASE2	(SPI2_APB_ABSOLUTE_BASE)
 #define CONFIG_SYS_SPI_BASE3	(SPI3_APB_ABSOLUTE_BASE)
 #define CONFIG_SYS_SPI_BASE4	(SPI4_APB_ABSOLUTE_BASE)
-
 
 /* USB Configs */
 #if 1
@@ -155,10 +141,6 @@
 #endif
 
 /* Miscellaneous commands */
-#if 0
-#define CONFIG_CMD_BMODE
-#define CONFIG_CMD_SETEXPR
-#endif
 
 #define CONFIG_SYS_CACHELINE_SIZE	32
 
@@ -173,17 +155,7 @@
 
 #define CONFIG_BOOTDELAY	       1
 
-
-
 #define CONFIG_SYS_TEXT_BASE	       0x00000000
-
-#if 0
-#ifdef CONFIG_CMD_SATA
-#define CONFIG_DRIVE_SATA "sata "
-#else
-#define CONFIG_DRIVE_SATA
-#endif
-#endif
 
 #ifdef CONFIG_CMD_MMC
 #define CONFIG_DRIVE_MMC "mmc "
@@ -193,116 +165,6 @@
 
 #define CONFIG_DRIVE_TYPES CONFIG_DRIVE_SATA CONFIG_DRIVE_MMC
 
-#if 0
-#if defined(CONFIG_SABRELITE)
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"script=boot.scr\0" \
-	"uimage=uImage\0" \
-	"console=ttymxc1\0" \
-	"fdt_high=0xffffffff\0" \
-	"initrd_high=0xffffffff\0" \
-	"fdt_file=imx6q-sabrelite.dtb\0" \
-	"fdt_addr=0x18000000\0" \
-	"boot_fdt=try\0" \
-	"ip_dyn=yes\0" \
-	"mmcdev=0\0" \
-	"mmcpart=1\0" \
-	"mmcroot=/dev/mmcblk0p2 rootwait rw\0" \
-	"mmcargs=setenv bootargs console=${console},${baudrate} " \
-		"root=${mmcroot}\0" \
-	"loadbootscript=" \
-		"fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${script};\0" \
-	"bootscript=echo Running bootscript from mmc ...; " \
-		"source\0" \
-	"loaduimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${uimage}\0" \
-	"loadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0" \
-	"mmcboot=echo Booting from mmc ...; " \
-		"run mmcargs; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if run loadfdt; then " \
-				"bootm ${loadaddr} - ${fdt_addr}; " \
-			"else " \
-				"if test ${boot_fdt} = try; then " \
-					"bootm; " \
-				"else " \
-					"echo WARN: Cannot load the DT; " \
-				"fi; " \
-			"fi; " \
-		"else " \
-			"bootm; " \
-		"fi;\0" \
-	"netargs=setenv bootargs console=${console},${baudrate} " \
-		"root=/dev/nfs " \
-	"ip=dhcp nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
-		"netboot=echo Booting from net ...; " \
-		"run netargs; " \
-		"if test ${ip_dyn} = yes; then " \
-			"setenv get_cmd dhcp; " \
-		"else " \
-			"setenv get_cmd tftp; " \
-		"fi; " \
-		"${get_cmd} ${uimage}; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if ${get_cmd} ${fdt_addr} ${fdt_file}; then " \
-				"bootm ${loadaddr} - ${fdt_addr}; " \
-			"else " \
-				"if test ${boot_fdt} = try; then " \
-					"bootm; " \
-				"else " \
-					"echo WARN: Cannot load the DT; " \
-				"fi; " \
-			"fi; " \
-		"else " \
-			"bootm; " \
-		"fi;\0"
-
-#define CONFIG_BOOTCOMMAND \
-	   "mmc dev ${mmcdev}; if mmc rescan; then " \
-		   "if run loadbootscript; then " \
-			   "run bootscript; " \
-		   "else " \
-			   "if run loaduimage; then " \
-				   "run mmcboot; " \
-			   "else run netboot; " \
-			   "fi; " \
-		   "fi; " \
-	   "else run netboot; fi"
-#else
-#define CONFIG_EXTRA_ENV_SETTINGS \
-	"console=ttymxc1\0" \
-	"clearenv=if sf probe || sf probe || sf probe 1 ; then " \
-		"sf erase 0xc0000 0x2000 && " \
-		"echo restored environment to factory default ; fi\0" \
-	"bootcmd=for dtype in " CONFIG_DRIVE_TYPES \
-		"; do " \
-			"for disk in 0 1 ; do ${dtype} dev ${disk} ;" \
-				"for fs in fat ext2 ; do " \
-					"${fs}load " \
-						"${dtype} ${disk}:1 " \
-						"10008000 " \
-						"/6x_bootscript" \
-						"&& source 10008000 ; " \
-				"done ; " \
-			"done ; " \
-		"done; " \
-		"setenv stdout serial,vga ; " \
-		"echo ; echo 6x_bootscript not found ; " \
-		"echo ; echo serial console at 115200, 8N1 ; echo ; " \
-		"echo details at http://boundarydevices.com/6q_bootscript ; " \
-		"setenv stdout serial\0" \
-	"upgradeu=for dtype in " CONFIG_DRIVE_TYPES \
-		"; do " \
-		"for disk in 0 1 ; do ${dtype} dev ${disk} ;" \
-		     "for fs in fat ext2 ; do " \
-				"${fs}load ${dtype} ${disk}:1 10008000 " \
-					"/6x_upgrade " \
-					"&& source 10008000 ; " \
-			"done ; " \
-		"done ; " \
-	"done\0" \
-
-#endif
-#endif
 
 /* Miscellaneous configurable options */
 #define CONFIG_SYS_LONGHELP
@@ -325,7 +187,7 @@
 /* Physical Memory Map */
 #define CONFIG_NR_DRAM_BANKS	       1
 #define PHYS_SDRAM		       		   (DMC_S_ABSOLUTE_BASE)
-#define CONFIG_DDR_SIZE					1024*1024*1024
+#define CONFIG_DDR_SIZE					(1024*1024*1024)
 
 #define CONFIG_S3MA_OCM_RAM_BASE		(OCM_S_ABSOLUTE_BASE)
 #define CONFIG_S3MA_OCM_RAM_SIZE		(OCM_S_SIZE/2)//Upper half of OCM can not be used for execution
@@ -351,6 +213,7 @@
 
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH
+
 /*
 #define CONFIG_CMD_SF
 #define CONFIG_CMD_SF_TEST
@@ -363,15 +226,14 @@
 # define CONFIG_SF_DEFAULT_SPEED	(1000000)
 */
 
-//#if defined(CONFIG_RUN_ON_QEMU)
-#if 1
+#define CONFIG_DELAY_ENVIRONMENT
 #define CONFIG_ENV_IS_IN_MMC
-#define CONFIG_ENV_SIZE			(16 * 1024)
-
-#else
+#define CONFIG_ENV_SIZE			(4 * 1024)
+/*
 #define CONFIG_ENV_IS_IN_SPI_FLASH
 #define CONFIG_ENV_SIZE			(16 * 1024)
 #endif
+*/
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
@@ -385,29 +247,15 @@
 #define CONFIG_ENV_SPI_MAX_HZ	(CONFIG_SF_DEFAULT_SPEED)
 #endif
 
-#if 0
-#define CONFIG_OF_LIBFDT
-#endif
-
-#if 0
-#define CONFIG_CMD_BOOTZ
-#endif
 
 #ifndef CONFIG_SYS_DCACHE_OFF
 #define CONFIG_CMD_CACHE
 #endif
 
-#if 0
-#define CONFIG_CMD_BMP
-#endif
 
 #define CONFIG_CMD_TIME
 #define CONFIG_SYS_ALT_MEMTEST
 
-#if 0
-#define CONFIG_CMD_BOOTZ
-#define CONFIG_SUPPORT_RAW_INITRD
-#endif
 #define CONFIG_CMD_FS_GENERIC
 
 

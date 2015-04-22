@@ -44,7 +44,7 @@
  *
  *************************************************************************
  */
-
+#define CONFIG_S3MA_IGNORE_BUS_ERROR
 _start:
 
 #ifdef CONFIG_SYS_DV_NOR_BOOT_CFG
