@@ -37,7 +37,7 @@ int gpio_set_value(unsigned gpio, int value)
 {
 	struct gpio_regs *regs = (struct gpio_regs *)CONFIG_GPIO_BASE;
 	u32 addr = (u32)&regs->gpiodata[DATA_REG_ADDR(gpio)];
-	writel(1 << gpio, addr);
+	writel(value << gpio, addr);
 
 	return 0;
 }
