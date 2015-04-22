@@ -14,43 +14,107 @@
 #include <asm/io.h>
 #include <errno.h>
 
+static struct gpio_regs* gpio_get_base(unsigned gpio, unsigned int* bit)
+{
+	unsigned int bank;
+	struct gpio_regs* regs = NULL;
+	bank = gpio / PINS_PER_BANK;
+
+	switch(bank){
+#ifdef CONFIG_GPIO_BASE
+	case 0:
+		regs = (struct gpio_regs *)CONFIG_GPIO_BASE;
+		break;
+#endif
+#ifdef CONFIG_GPIO_BASE1
+	case 1:
+		regs = (struct gpio_regs *)CONFIG_GPIO_BASE1;
+		break;
+#endif
+#ifdef CONFIG_GPIO_BASE2
+	case 2:
+		regs = (struct gpio_regs *)CONFIG_GPIO_BASE2;
+		break;
+#endif
+#ifdef CONFIG_GPIO_BASE3
+	case 3:
+		regs = (struct gpio_regs *)CONFIG_GPIO_BASE3;
+		break;
+#endif
+
+	default:
+		regs = NULL;
+	}
+
+	*bit = 0;
+
+	if(regs){
+		*bit = gpio % PINS_PER_BANK;
+	}
+
+	return regs;
+}
+
 static int gpio_direction(unsigned gpio,
 			  enum gpio_direction direction)
 {
-	struct gpio_regs *regs = (struct gpio_regs *)CONFIG_GPIO_BASE;
+	u32 bit;
+	struct gpio_regs *regs = gpio_get_base(gpio, &bit);
 	u32 val,addr;
 
-	addr = (u32)&regs->gpiodir;
-	val = readl(addr);
+	if(regs){
+	   addr = (u32)&regs->gpiodir;
+	   val = readl(addr);
 
-	if (direction == GPIO_DIRECTION_OUT)
-		val |= 1 << gpio;
+	   if (direction == GPIO_DIRECTION_OUT){
+	   	val |= 1 << bit;
+	   }else{
+	   	val &= ~(1 << bit);
+	   }
+
+	   writel(val, addr);
+
+	   return 0;
+	}
 	else
-		val &= ~(1 << gpio);
-	addr = (u32)&regs->gpiodir;
-	writel(val, addr);
-
-	return 0;
+	{
+		return -1;
+	}
 }
 
 int gpio_set_value(unsigned gpio, int value)
 {
-	struct gpio_regs *regs = (struct gpio_regs *)CONFIG_GPIO_BASE;
-	u32 addr = (u32)&regs->gpiodata[DATA_REG_ADDR(gpio)];
-	writel(value << gpio, addr);
+	struct gpio_regs *regs;
+	u32 bit;
 
-	return 0;
+	regs = gpio_get_base(gpio, &bit);
+
+	if(regs){
+		u32 addr = (u32)&regs->gpiodata[DATA_REG_ADDR(bit)];
+		writel(value << bit, addr);
+		return 0;
+	}
+	else{
+
+		return -1;
+	}
 }
 
 int gpio_get_value(unsigned gpio)
 {
-	struct gpio_regs *regs = (struct gpio_regs *)CONFIG_GPIO_BASE;
+	u32 bit;
+	struct gpio_regs *regs = gpio_get_base(gpio, &bit);
 	u32 val, addr;
 
-	addr = (u32)&regs->gpiodata[DATA_REG_ADDR(gpio)];
-	val = readl(addr);
+	if(regs){
+		addr = (u32)&regs->gpiodata[DATA_REG_ADDR(bit)];
+		val = readl(addr);
 
-	return !!val;
+		return !!val;
+	}
+	else{
+		return 0;
+	}
 }
 
 int gpio_request(unsigned gpio, const char *label)

@@ -15,7 +15,7 @@
 /***********************/
 
 /* Custom build options for debugging  */
-//#define DEBUG
+#define DEBUG
 //#define CONFIG_DEBUG_BUILD
 //#define CONFIG_RUN_ON_QEMU
 #define CONFIG_PALLADIUM
@@ -218,12 +218,9 @@
 /* FLASH and environment organization */
 #define CONFIG_SYS_NO_FLASH
 
+#define CONFIG_DELAY_ENVIRONMENT
 #define CONFIG_ENV_IS_IN_MMC
-#ifndef CONFIG_PALLADIUM
-#define CONFIG_ENV_SIZE			(16 * 1024)
-#else
 #define CONFIG_ENV_SIZE			(4 * 1024)
-#endif
 
 #if defined(CONFIG_ENV_IS_IN_MMC)
 #define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
