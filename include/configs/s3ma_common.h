@@ -27,11 +27,7 @@
 #ifndef CONFIG_SYS_L2CACHE_OFF
 #define CONFIG_SYS_L2_PL310
 
-#if 0
-#define CONFIG_SYS_PL310_BASE	L2_PL310_BASE
-#else
-#define CONFIG_SYS_PL310_BASE	S3MA_L2_PL310_BASE //Needs to be defined in s3ma_regs.h
-#endif
+#define CONFIG_SYS_PL310_BASE	(S3MA_L2_PL310_BASE)
 
 #endif
 
