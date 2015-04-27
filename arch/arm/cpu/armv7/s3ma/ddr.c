@@ -217,6 +217,7 @@ void s3ma_ddr_setup(void)
 	if(0 != status)
 	{
 		//Report an error here
+		debug("%s:%d: Could not initialize DMC\n", __func__, __LINE__);
 	}
 
 	status = s3ma_init_phy_main();
@@ -224,8 +225,11 @@ void s3ma_ddr_setup(void)
 	if(0 != status)
 	{
 		//Report an error here
+		debug("%s:%d: Could not initialize DDR PHY\n", __func__, __LINE__);
 	}
 
+	debug("Trying to access DDR space\n");
+	debug("%x:%x\n",0x80000000, *((uint32_t*)0x80000000));
 }
 
 
