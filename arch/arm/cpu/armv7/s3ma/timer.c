@@ -39,7 +39,6 @@ int timer_init(void)
 			SCUTIMER_CONTROL_ENABLE_MASK;
 
 	gd->arch.timer_rate_hz = (gd->cpu_clk / 2) / (TIMER_PRESCALE + 1);
-
 	/* Load the timer counter register */
 	writel(0xFFFFFFFF, &timer_base->load);
 
@@ -91,9 +90,8 @@ void __udelay(unsigned long usec)
 
 	if (usec == 0)
 		return;
-
 	countticks = lldiv(((unsigned long long)gd->arch.timer_rate_hz * usec),
-			   1000000);
+			   1000);
 
 	/* decrementing timer */
 	timeend = readl(&timer_base->counter) - countticks;

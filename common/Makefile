@@ -248,6 +248,7 @@ obj-y += memsize.o
 obj-y += stdio.o
 obj-$(CONFIG_AD9361) += cmd_ad9361.o
 obj-$(CONFIG_S3MA) += cmd_uartrx.o
-obj-$(CONFIG_S3MA) += cmd_s3ma_ddr.o
+//obj-$(CONFIG_S3MA) += cmd_s3ma_ddr.o
+obj-$(CONFIG_S3MA) += cmd_s3ma_timer.o
 
 CFLAGS_env_embedded.o := -Wa,--no-warn -DENV_CRC=$(shell tools/envcrc 2>/dev/null)

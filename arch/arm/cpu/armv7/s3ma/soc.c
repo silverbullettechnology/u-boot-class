@@ -239,6 +239,7 @@ static void clear_mmdc_ch_mask(void)
 
 int arch_cpu_init(void)
 {
+	s3ma_setup_pll();
 
 	return 0;
 }
@@ -297,9 +298,6 @@ void s_init(void)
 	setbits_le32(IO_CTL_E2_CFG,(uint32_t)0x00020000);
 	/* Initialize Boot QSPI flash Slew Rate to fast */
 	setbits_le32(IO_CTL_SR_CFG,(uint32_t)0x00020000);
-
-	s3ma_setup_pll();
-
 }
 
 
