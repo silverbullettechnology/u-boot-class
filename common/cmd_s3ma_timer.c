@@ -32,7 +32,7 @@ static int do_timer(cmd_tbl_t *cmdtp, int flag, int argc,
 	while(!ctrlc()) {
 		value = !value;
 		gpio_direction_output(gpio, value);
-		udelay(1000);
+		mdelay(1000);
 	}
 	
 	return CMD_RET_SUCCESS;
