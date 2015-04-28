@@ -236,7 +236,7 @@ void spi_cs_activate(struct spi_slave *slave)
 	case CONFIG_SF_DEFAULT_CS:
 		if (slave->bus == CONFIG_SF_DEFAULT_BUS)
 		{
-			gpio_set_value(slave->cs, 0);
+			s3ma_gpio33_set_value(slave->cs, 0);
 		}
 		break;
 #endif
@@ -261,7 +261,7 @@ void spi_cs_deactivate(struct spi_slave *slave)
 	case CONFIG_SF_DEFAULT_CS:
 		if (slave->bus == CONFIG_SF_DEFAULT_BUS)
 		{
-			gpio_set_value(slave->cs, 1);
+			s3ma_gpio33_set_value(slave->cs, 1);
 		}
 		break;
 #endif
@@ -317,4 +317,31 @@ int s3ma_dram_init(void)
 }
 
 
+int s3ma_gpio33_set_value(unsigned gpio, int value)
+{
+	int res = -1;
+
+	if((gpio >= GPIO33_0)&&(gpio <= GPIO33_7)){
+		res = 0;
+		if(value){
+			writel(1 << (gpio - GPIO33_0),ASFE_CONTROL_SET);
+		}
+		else{
+			writel(1 << (gpio - GPIO33_0),ASFE_CONTROL_RESET);
+		}
+	}
+
+	return res;
+}
+
+int s3ma_gpio33_get_value(unsigned gpio)
+{
+	int res = 0;
+	if((gpio >= GPIO33_0)&&(gpio <= GPIO33_7)){
+		res = readl(ASFE_CONTROL);
+		res &= 1 << (gpio - GPIO33_0);
+	}
+
+	return (!!res);
+}
 

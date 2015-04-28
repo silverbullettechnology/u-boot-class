@@ -21,7 +21,6 @@
 #define GPIO18_14	(14)
 #define GPIO18_15	(15)
 
-/* 3.3 V GPIO banks */
 #define GPIO18_16    (16)
 #define GPIO18_17    (17)
 #define GPIO18_18    (18)
@@ -30,5 +29,15 @@
 #define GPIO18_21    (21)
 #define GPIO18_22    (22)
 #define GPIO18_23    (23)
+
+/* 3.3 V GPIO banks */
+#define GPIO33_0	(24)
+#define GPIO33_1	(25)
+#define GPIO33_2	(26)
+#define GPIO33_3	(27)
+#define GPIO33_4	(28)
+#define GPIO33_5	(29)
+#define GPIO33_6	(30)
+#define GPIO33_7	(31)
 
 #endif	/* __S3MA_GPIO_H */
