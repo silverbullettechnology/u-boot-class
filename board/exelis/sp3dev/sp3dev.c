@@ -156,6 +156,9 @@ int overwrite_console(void)
 
 int board_init(void)
 {
+	/* Initialize CS line on spi data flash */
+	s3ma_gpio33_set_value(CONFIG_SF_DEFAULT_CS, 1);
+
 	return 0;
 }
 
