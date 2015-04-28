@@ -156,8 +156,9 @@ int overwrite_console(void)
 
 int board_init(void)
 {
-	/* Initialize CS line on spi data flash */
+	/* Initialize CS lines on SPI4 */
 	s3ma_gpio33_set_value(CONFIG_SF_DEFAULT_CS, 1);
+	s3ma_gpio33_set_value(CONFIG_LT2640_DAC_CS, 1);
 
 	return 0;
 }
@@ -247,7 +248,7 @@ void spi_cs_activate(struct spi_slave *slave)
 	case CONFIG_LT2640_DAC_CS:
 		if (slave->bus == CONFIG_LT2640_DAC_BUS)
 		{
-			gpio_set_value(slave->cs, 0);
+			s3ma_gpio33_set_value(slave->cs, 0);
 		}
 		break;
 #endif
@@ -272,7 +273,7 @@ void spi_cs_deactivate(struct spi_slave *slave)
 	case CONFIG_LT2640_DAC_CS:
 		if (slave->bus == CONFIG_LT2640_DAC_BUS)
 		{
-			gpio_set_value(slave->cs, 1);
+			s3ma_gpio33_set_value(slave->cs, 1);
 		}
 		break;
 #endif
