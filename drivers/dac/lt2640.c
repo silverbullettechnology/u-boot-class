@@ -45,8 +45,8 @@ int spi_dac_set(ulong output)
 	}
 	else
 	{
-		cmd[2] = (u8)((output << 6) & 0xFF);
-		cmd[1] = (u8)((output >> 8) & 0xFF);
+		cmd[2] = (u8)((output << 4) & 0xFF);
+		cmd[1] = (u8)((output >> 2) & 0xFF);
 		cmd[0] = DAC_CMD_CODE_WRITE_UPDATE;
 
 		slave = spi_setup_slave(CONFIG_LT2640_DAC_BUS,
