@@ -80,6 +80,7 @@
 
 
 struct device {
+	uint32_t  bus;
 };
 
 

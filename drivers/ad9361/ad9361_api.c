@@ -52,7 +52,7 @@
 /******************************************************************************/
 const AD9361_InitParam default_init_param = {
 	/* Reference Clock */
-	40000000UL,	//reference_clk_rate
+	38400000UL,	//reference_clk_rate
 	/* Base Configuration */
 	1,		//two_rx_two_tx_mode_enable *** adi,2rx-2tx-mode-enable
 	1,		//frequency_division_duplex_mode_enable *** adi,frequency-division-duplex-mode-enable
@@ -314,7 +314,7 @@ static struct axiadc_chip_info axiadc_chip_info_tbl[] =
  * @return A structure that contains the AD9361 current state in case of
  *         success, negative error code otherwise.
  */
-struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param, struct spi_device * spi_dev)
+struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param, uint32_t bus)
 {
 	struct ad9361_rf_phy *phy;
 	int32_t ret = 0;
@@ -355,7 +355,7 @@ struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param, struct spi_devi
 	phy->clk_refin->rate = init_param->reference_clk_rate;
 
 	/* SPI interface */
-	phy->spi = spi_dev;
+	phy->spi->dev.bus = bus;
 
 	if(NULL == init_param)
 		init_param = &default_init_param;
@@ -598,11 +598,12 @@ struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param, struct spi_devi
 
 	ad9361_reset(phy);
 	ad9361_spi_write(phy->spi, REG_SPI_CONF, SOFT_RESET | _SOFT_RESET);
+	platform_mdelay(1000);
 	ad9361_spi_write(phy->spi, REG_SPI_CONF, 0x0);
 
 	ret = ad9361_spi_read(phy->spi, REG_PRODUCT_ID);
 	if ((ret & PRODUCT_ID_MASK) != PRODUCT_ID_9361) {
-		printf("%s : Unsupported PRODUCT_ID 0x%X", "ad9361_init", (unsigned int)ret);
+		printf("%s : Unsupported PRODUCT_ID 0x%X\n", "ad9361_init", (unsigned int)ret);
 		ret = -ENODEV;
 		goto out;
 	}
@@ -637,7 +638,7 @@ out:
 	free(phy);
 	printf("%s : AD9361 initialization error\n", "ad9361_init");
 
-	return (struct ad9361_rf_phy *)ERR_PTR(ENODEV);
+	return (struct ad9361_rf_phy *)NULL;
 }
 
 /**

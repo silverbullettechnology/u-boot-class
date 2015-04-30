@@ -48,6 +48,16 @@
 #include <ad9361/ad9361_api.h>
 #include <ad9361/util.h>
 
+#ifndef MAX_SPI_BYTES
+#   define MAX_SPI_BYTES 32	/* Maximum number of bytes we can handle */
+#endif
+
+#ifndef CONFIG_DEFAULT_SPI_BUS
+#   define CONFIG_DEFAULT_SPI_BUS	0
+#endif
+#ifndef CONFIG_DEFAULT_SPI_MODE
+#   define CONFIG_DEFAULT_SPI_MODE	SPI_MODE_1
+#endif
 
 /***************************************************************************//**
  * @brief usleep
@@ -84,13 +94,26 @@ int platform_spi_write_then_read(struct spi_device *spi,
 		unsigned char *rxbuf, unsigned n_rx)
 {
 	int rcode = 0;
-	struct spi_slave * slave = (struct spi_slave *)spi;
+	struct spi_slave * slave;
+	uint32_t bus = spi->dev.bus, cs = 0, mode = CONFIG_DEFAULT_SPI_MODE;
 
-	if(0 != spi_xfer(slave, n_tx*sizeof(*txbuf), txbuf, rxbuf,
-					SPI_XFER_BEGIN | SPI_XFER_END))
-	{
-		rcode = 1;
-	}
+	debug("%s:%d: SPI setup: bus = %d, cs = %d, mode = %d\n", __func__, __LINE__, bus, cs, mode);
+
+	slave = spi_setup_slave(bus, cs, 1000000, mode);
+	spi_claim_bus(slave);
+
+    if( (txbuf != NULL) && (n_tx > 0) ){
+     rcode = spi_xfer(slave, n_tx*sizeof(*txbuf)*8, txbuf, NULL,
+    					SPI_XFER_BEGIN | SPI_XFER_END);
+    }
+
+    if( (rxbuf != NULL) && (n_rx > 0) && (rcode == 0) ){
+        rcode = spi_xfer(slave, n_rx*sizeof(*rxbuf)*8,NULL, rxbuf,
+       					SPI_XFER_BEGIN | SPI_XFER_END);
+    }
+
+	spi_release_bus(slave);
+	spi_free_slave(slave);
 
 	return rcode;
 }

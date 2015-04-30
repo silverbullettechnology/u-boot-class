@@ -86,7 +86,7 @@ command cmd_list[] = {
 	{"rx2_rf_gain=", "Sets the RX2 RF gain.", "", set_rx2_rf_gain},
 	{"rx_fir_en?", "Gets current RX FIR state.", "", get_rx_fir_en},
 	{"rx_fir_en=", "Sets the RX FIR state.", "", set_rx_fir_en},
-	{"tx_loopback_test","Runs DAC->ADC loopback test.","",tx_loopback_test},
+	{"tx_loopback_test=","Runs DAC->ADC loopback test.","",tx_loopback_test},
 	{"asic_loopback_test_en=","Enables/Disables ADC->DAC loopback test.","",set_asfe_loopback_test},
 
 #if 0
@@ -163,7 +163,7 @@ void get_register(double* param, char param_no) // "register?" command
 
 	if(param_no >= 1)
 	{
-		reg_addr = param[0];
+		reg_addr = (uint16_t)param[0];
 		reg_val = ad9361_spi_read(ad9361_phy->spi, reg_addr);
 		console_print("register[0x%x]=0x%x\n", reg_addr, reg_val);
 	}
@@ -645,7 +645,7 @@ void tx_loopback_test(double* param, char param_no)
 
 	if(NULL != ad9361_phy)
 	{
-		bus = ((struct spi_slave *)ad9361_phy->spi)->bus;
+		bus = ad9361_phy->spi->dev.bus;
 	}
 	else
 	{
@@ -654,7 +654,9 @@ void tx_loopback_test(double* param, char param_no)
 	}
 
 	adc_rotate = platform_axiadc_read(NULL, (AD_FORMAT));
+	debug("original adc_rotate value = %d", adc_rotate);
 	adc_rotate = (adc_rotate >> (8 * bus)) & ROTATE0_BITMASK;
+	debug("adc_rotate value after shift= %d", adc_rotate);
 
 	/* Turn AD9361 loopback mode on */
 	status = ad9361_bist_loopback(ad9361_phy, 1);
@@ -680,6 +682,8 @@ void tx_loopback_test(double* param, char param_no)
 			tx_ptr[j] = pattern[i];
 		}
 		console_print("Trying pattern %x\n", pattern[i]);
+
+		platform_mdelay(1000);
 
 		/* Setup TX DMA registers */
 		platform_axiadc_write(NULL, RF_WRITE_BASE, (uint32_t)&test_buf[0]);

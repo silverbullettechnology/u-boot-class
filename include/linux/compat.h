@@ -10,7 +10,9 @@
 #define dev_info(dev, fmt, args...)		\
 	printf(fmt, ##args)
 #define dev_err(dev, fmt, args...)		\
-	printf(fmt, ##args)
+	printf(fmt, ##args);\
+	printf("\r\n")
+
 #define printk	printf
 
 #define KERN_EMERG

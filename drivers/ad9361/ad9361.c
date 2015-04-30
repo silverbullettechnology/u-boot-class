@@ -96,14 +96,14 @@ static int32_t ad9361_spi_readm(struct spi_device *spi, uint32_t reg,
 
 	ret = platform_spi_write_then_read(spi, &buf[0], 2, rbuf, num);
 	if (ret < 0) {
-		dev_err(&spi->dev, "Read Error %d", ret);
+		dev_err(&spi->dev, "Read Error %d\n", ret);
 		return ret;
 	}
 #ifdef _DEBUG
 	{
 		int32_t i;
 		for (i = 0; i < num; i++)
-			dev_dbg(&spi->dev, "%s: reg 0x%X val 0x%X",
+			dev_dbg(&spi->dev, "%s: reg 0x%X val 0x%X\n",
 			__func__, reg--, rbuf[i]);
 	}
 #endif
@@ -187,12 +187,12 @@ int32_t ad9361_spi_write(struct spi_device *spi,
 
 	ret = platform_spi_write_then_read(spi, buf, 3, NULL, 0);
 	if (ret < 0) {
-		dev_err(&spi->dev, "Write Error %d", ret);
+		dev_err(&spi->dev, "Write Error %d\n", ret);
 		return ret;
 	}
 
 #ifdef _DEBUG
-	dev_dbg(&spi->dev, "%s: reg 0x%X val 0x%X", __func__, reg, buf[2]);
+	dev_dbg(&spi->dev, "%s: reg 0x%X val 0x%X\n", __func__, reg, buf[2]);
 #endif
 
 	return 0;
@@ -263,7 +263,7 @@ static int32_t ad9361_spi_writem(struct spi_device *spi,
 
 	ret = platform_spi_write_then_read(spi, buf, num + 2, NULL, 0);
 	if (ret < 0) {
-		dev_err(&spi->dev, "Write Error %d", ret);
+		dev_err(&spi->dev, "Write Error %d\n", ret);
 		return ret;
 	}
 
@@ -271,7 +271,7 @@ static int32_t ad9361_spi_writem(struct spi_device *spi,
 	{
 		int32_t i;
 		for (i = 0; i < num; i++)
-			dev_dbg(&spi->dev, "Reg 0x%X val 0x%X", reg--, tbuf[i]);
+			dev_dbg(&spi->dev, "Reg 0x%X val 0x%X\n", reg--, tbuf[i]);
 	}
 #endif
 
@@ -287,16 +287,17 @@ int32_t ad9361_reset(struct ad9361_rf_phy *phy)
 {
 	if (platform_gpio_is_valid(phy->pdata->gpio_resetb)) {
 		platform_gpio_set_value(phy->pdata->gpio_resetb, 0);
-		mdelay(1);
+		platform_mdelay(1);
 		platform_gpio_set_value(phy->pdata->gpio_resetb, 1);
-		mdelay(1);
-		dev_dbg(&phy->spi->dev, "%s: by GPIO", __func__);
+		platform_mdelay(1);
+		dev_dbg(&phy->spi->dev, "%s: by GPIO\n", __func__);
 		return 0;
 	}
 	else {
 		ad9361_spi_write(phy->spi, REG_SPI_CONF, SOFT_RESET | _SOFT_RESET); /* RESET */
+		platform_mdelay(1);
 		ad9361_spi_write(phy->spi, REG_SPI_CONF, 0x0);
-		dev_dbg(&phy->spi->dev, "%s: by SPI", __func__);
+		dev_dbg(&phy->spi->dev, "%s: by SPI\n", __func__);
 		return 0;
 	}
 	return -ENODEV;
@@ -348,7 +349,7 @@ int32_t ad9361_bist_loopback(struct ad9361_rf_phy *phy, int32_t mode)
 {
 	uint32_t sp_hd, reg;
 
-	dev_dbg(&phy->spi->dev, "%s: mode %d", __func__, mode);
+	dev_dbg(&phy->spi->dev, "%s: mode %d\n", __func__, mode);
 
 	reg = ad9361_spi_read(phy->spi, REG_OBSERVE_CONFIG);
 
@@ -392,7 +393,7 @@ int32_t ad9361_bist_prbs(struct ad9361_rf_phy *phy, enum ad9361_bist_mode mode)
 {
 	uint32_t reg = 0;
 
-	dev_dbg(&phy->spi->dev, "%s: mode %d", __func__, mode);
+	dev_dbg(&phy->spi->dev, "%s: mode %d\n", __func__, mode);
 
 	switch (mode) {
 	case BIST_DISABLE:
@@ -425,7 +426,7 @@ int32_t ad9361_bist_tone(struct ad9361_rf_phy *phy,
 	uint32_t clk = 0;
 	uint32_t reg = 0, reg1, reg_mask;
 
-	dev_dbg(&phy->spi->dev, "%s: mode %d", __func__, mode);
+	dev_dbg(&phy->spi->dev, "%s: mode %d\n", __func__, mode);
 
 	switch (mode) {
 	case BIST_DISABLE:
@@ -549,7 +550,7 @@ static int32_t ad9361_check_cal_done(struct ad9361_rf_phy *phy, uint32_t reg,
 		platform_msleep_interruptible(1);
 	} while (timeout--);
 
-	dev_err(&phy->spi->dev, "Calibration TIMEOUT (0x%X, 0x%X)", reg, mask);
+	dev_err(&phy->spi->dev, "Calibration TIMEOUT (0x%X, 0x%X)\n", reg, mask);
 
 	return -ETIMEDOUT;
 }
@@ -568,7 +569,7 @@ static int32_t ad9361_run_calibration(struct ad9361_rf_phy *phy, uint32_t mask)
 	if (ret < 0)
 		return ret;
 
-	dev_dbg(&phy->spi->dev, "%s: CAL Mask 0x%X", __func__, mask);
+	dev_dbg(&phy->spi->dev, "%s: CAL Mask 0x%X\n", __func__, mask);
 
 	return ad9361_check_cal_done(phy, REG_CALIBRATION_CTRL, mask, 0);
 }
@@ -625,11 +626,11 @@ static int32_t ad9361_load_gt(struct ad9361_rf_phy *phy, uint64_t freq, uint32_t
 	enum rx_gain_table_name band;
 	uint32_t index_max, i;
 
-	dev_dbg(&phy->spi->dev, "%s: frequency %llu", __func__, freq);
+	dev_dbg(&phy->spi->dev, "%s: frequency %llu\n", __func__, freq);
 
 	band = ad9361_gt_tableindex(freq);
 
-	dev_dbg(&phy->spi->dev, "%s: frequency %llu (band %d)",
+	dev_dbg(&phy->spi->dev, "%s: frequency %llu (band %d)\n",
 		__func__, freq, band);
 
 	/* check if table is present */
@@ -722,7 +723,7 @@ enum ad9361_clkout mode)
 static int32_t ad9361_load_mixer_gm_subtable(struct ad9361_rf_phy *phy)
 {
 	int32_t i, addr;
-	dev_dbg(&phy->spi->dev, "%s", __func__);
+	dev_dbg(&phy->spi->dev, "%s\n", __func__);
 
 	ad9361_spi_write(phy->spi, REG_GM_SUB_TABLE_CONFIG,
 		START_GM_SUB_TABLE_CLOCK); /* Start Clock */
@@ -761,7 +762,7 @@ int32_t ad9361_set_tx_atten(struct ad9361_rf_phy *phy, uint32_t atten_mdb,
 	uint8_t buf[2];
 	int32_t ret = 0;
 
-	dev_dbg(&phy->spi->dev, "%s : attenuation %u mdB tx1=%d tx2=%d",
+	dev_dbg(&phy->spi->dev, "%s : attenuation %u mdB tx1=%d tx2=%d\n",
 		__func__, atten_mdb, tx1, tx2);
 
 	if (atten_mdb > 89750) /* 89.75 dB */
@@ -848,7 +849,7 @@ static int32_t ad9361_rfpll_vco_init(struct ad9361_rf_phy *phy,
 
 	range = ad9361_rfvco_tableindex(ref_clk);
 
-	dev_dbg(&phy->spi->dev, "%s : vco_freq %llu : ref_clk %u : range %d",
+	dev_dbg(&phy->spi->dev, "%s : vco_freq %llu : ref_clk %u : range %d\n",
 		__func__, vco_freq, ref_clk, range);
 
 	do_div(&vco_freq, 1000000UL); /* vco_freq in MHz */
@@ -866,7 +867,7 @@ static int32_t ad9361_rfpll_vco_init(struct ad9361_rf_phy *phy,
 	while (i < SYNTH_LUT_SIZE && tab[i].VCO_MHz > vco_freq)
 		i++;
 
-	dev_dbg(&phy->spi->dev, "%s : freq %d MHz : index %d",
+	dev_dbg(&phy->spi->dev, "%s : freq %d MHz : index %d\n",
 		__func__, tab[i].VCO_MHz, i);
 
 
@@ -1020,7 +1021,7 @@ int32_t ad9361_get_rx_gain(struct ad9361_rf_phy *phy,
 		fast_atk_shift = RX2_FAST_ATK_SHIFT;
 	}
 	else {
-		dev_err(dev, "Unknown Rx path %d", rx_id);
+		dev_err(dev, "Unknown Rx path %d\n", rx_id);
 		rc = -EINVAL;
 		goto out;
 	}
@@ -1028,7 +1029,7 @@ int32_t ad9361_get_rx_gain(struct ad9361_rf_phy *phy,
 	val = ad9361_spi_readf(spi, REG_RX_ENABLE_FILTER_CTRL, rx_enable_mask);
 
 	if (!val) {
-		dev_err(dev, "Rx%d is not enabled", rx_gain->ant);
+		dev_err(dev, "Rx%d is not enabled\n", rx_gain->ant);
 		rc = -EAGAIN;
 		goto out;
 	}
@@ -1044,7 +1045,7 @@ int32_t ad9361_get_rx_gain(struct ad9361_rf_phy *phy,
 		val = ad9361_spi_read(spi, REG_FAST_ATTACK_STATE);
 		val = (val >> fast_atk_shift) & FAST_ATK_MASK;
 		if (val != FAST_ATK_GAIN_LOCKED) {
-			dev_warn(dev, "Failed to read gain, state m/c at %x",
+			dev_warn(dev, "Failed to read gain, state m/c at %x\n",
 				val);
 			rc = -EAGAIN;
 			goto out;
@@ -1081,12 +1082,12 @@ void ad9361_ensm_force_state(struct ad9361_rf_phy *phy, uint8_t ensm_state)
 	phy->prev_ensm_state = dev_ensm_state;
 
 	if (dev_ensm_state == ensm_state) {
-		dev_dbg(dev, "Nothing to do, device is already in %d state",
+		dev_dbg(dev, "Nothing to do, device is already in %d state\n",
 			ensm_state);
 		goto out;
 	}
 
-	dev_dbg(dev, "Device is in %x state, forcing to %x", dev_ensm_state,
+	dev_dbg(dev, "Device is in %x state, forcing to %x\n", dev_ensm_state,
 		ensm_state);
 
 	val = ad9361_spi_read(spi, REG_ENSM_CONFIG_1);
@@ -1130,7 +1131,7 @@ void ad9361_ensm_force_state(struct ad9361_rf_phy *phy, uint8_t ensm_state)
 
 	rc = ad9361_spi_write(spi, REG_ENSM_CONFIG_1, val);
 	if (rc)
-		dev_err(dev, "Failed to restore state");
+		dev_err(dev, "Failed to restore state\n");
 
 out:
 	return;

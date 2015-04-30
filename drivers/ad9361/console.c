@@ -245,7 +245,7 @@ char *int_to_str(long number, char base)
 
 	return buffer_ptr++;
 }
-
+#if 0
 /***************************************************************************//**
  * @brief Prints formatted data to console.
  *
@@ -369,7 +369,7 @@ void console_print(char* str, ...)
 	}
 	va_end(argp);
 }
-
+#endif
 /***************************************************************************//**
  * @brief Initializes the serial console.
  *

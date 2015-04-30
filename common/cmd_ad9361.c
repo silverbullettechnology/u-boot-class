@@ -23,26 +23,7 @@
  * Definitions
  */
 
-#ifndef MAX_SPI_BYTES
-#   define MAX_SPI_BYTES 32	/* Maximum number of bytes we can handle */
-#endif
 
-#ifndef CONFIG_DEFAULT_SPI_BUS
-#   define CONFIG_DEFAULT_SPI_BUS	0
-#endif
-#ifndef CONFIG_DEFAULT_SPI_MODE
-#   define CONFIG_DEFAULT_SPI_MODE	SPI_MODE_1
-#endif
-
-/*
- * Values from last command.
- */
-static unsigned int bus = 0;
-static unsigned int cs = 0;
-static unsigned int mode = 0;
-//static int   		bitlen;
-//static uchar 		dout[MAX_SPI_BYTES];
-//static uchar 		din[MAX_SPI_BYTES];
 
 static struct ad9361_rf_phy* ad9361_phy_table[CONFIG_AD9361_MAX_DEVICE] = {
 NULL,
@@ -65,7 +46,6 @@ NULL
  */
 
 int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
-	struct spi_slave *slave;
 	char *cp = 0;
 	uchar tmp;
 	char *command_line = NULL;
@@ -76,6 +56,7 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 	double param[5] = { 0, 0, 0, 0, 0 };
 	char param_no = 0;
 	int cmd_type = -1;
+	unsigned int bus;
 	AD9361_InitParam * init_param_ptr = NULL;
 	/*
 	 * We use the last specified parameters, unless new ones are
@@ -85,7 +66,6 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 	if ((flag & CMD_FLAG_REPEAT) == 0) {
 
 		if (argc > 2) {
-			mode = CONFIG_DEFAULT_SPI_MODE;
 			bus = simple_strtoul(argv[1], &cp, 10);
 			/*
 			 * Allocate space for command line
@@ -160,13 +140,6 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 
 	if (0 == rcode) {
 
-		slave = spi_setup_slave(bus, cs, 1000000, mode);
-		if (!slave) {
-			printf("Invalid device %d:%d\n", bus, cs);
-			rcode = 1;
-		} else {
-
-			spi_claim_bus(slave);
 			/*
 			 * Init RFIC if needed
 			 */
@@ -196,8 +169,7 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 						init_param_ptr->aux_dac1_default_value_mV = env;
 					 }
 #endif
-					ad9361_phy_table[bus] = ad9361_init(init_param_ptr,
-							(struct spi_device*) slave);
+					ad9361_phy_table[bus] = ad9361_init(init_param_ptr, bus);
 					free(init_param_ptr);
 
 
@@ -206,20 +178,18 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 					rcode = 1;
 				}
 			}
-			else{
-				ad9361_phy_table[bus]->spi = (struct spi_device*)slave;
-			}
 
 			if(NULL != ad9361_phy_table[bus]){
 				ad9361_phy = ad9361_phy_table[bus];
+#ifdef DEBUG
+				debug("Param_no = %d\n", param_no);
+				for(i = 0; i < param_no; i++)
+				{
+					debug("Param %d = %d\n", i, (int32_t)param[i]);
+				}
+#endif
 				cmd_list[cmd].function(param, param_no);
 			}
-
-			spi_release_bus(slave);
-			spi_free_slave(slave);
-
-
-		}
 
 	}
 
