@@ -219,39 +219,47 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 	uint32_t bus = slave->bus;
 	uint32_t val = 0;
 	uint32_t addr = 0;
-/*
- *	Enable RFIC interface I/O pads
- */
+
+	/*
+	 * Enable RF interface clocks
+	 */
+	clrbits_le32(CRT_RF_DIS, WFE_DIS_BITMASK);
+
+	/*
+	 *	Enable RFIC interface I/O pads
+	 */
 	/*
 	 * RF_IO_CTLx allows you to assert the PWRDN  and EXT_REF pins on the IO cells for each of the RFIC busses
 	 * Neither the RF_DriveX nor RF_IO_CTLx registers are initialized on a software reset.
 	 */
-
-	/*TODO: There is a discrepancy in the ASIC specification and include file. Correct bit names ?
-	 * Does _ENB mean we need to write 0 to activate or it's just a signal name?
+	/*
+	 * Bit0: RX_CM_EMF: LVDS receiver active high common mode enforcement'
+	 * Bit1: RX_REB:    LVDS receiver active high power down'
+	 * Bit2: TX_OEB:    LVDS driver active low output enable'
+	 * Bit3: TX_ENB:    LVDS driver active high power down'
+	 *
 	 */
 
 	addr = (RF_IO_CTL0) + bus*sizeof(val);
-	val  = (uint32_t)1 << RX_ENB_SHIFT;
-	val |= (uint32_t)1 << RX_OEB_SHIFT;
-	val |= (uint32_t)1 << RX_REB_SHIFT;
-	val |= (uint32_t)1 << RX_CM_EMF_SHIFT;
+	val = platform_axiadc_read(NULL,addr);
+	val &= ~(0|RX_REB_BITMASK|RX_OEB_BITMASK|RX_ENB_BITMASK);
+	val |= RX_CM_EMF_BITMASK;
 	platform_axiadc_write(NULL,addr,val);
 
-	/*TODO: There is nothing in the ASIC specification about how to control the drive strength
-	 * or what all fields mean. Let's just write all zeros
+
+	/*
+	 * For RF_DriveX LVDS drive strength mode: 0 = low current, 1 = high current
 	 */
 	addr = (RF_DRIVE0);
 	addr += bus*sizeof(val);
-	val = 0;
-	platform_axiadc_write(NULL,addr,val);
+	platform_axiadc_write(NULL,addr,0);
 
 /*
  *	Turn off RFIC RX/TX by driving control pins low
  */
 
 	val = (ENABLE0_BITMASK | TXNRX0_BITMASK) << (ENABLE1_SHIFT - ENABLE0_SHIFT)*bus;
-	platform_axiadc_write(NULL,(RF_CONTROL_RESET),val);
+	val = writel(val,RF_CONTROL_RESET);
 
 
 /*
@@ -266,7 +274,7 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
  */
 	val = ((1<< 2*bus)|(1 << (2*bus+1))) << RX_CH_ENABLE_SHIFT;
 	val |= val << TX_CH_ENABLE_SHIFT;
-	val = ~val;
+	val = ~val & platform_axiadc_read(NULL,RF_CHANNEL_EN);
 	platform_axiadc_write(NULL,(RF_CHANNEL_EN),val);
 /*
  * 	Initialize ADC sign bit location and shift
