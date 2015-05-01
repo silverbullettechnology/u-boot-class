@@ -640,8 +640,8 @@ void tx_loopback_test(double* param, char param_no)
 	uint32_t	num_samples = CONFIG_AD9361_RAM_BUFFER_SIZE/sizeof(uint32_t);
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
-//	uint16_t	pattern[] = {0x0000, 0xffff, 0xaaaa, 0x5555};
-	uint16_t	pattern[] = {0xaaaa, 0xaaaa, 0xaaaa, 0xaaaa};
+	uint16_t	pattern[] = {0x0000, 0xffff, 0xaaaa, 0x5555};
+//	uint16_t	pattern[] = {0xaaaa, 0xaaaa, 0xaaaa, 0xaaaa};
 	int32_t		status = 0;
 	uint32_t    val;
 
@@ -654,11 +654,11 @@ void tx_loopback_test(double* param, char param_no)
 		console_print("%s: ad9361_phy structure is invalid\n",__func__);
 		return;
 	}
-#if 0
+#if 1
 	adc_rotate = platform_axiadc_read(NULL, (AD_FORMAT));
 	debug("original adc_rotate value = %d", adc_rotate);
-	adc_rotate = (adc_rotate >> (8 * bus)) & ROTATE0_BITMASK;
-	debug("adc_rotate value after shift= %d", adc_rotate);
+//	adc_rotate = (adc_rotate >> (8 * bus)) & ROTATE0_BITMASK;
+//	debug("adc_rotate value after shift= %d", adc_rotate);
 #endif
 	/* Turn AD9361 loopback mode on */
 	status = ad9361_bist_loopback(ad9361_phy, 1);
@@ -678,7 +678,7 @@ void tx_loopback_test(double* param, char param_no)
     		 */
     		uint16_t	*tx_ptr = (uint16_t*)&test_buf[0];
     		uint16_t	*rx_ptr = (uint16_t*)&test_buf[CONFIG_AD9361_RAM_BUFFER_SIZE];
-#if 0
+#if 1
     		for(j = 0; j < num_samples*2; j++)
     		{
     			tx_ptr[j] = pattern[i];
@@ -692,11 +692,11 @@ void tx_loopback_test(double* param, char param_no)
     		/* Setup TX DMA registers */
     		val = (uint32_t)(&test_buf[0]);
     		val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
-    		debug("RF_READ_BASE is %x\n",val);
+//    		debug("RF_READ_BASE is %x\n",val);
     		platform_axiadc_write(NULL, RF_READ_BASE, val);
 
     		val += CONFIG_AD9361_RAM_BUFFER_SIZE -1;
-    		debug("RF_READ_TOP is %x\n",val);
+//    		debug("RF_READ_TOP is %x\n",val);
     		platform_axiadc_write(NULL, RF_READ_TOP, val);
     		platform_axiadc_write(NULL, RF_READ_COUNT, 2*num_samples);
 
@@ -704,11 +704,11 @@ void tx_loopback_test(double* param, char param_no)
     		val = (uint32_t)(&test_buf[CONFIG_AD9361_RAM_BUFFER_SIZE]);
     		val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
 
-    		debug("RF_WRITE_BASE is %x\n",val);
+//    		debug("RF_WRITE_BASE is %x\n",val);
     		platform_axiadc_write(NULL, RF_WRITE_BASE, (uint32_t)val);
 
     		val += CONFIG_AD9361_RAM_BUFFER_SIZE -1;
-    		debug("RF_WRITE_TOP is %x\n",val);
+//    		debug("RF_WRITE_TOP is %x\n",val);
     		platform_axiadc_write(NULL, RF_WRITE_TOP, val);
     		platform_axiadc_write(NULL, RF_WRITE_COUNT, 2*num_samples);
 
@@ -731,7 +731,7 @@ void tx_loopback_test(double* param, char param_no)
 #endif
     		status = 0;
 
- #if 0
+ #if 1
     		for(j = 0; j < num_samples*2; j++)
     		{
     			if((tx_ptr[j] >> adc_rotate) != (rx_ptr[j] >> adc_rotate))
@@ -752,7 +752,7 @@ void tx_loopback_test(double* param, char param_no)
 #endif
     	}
 
-    }while(!ctrlc());
+    }while(0);
 
 }
 /**************************************************************************//***
