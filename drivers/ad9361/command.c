@@ -637,7 +637,7 @@ void tx_loopback_test(double* param, char param_no)
 {
 	uint32_t 	bus = 0;
 	uint8_t	    *test_buf = (uint8_t*)CONFIG_AD9361_RAM_BUFFER_ADDR;
-	uint32_t	num_samples = CONFIG_AD9361_RAM_BUFFER_SIZE/sizeof(uint32_t);
+	uint32_t	num_samples = 64*16;
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
 	uint16_t	pattern[] = {0x0000, 0xffff, 0xaaaa, 0x5555};
@@ -656,9 +656,9 @@ void tx_loopback_test(double* param, char param_no)
 	}
 #if 1
 	adc_rotate = platform_axiadc_read(NULL, (AD_FORMAT));
-	debug("original adc_rotate value = %d", adc_rotate);
-//	adc_rotate = (adc_rotate >> (8 * bus)) & ROTATE0_BITMASK;
-//	debug("adc_rotate value after shift= %d", adc_rotate);
+	debug("original adc_rotate value = %x\n", adc_rotate);
+	adc_rotate = (adc_rotate >> (8 * bus)) & ROTATE0_BITMASK;
+	debug("adc_rotate value after shift= %x\n", adc_rotate);
 #endif
 	/* Turn AD9361 loopback mode on */
 	status = ad9361_bist_loopback(ad9361_phy, 1);
@@ -679,6 +679,8 @@ void tx_loopback_test(double* param, char param_no)
     		uint16_t	*tx_ptr = (uint16_t*)&test_buf[0];
     		uint16_t	*rx_ptr = (uint16_t*)&test_buf[CONFIG_AD9361_RAM_BUFFER_SIZE];
 #if 1
+    		memset(&test_buf[0], 0xbb, CONFIG_S3MA_OCM_RAM_SIZE);
+
     		for(j = 0; j < num_samples*2; j++)
     		{
     			tx_ptr[j] = pattern[i];
@@ -690,45 +692,56 @@ void tx_loopback_test(double* param, char param_no)
 #endif
 
     		/* Setup TX DMA registers */
-    		val = (uint32_t)(&test_buf[0]);
+    		val = (uint32_t)tx_ptr;
     		val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
-//    		debug("RF_READ_BASE is %x\n",val);
+    		debug("RF_READ_BASE setting to %x\n",val);
     		platform_axiadc_write(NULL, RF_READ_BASE, val);
+    		debug("RF_READ_BASE is %x\n",platform_axiadc_read(NULL, RF_READ_BASE));
 
-    		val += CONFIG_AD9361_RAM_BUFFER_SIZE -1;
-//    		debug("RF_READ_TOP is %x\n",val);
+    		val += num_samples*sizeof(uint32_t);
+    		debug("RF_READ_TOP setting to %x\n",val);
     		platform_axiadc_write(NULL, RF_READ_TOP, val);
-    		platform_axiadc_write(NULL, RF_READ_COUNT, 2*num_samples);
+    		debug("RF_READ_TOP is %x\n",platform_axiadc_read(NULL, RF_READ_TOP));
+
+    		platform_axiadc_write(NULL, RF_READ_COUNT, 6*num_samples);
+    		debug("RF_READ_COUNT is %x\n",platform_axiadc_read(NULL, RF_READ_COUNT));
 
     		/* Setup RX DMA registers */
-    		val = (uint32_t)(&test_buf[CONFIG_AD9361_RAM_BUFFER_SIZE]);
+    		val = (uint32_t)rx_ptr;
     		val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
 
-//    		debug("RF_WRITE_BASE is %x\n",val);
+    		debug("RF_WRITE_BASE setting to %x\n",val);
     		platform_axiadc_write(NULL, RF_WRITE_BASE, (uint32_t)val);
+    		debug("RF_WRITE_BASE is %x\n",platform_axiadc_read(NULL,RF_WRITE_BASE));
 
-    		val += CONFIG_AD9361_RAM_BUFFER_SIZE -1;
-//    		debug("RF_WRITE_TOP is %x\n",val);
+    		val += num_samples*sizeof(uint32_t);
+    		debug("RF_WRITE_TOP setting to %x\n",val);
     		platform_axiadc_write(NULL, RF_WRITE_TOP, val);
+    		debug("RF_WRITE_TOP is %x\n",platform_axiadc_read(NULL,RF_WRITE_TOP));
+
     		platform_axiadc_write(NULL, RF_WRITE_COUNT, 2*num_samples);
+    		debug("RF_WRITE_COUNT is %x\n",platform_axiadc_read(NULL,RF_WRITE_COUNT));
 
     		/* Select both channels for TX and RX*/
-    		platform_axiadc_write(NULL, RF_CHANNEL_EN, ((0x3 << RX_CH_ENABLE_SHIFT)|(0x3 << TX_CH_ENABLE_SHIFT)) << bus);
+    		platform_axiadc_write(NULL, RF_CHANNEL_EN, ((0x3 << RX_CH_ENABLE_SHIFT)|(0x3 << TX_CH_ENABLE_SHIFT)) << (2*bus));
+    		debug("RF_CHANNEL_EN = 0x%x\n",platform_axiadc_read(NULL,RF_CHANNEL_EN));
+
     		/* Select TX source */
-    		platform_axiadc_write(NULL, TX_SOURCE, (0x55  << bus));
+    		platform_axiadc_write(NULL, TX_SOURCE, 0x55555555);
+    		debug("TX_SOURCE = 0x%x\n",platform_axiadc_read(NULL,TX_SOURCE));
+
     		/* Enable transfer */
     		platform_axiadc_write(NULL, RF_CONFIG, RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK);
 
     		/* Wait for transfer to complete  */
-    		while(platform_axiadc_read(NULL,RF_READ_COUNT_AXI) >0x0)
+    		while(platform_axiadc_read(NULL,RF_WRITE_COUNT_AXI) > 0x0)
     		{
     			/* TODO:May want to add a timeout check here in case transfer never completes */
     		}
-#if 1
+
     		/* Disable transfer */
     		platform_axiadc_write(NULL, RF_CONFIG, ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK));
-    		/* Compare buffers and identify errors along with associated channel */
-#endif
+
     		status = 0;
 
  #if 1
@@ -736,7 +749,7 @@ void tx_loopback_test(double* param, char param_no)
     		{
     			if((tx_ptr[j] >> adc_rotate) != (rx_ptr[j] >> adc_rotate))
     			{
-    				console_print("Error in sample %d: tx_sample= 0x%x rx_sample= 0x%x\n", j/2, tx_ptr[j] >> adc_rotate, rx_ptr[j] >> adc_rotate);
+//    				console_print("Error in sample %d: tx_sample= 0x%x rx_sample= 0x%x\n", j/2, tx_ptr[j] >> adc_rotate, rx_ptr[j] >> adc_rotate);
     				status = 1;
     			}
     		}
