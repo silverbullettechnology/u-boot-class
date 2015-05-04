@@ -270,19 +270,10 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 	platform_axiadc_write(NULL,val,(RF_CONFIG));
 
 /*
- *	clear enable bits for associated RX/TX Channels
+ *	clear all enable bits for associated RX/TX Channels
  */
-	val = ((1<< 2*bus)|(1 << (2*bus+1))) << RX_CH_ENABLE_SHIFT;
-	val |= val << TX_CH_ENABLE_SHIFT;
-	val = ~val & platform_axiadc_read(NULL,RF_CHANNEL_EN);
-	platform_axiadc_write(NULL,(RF_CHANNEL_EN),val);
-/*
- * 	Initialize ADC sign bit location and shift
- * 	Keep the defaults for now
- */
-	val = (12 << SIGN_BIT0_SHIFT)|(4 << ROTATE0_SHIFT);
-	val <<= (SIGN_BIT1_SHIFT - SIGN_BIT0_SHIFT)*bus;
-	platform_axiadc_write(NULL,(AD_FORMAT),val);
+
+	platform_axiadc_write(NULL,(RF_CHANNEL_EN),0);
 
 }
 
