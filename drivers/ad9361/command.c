@@ -637,11 +637,12 @@ void tx_loopback_test(double* param, char param_no)
 {
 	uint32_t 	bus = 0;
 	uint8_t	    *test_buf = (uint8_t*)CONFIG_AD9361_RAM_BUFFER_ADDR;
-	uint32_t	num_samples = 64*16;
+	uint32_t	num_samples = 8*512;
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
-	uint16_t	pattern[] = {0x0000, 0xffff, 0xaaaa, 0x5555};
-//	uint16_t	pattern[] = {0xaaaa, 0xaaaa, 0xaaaa, 0xaaaa};
+//	uint16_t	pattern[] = {0x0000, 0xffff, 0xaaaa, 0x5555};
+	uint16_t	pattern[] = {0xaaaa, 0xaaaa, 0xaaaa, 0xaaaa};
+//	uint16_t	pattern[] = {0xffff, 0xffff, 0xffff, 0xffff};
 	int32_t		status = 0;
 	uint32_t    val;
 
@@ -703,7 +704,7 @@ void tx_loopback_test(double* param, char param_no)
     		platform_axiadc_write(NULL, RF_READ_TOP, val);
     		debug("RF_READ_TOP is %x\n",platform_axiadc_read(NULL, RF_READ_TOP));
 
-    		platform_axiadc_write(NULL, RF_READ_COUNT, 6*num_samples);
+    		platform_axiadc_write(NULL, RF_READ_COUNT, 4*num_samples);
     		debug("RF_READ_COUNT is %x\n",platform_axiadc_read(NULL, RF_READ_COUNT));
 
     		/* Setup RX DMA registers */
@@ -723,7 +724,11 @@ void tx_loopback_test(double* param, char param_no)
     		debug("RF_WRITE_COUNT is %x\n",platform_axiadc_read(NULL,RF_WRITE_COUNT));
 
     		/* Select both channels for TX and RX*/
+#if 0
     		platform_axiadc_write(NULL, RF_CHANNEL_EN, ((0x3 << RX_CH_ENABLE_SHIFT)|(0x3 << TX_CH_ENABLE_SHIFT)) << (2*bus));
+#else
+    		platform_axiadc_write(NULL, RF_CHANNEL_EN, 0xffff);
+#endif
     		debug("RF_CHANNEL_EN = 0x%x\n",platform_axiadc_read(NULL,RF_CHANNEL_EN));
 
     		/* Select TX source */
@@ -741,13 +746,14 @@ void tx_loopback_test(double* param, char param_no)
 
     		/* Disable transfer */
     		platform_axiadc_write(NULL, RF_CONFIG, ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK));
+    		platform_axiadc_write(NULL,(RF_CHANNEL_EN),0);
 
     		status = 0;
 
  #if 1
     		for(j = 0; j < num_samples*2; j++)
     		{
-    			if((tx_ptr[j] >> adc_rotate) != (rx_ptr[j] >> adc_rotate))
+    			if((tx_ptr[j] & 0x0fff) != (rx_ptr[j] >> adc_rotate))
     			{
 //    				console_print("Error in sample %d: tx_sample= 0x%x rx_sample= 0x%x\n", j/2, tx_ptr[j] >> adc_rotate, rx_ptr[j] >> adc_rotate);
     				status = 1;
@@ -765,7 +771,7 @@ void tx_loopback_test(double* param, char param_no)
 #endif
     	}
 
-    }while(0);
+    }while(!ctrlc());
 
 }
 /**************************************************************************//***

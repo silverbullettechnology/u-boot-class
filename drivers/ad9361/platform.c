@@ -219,6 +219,7 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 	uint32_t bus = slave->bus;
 	uint32_t val = 0;
 	uint32_t addr = 0;
+	uint32_t i;
 
 	/*
 	 * Enable RF interface clocks
@@ -240,34 +241,41 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 	 *
 	 */
 
-	addr = (RF_IO_CTL0) + bus*sizeof(val);
-	val = platform_axiadc_read(NULL,addr);
-	val &= ~(0|RX_REB_BITMASK|RX_OEB_BITMASK|RX_ENB_BITMASK);
-	val |= RX_CM_EMF_BITMASK;
-	platform_axiadc_write(NULL,addr,val);
+	addr = (RF_IO_CTL0);
+
+	for(i = 0; i < 4; i++)
+	{
+		val = platform_axiadc_read(NULL,addr);
+		val &= ~(0|RX_REB_BITMASK|RX_OEB_BITMASK|RX_ENB_BITMASK);
+		val |= RX_CM_EMF_BITMASK;
+		platform_axiadc_write(NULL,addr,val);
+		addr += 4;
+	}
 
 
 	/*
 	 * For RF_DriveX LVDS drive strength mode: 0 = low current, 1 = high current
 	 */
 	addr = (RF_DRIVE0);
-	addr += bus*sizeof(val);
-	platform_axiadc_write(NULL,addr,0);
+
+	for(i = 0; i < 4; i++)
+	{
+		platform_axiadc_write(NULL,addr,0);
+		addr += 4;
+
+	}
 
 /*
  *	Turn off RFIC RX/TX by driving control pins low
  */
-
 	val = (ENABLE0_BITMASK | TXNRX0_BITMASK) << (ENABLE1_SHIFT - ENABLE0_SHIFT)*bus;
-	val = writel(val,RF_CONTROL_RESET);
-
+	platform_axiadc_write(NULL, RF_CONTROL_RESET, val);
 
 /*
  * 	Turn off RX/TX in RF_CONFIG register
  */
-	val = ~(RF_CONFIG_RX_ENABLE_BITMASK|RF_CONFIG_TX_ENABLE_BITMASK|RX_INTERRUPT_EN_BITMASK|TX_INTERRUPT_EN_BITMASK);
 
-	platform_axiadc_write(NULL,val,(RF_CONFIG));
+	platform_axiadc_write(NULL,(RF_CONFIG),0);
 
 /*
  *	clear all enable bits for associated RX/TX Channels
