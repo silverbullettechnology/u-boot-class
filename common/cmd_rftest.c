@@ -32,7 +32,7 @@ int do_rf_test(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	char *cp = 0;
 	uint32_t 	bus = 0;
 	uint8_t	    *test_buf = (uint8_t*)CONFIG_AD9361_RAM_BUFFER_ADDR;
-	uint32_t	num_samples = 128;
+	uint32_t	num_samples = 8*32;
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
 	//	uint16_t	pattern[] = {0x0000, 0xffff, 0xaaaa, 0x5555};
