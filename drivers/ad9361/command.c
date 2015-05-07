@@ -88,6 +88,7 @@ command cmd_list[] = {
 	{"rx_fir_en=", "Sets the RX FIR state.", "", set_rx_fir_en},
 	{"tx_loopback_test=","Runs DAC->ADC loopback test.","",tx_loopback_test},
 	{"asic_loopback_test_en=","Enables/Disables ADC->DAC loopback test.","",set_asfe_loopback_test},
+	{"bist_loopback_en=","Enables/Disables DAC->ADC data ports loopback.","",bist_loopback},
 
 #if 0
 	{"dds_tx1_tone1_freq?", "Gets current DDS TX1 Tone 1 frequency [Hz].", "", get_dds_tx1_tone1_freq},
@@ -629,6 +630,55 @@ void set_rx_fir_en(double* param, char param_no) // "rx_fir_en=" command
 }
 
 /**************************************************************************//***
+ * @brief Enables/disables DAC->ADC loopback test
+ *
+ * @return None.
+*******************************************************************************/
+void bist_loopback(double* param, char param_no)
+{
+	uint32_t 	bus = 0;
+	int32_t		status = 0;
+	uint32_t    en_dis = 0;
+
+	if(NULL == ad9361_phy)
+	{
+		console_print("%s: ad9361_phy structure is invalid\n",__func__);
+		return;
+	}
+
+	if(param_no >= 1)
+	{
+		en_dis = param[0];
+		/* Turn AD9361 loopback mode on */
+		status = ad9361_bist_loopback(ad9361_phy, en_dis);
+	}
+	else
+	{
+		show_invalid_param_message(1);
+		status = -1;
+	}
+
+
+	if(status)
+	{
+		console_print("%s: Failed to setup tx->rx loopback mode\n", __func__);
+		return;
+	}
+
+	if(en_dis)
+	{
+		console_print("BIST loopback mode is on\n", __func__);
+
+	}
+	else
+	{
+		console_print("BIST loopback mode is off\n", __func__);
+
+	}
+
+
+}
+/**************************************************************************//***
  * @brief Runs DAC->ADC loopback test
  *
  * @return None.
@@ -637,7 +687,7 @@ void tx_loopback_test(double* param, char param_no)
 {
 	uint32_t 	bus = 0;
 	uint8_t	    *test_buf = (uint8_t*)CONFIG_AD9361_RAM_BUFFER_ADDR;
-	uint32_t	num_samples = 8*512;
+	uint32_t	num_samples = 8*64;
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
 //	uint16_t	pattern[] = {0x0000, 0xffff, 0xaaaa, 0x5555};
