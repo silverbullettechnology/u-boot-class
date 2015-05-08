@@ -206,7 +206,7 @@ void platform_mdelay(unsigned long msecs)
 *******************************************************************************/
 unsigned long platform_msleep_interruptible(unsigned int msecs)
 {
-
+	platform_mdelay(msecs);
 	return 0;
 }
 
