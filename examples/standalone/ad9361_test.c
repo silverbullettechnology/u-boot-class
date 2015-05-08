@@ -231,7 +231,6 @@ int ad9361_test (int argc, char * const argv[])
 	uint32_t bus = 0;
 	char *cp = 0;
 	struct ad9361_rf_phy* phy_ptr = NULL;
-	struct spi_slave *slave = NULL;
 
 	app_startup(argv);
 
@@ -258,24 +257,16 @@ int ad9361_test (int argc, char * const argv[])
 
 	printf("Using bus %d\n", bus);
 
-	/* Data signals launched on the rising edge and sampled on falling edge */
-	slave = spi_setup_slave(bus, 0, 1000000, SPI_MODE_1);
-	if (!slave) {
-		printf("Invalid device %d:%d\n", bus, 0);
-		rcode = 1;
-	} else {
-		spi_claim_bus(slave);
 
 		/* Initialize RESETB pin */
 		init_param.gpio_resetb = RESETB0_BITMASK << (bus * 8);
 
 		phy_ptr = ad9361_init(&init_param,
-				(struct spi_device*) slave);
+				bus);
 
 		if(NULL == phy_ptr)
 			rcode = 1;
 
-	}
 
 
 	if(0 == rcode){
@@ -294,10 +285,6 @@ int ad9361_test (int argc, char * const argv[])
 	}
 
 
-	if(slave){
-		spi_release_bus(slave);
-		spi_free_slave(slave);
-	}
 
 	if(phy_ptr){
 

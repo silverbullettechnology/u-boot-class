@@ -199,7 +199,7 @@ int misc_init_r(void)
 
 int spi_cs_is_valid(unsigned int bus, unsigned int cs)
 {
-	int ret;
+	int ret = 0;
 
 	switch(cs)
 	{

@@ -47,7 +47,6 @@ NULL
 
 int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 	char *cp = 0;
-	uchar tmp;
 	char *command_line = NULL;
 	int i, len;
 	int rcode = 0;
@@ -56,7 +55,7 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 	double param[5] = { 0, 0, 0, 0, 0 };
 	char param_no = 0;
 	int cmd_type = -1;
-	unsigned int bus;
+	unsigned int bus = 0;
 	AD9361_InitParam * init_param_ptr = NULL;
 	/*
 	 * We use the last specified parameters, unless new ones are
@@ -179,16 +178,22 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 				}
 			}
 
-			if(NULL != ad9361_phy_table[bus]){
-				ad9361_phy = ad9361_phy_table[bus];
+			if(bus < CONFIG_AD9361_MAX_DEVICE){
+				if(NULL != ad9361_phy_table[bus]){
+					ad9361_phy = ad9361_phy_table[bus];
 #ifdef DEBUG
-				debug("Param_no = %d\n", param_no);
-				for(i = 0; i < param_no; i++)
-				{
-					debug("Param %d = %d\n", i, (int32_t)param[i]);
-				}
+					debug("Param_no = %d\n", param_no);
+					for(i = 0; i < param_no; i++)
+					{
+						debug("Param %d = %d\n", i, (int32_t)param[i]);
+					}
 #endif
-				cmd_list[cmd].function(param, param_no);
+					cmd_list[cmd].function(param, param_no);
+				}
+
+			}
+			else{
+				rcode = 1;
 			}
 
 	}

@@ -636,7 +636,6 @@ void set_rx_fir_en(double* param, char param_no) // "rx_fir_en=" command
 *******************************************************************************/
 void bist_loopback(double* param, char param_no)
 {
-	uint32_t 	bus = 0;
 	int32_t		status = 0;
 	uint32_t    en_dis = 0;
 

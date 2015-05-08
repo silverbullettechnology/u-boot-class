@@ -220,7 +220,6 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 
 	uint32_t val = 0;
 	uint32_t addr = 0;
-	uint32_t i;
 
 	/*
 	 * Enable RF interface clocks

@@ -316,7 +316,7 @@ static struct axiadc_chip_info axiadc_chip_info_tbl[] =
  * @return A structure that contains the AD9361 current state in case of
  *         success, negative error code otherwise.
  */
-struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param, uint32_t bus)
+struct ad9361_rf_phy *ad9361_init (const AD9361_InitParam *init_param, uint32_t bus)
 {
 	struct ad9361_rf_phy *phy;
 	int32_t ret = 0;
