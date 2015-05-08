@@ -245,40 +245,21 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 
 	addr = (RF_IO_CTL0);
 
-#if 0
-	for(i = 0; i < 4; i++)
-	{
-		val = platform_axiadc_read(NULL,addr);
-		val &= ~(0|RX_REB_BITMASK|RX_OEB_BITMASK|RX_ENB_BITMASK);
-		val |= RX_CM_EMF_BITMASK;
-		platform_axiadc_write(NULL,addr,val);
-		addr += 4;
-	}
-#else
 	addr += 4*bus;
 	val = platform_axiadc_read(NULL,addr);
 	val &= ~(0|RX_REB_BITMASK|RX_OEB_BITMASK|RX_ENB_BITMASK);
 	val |= RX_CM_EMF_BITMASK;
 	platform_axiadc_write(NULL,addr,val);
 
-#endif
 
 	/*
 	 * For RF_DriveX LVDS drive strength mode: 0 = low current, 1 = high current
 	 */
 	addr = (RF_DRIVE0);
 
-#if 0
-	for(i = 0; i < 4; i++)
-	{
-		platform_axiadc_write(NULL,addr,0);
-		addr += 4;
-
-	}
-#else
 	addr += 4*bus;
 	platform_axiadc_write(NULL,addr,0);
-#endif
+
 /*
  *	Turn off RFIC RX/TX by driving control pins low
  */

@@ -705,7 +705,6 @@ void tx_loopback_test(double* param, char param_no)
 		return;
 	}
 
-#if 1
 	adc_rotate = platform_axiadc_read(NULL, (AD_FORMAT));
 	debug("original adc_rotate register value = %x\n", adc_rotate);
 	adc_rotate = (adc_rotate >> (8 * bus)) & (ROTATE0_BITMASK);
@@ -716,7 +715,6 @@ void tx_loopback_test(double* param, char param_no)
 	tx_shift  = (tx_shift >> (8 * bus)) & (SLOT0_SHIFT_BITMASK);
 	debug("tx_shift value = %x\n", tx_shift);
 
-#endif
 	/* Turn AD9361 loopback mode on */
 	status = ad9361_bist_loopback(ad9361_phy, 1);
 	if(status)
@@ -735,7 +733,7 @@ void tx_loopback_test(double* param, char param_no)
     		 */
     		uint16_t	*tx_ptr = (uint16_t*)&test_buf[0];
     		uint16_t	*rx_ptr = (uint16_t*)&test_buf[CONFIG_AD9361_RAM_BUFFER_SIZE];
-#if 1
+
     		memset(&test_buf[0], 0xbb, CONFIG_S3MA_OCM_RAM_SIZE);
 
     		for(j = 0; j < num_samples*2; j++)
@@ -743,10 +741,6 @@ void tx_loopback_test(double* param, char param_no)
     			tx_ptr[j] = pattern[i];
     		}
     		console_print("Trying pattern %x\n", pattern[i]);
-#else
-    		memset(&test_buf[0], 0x0, CONFIG_S3MA_OCM_RAM_SIZE);
-    		memset(&test_buf[0], 0xaa, CONFIG_AD9361_RAM_BUFFER_SIZE);
-#endif
 
     		/* Setup TX DMA registers */
     		val = (uint32_t)tx_ptr;
@@ -780,13 +774,10 @@ void tx_loopback_test(double* param, char param_no)
     		debug("RF_WRITE_COUNT is %x\n",platform_axiadc_read(NULL,RF_WRITE_COUNT));
 
     		/* Select both channels for TX and RX*/
-#if 1
     		platform_axiadc_write(NULL,
     							 RF_CHANNEL_EN,
     				             ((0x3 << RX_CH_ENABLE_SHIFT)|(0x3 << TX_CH_ENABLE_SHIFT)) << (2*bus));
-#else
-    		platform_axiadc_write(NULL, RF_CHANNEL_EN, 0xffff);
-#endif
+
     		debug("RF_CHANNEL_EN = 0x%x\n",platform_axiadc_read(NULL,RF_CHANNEL_EN));
 
     		/* Select TX source */
@@ -808,7 +799,6 @@ void tx_loopback_test(double* param, char param_no)
 
     		status = 0;
 
- #if 1
     		for(j = 0; j < num_samples*2; j++)
     		{
     			if((tx_ptr[j] >> tx_shift) != (rx_ptr[j] >> adc_rotate))
@@ -826,7 +816,6 @@ void tx_loopback_test(double* param, char param_no)
     			console_print("Pattern %x test: PASS\n", pattern[i]);
 
     		}
-#endif
     	}
 
 //    }while(!ctrlc());

@@ -600,7 +600,7 @@ struct ad9361_rf_phy *ad9361_init (AD9361_InitParam *init_param, uint32_t bus)
 
 	ad9361_reset(phy);
 	ad9361_spi_write(phy->spi, REG_SPI_CONF, SOFT_RESET | _SOFT_RESET);
-	platform_mdelay(1000);
+	platform_mdelay(1);
 	ad9361_spi_write(phy->spi, REG_SPI_CONF, 0x0);
 
 	ret = ad9361_spi_read(phy->spi, REG_PRODUCT_ID);
