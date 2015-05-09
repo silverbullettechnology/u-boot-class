@@ -14,6 +14,7 @@
 #include <spi.h>
 #include <malloc.h>
 #include <linux/string.h>
+#include <asm/arch/s3ma-regs.h>
 #include <ad9361/ad9361.h>
 #include <ad9361/ad9361_api.h>
 #include <ad9361/command.h>

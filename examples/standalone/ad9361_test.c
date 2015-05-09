@@ -9,6 +9,7 @@
 #include <spi.h>
 #include <linux/string.h>
 #include <exports.h>
+#include <asm/arch/s3ma-regs.h>
 #include <ad9361/ad9361.h>
 #include <ad9361/ad9361_api.h>
 

@@ -43,6 +43,7 @@
 #include <common.h>
 #include <malloc.h>
 #include <spi.h>
+#include <asm/arch/s3ma-regs.h>
 #include <ad9361/command.h>
 #include <ad9361/console.h>
 #include <ad9361/ad9361.h>
