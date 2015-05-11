@@ -29,11 +29,12 @@ void s3ma_setup_pll(void)
 	 * so linker keeps por structure in the image
 	 */
 	int i;
+#ifndef CONFIG_SPL
 	for(i = 0; i < sizeof(pll_config)/sizeof(pll_config[0]); i++)
 	{
 		pll_config[i] =  por_config[i];
 	}
-
+#endif
 
 	/* Initialize values for clock rates */
 	gd->cpu_clk = CONFIG_CPU_CLK_HZ;

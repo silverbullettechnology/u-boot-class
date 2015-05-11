@@ -8,8 +8,9 @@
 
 #include <asm/io.h>
 #include <asm/arch/hardware.h>
-#include <asm/arch/spl.h>
+//#include <asm/arch/spl.h>
 #include <asm/arch/sys_proto.h>
+#include <spi.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -70,3 +71,5 @@ int spl_start_uboot(void)
 	return 0;
 }
 #endif
+
+
