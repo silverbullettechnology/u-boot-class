@@ -11,6 +11,7 @@
 #include <asm/io.h>
 #include <div64.h>
 #include <asm/arch/clock.h>
+#include <asm/arch/s3ma-regs.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
