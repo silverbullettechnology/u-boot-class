@@ -37,8 +37,9 @@
  * We don't have the number assigned, so just pick something for now
  */
 #define CONFIG_MACH_TYPE	5000
-
+#if 0
 #include <asm/arch/s3ma-regs.h>
+#endif
 #include <asm/arch/gpio.h>
 
 #define CONFIG_SYS_GENERIC_BOARD
@@ -335,6 +336,9 @@
 #define 	CONFIG_SPL_SERIAL_SUPPORT
 #define		CONFIG_SPL_SPI_FLASH_SUPPORT
 #define		CONFIG_SPL_SPI_SUPPORT
+#define		CONFIG_SPL_SPI_BUS	CONFIG_SF_DEFAULT_BUS
+#define     CONFIG_SPL_SPI_CS	CONFIG_SF_DEFAULT_CS
+#define		CONFIG_SYS_SPI_U_BOOT_OFFS			64*1024
 #define		CONFIG_SPL_LIBGENERIC_SUPPORT
 #define		CONFIG_SPL_ENV_SUPPORT
 

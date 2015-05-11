@@ -9,6 +9,7 @@
 
 #define BOOT_DEVICE_MMC1	6
 #define BOOT_DEVICE_MMC2	5
+#define BOOT_DEVICE_UART	0x43
 #define BOOT_DEVICE_XIP       	2
 
 #if defined(CONFIG_AM33XX)

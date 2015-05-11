@@ -14,7 +14,6 @@
 #include <asm-offsets.h>
 #include <config.h>
 #include <linux/linkage.h>
-#include <asm/arch/s3ma-regs.h>
 
 ENTRY(lowlevel_init)
 		/*
