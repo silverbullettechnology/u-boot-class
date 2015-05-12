@@ -70,6 +70,9 @@ void get_help(double* param, char param_no);
 /* Gets the specified register value. */
 void get_register(double* param, char param_no);
 
+/* Sets the specified register value. */
+void set_register(double* param, char param_no);
+
 /* Gets current TX LO frequency. */
 void get_tx_lo_freq(double* param, char param_no);
 

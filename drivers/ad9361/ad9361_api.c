@@ -207,7 +207,7 @@ const AD9361_InitParam default_init_param = {
 	0,		//elna_rx2_gpo1_control_enable *** adi,elna-rx2-gpo1-control-enable
 	/* Digital Interface Control */
 	1,		//pp_tx_swap_enable *** adi,pp-tx-swap-enable
-	1,		//pp_rx_swap_enable *** adi,pp-rx-swap-enable
+	0,		//pp_rx_swap_enable *** adi,pp-rx-swap-enable
 	0,		//tx_channel_swap_enable *** adi,tx-channel-swap-enable
 	0,		//rx_channel_swap_enable *** adi,rx-channel-swap-enable
 	1,		//rx_frame_pulse_mode_enable *** adi,rx-frame-pulse-mode-enable
@@ -225,9 +225,9 @@ const AD9361_InitParam default_init_param = {
 	0,		//full_port_enable *** adi,full-port-enable
 	0,		//full_duplex_swap_bits_enable *** adi,full-duplex-swap-bits-enable
 	0,		//delay_rx_data *** adi,delay-rx-data
-	0,		//rx_data_clock_delay *** adi,rx-data-clock-delay
-	4,		//rx_data_delay *** adi,rx-data-delay
-	7,		//tx_fb_clock_delay *** adi,tx-fb-clock-delay
+	0,//11,	//rx_data_clock_delay *** adi,rx-data-clock-delay
+	4,//0,		//rx_data_delay *** adi,rx-data-delay
+	4,		//tx_fb_clock_delay *** adi,tx-fb-clock-delay
 	0,		//tx_data_delay *** adi,tx-data-delay
 	150,	//lvds_bias_mV *** adi,lvds-bias-mV
 	1,		//lvds_rx_onchip_termination_enable *** adi,lvds-rx-onchip-termination-enable

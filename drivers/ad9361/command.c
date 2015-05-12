@@ -55,6 +55,7 @@
 command cmd_list[] = {
 	{"help?", "Displays all available commands.", "", get_help},
 	{"register?", "Gets the specified register value.", "", get_register},
+	{"register=", "Sets the specified register value.", "", set_register},
 	{"aux_adc?", "Gets the AUX ADC value.", "", get_aux_adc},
 	{"aux_dac?", "Gets the AUX DAC1 or DAC2 value [mV].", "", get_aux_dac},
 	{"aux_dac=", "Sets the AUX DAC1 or DAC2 value [mV].", "", set_aux_dac},
@@ -153,7 +154,7 @@ void get_help(double* param, char param_no) // "help?" command
 }
 
 /**************************************************************************//***
- * @brief Displays all available commands.
+ * @brief Gets the specified register value.
  *
  * @return None.
 *******************************************************************************/
@@ -172,6 +173,27 @@ void get_register(double* param, char param_no) // "register?" command
 		show_invalid_param_message(1);
 }
 
+/**************************************************************************//***
+ * @brief Sets the specified register value.
+ *
+ * @return None.
+*******************************************************************************/
+void set_register(double* param, char param_no)
+{
+	uint16_t reg_addr;
+	uint8_t reg_val;
+
+	if(param_no >= 2)
+	{
+		reg_addr = (uint16_t)param[0];
+		reg_val = (uint8_t)param[1];
+		ad9361_spi_write(ad9361_phy->spi, reg_addr, reg_val);
+		console_print("register[0x%x]=0x%x\n", reg_addr, reg_val);
+	}
+	else
+		show_invalid_param_message(1);
+
+}
 /**************************************************************************//***
  * @brief Gets current TX LO frequency [MHz].
  *
@@ -690,7 +712,9 @@ void tx_loopback_test(double* param, char param_no)
 	uint32_t	i,j;
 	uint32_t	adc_rotate = 0;
 	uint32_t    tx_shift = 0;
-	uint16_t	pattern[] = {0x0000, 0xfff0, 0xaaa0, 0x5550,0x34d0};
+	uint32_t	pattern[] = {0x00000000, 0xfff0fff0, 0xaaa0aaa0, 0x55505550,
+							 0x82008200, 0x41004100, 0x20802080, 0x10401040,
+							 0x08200820,0x04100410,0xaaa05550};
 	int32_t		status = 0;
 	uint32_t    val;
 
@@ -722,6 +746,7 @@ void tx_loopback_test(double* param, char param_no)
 		return;
 	}
     do{
+
     	for (i = 0; i < ARRAY_SIZE((pattern)); i++)
     	{
     		/* Fill TX buffer with pattern
@@ -735,9 +760,9 @@ void tx_loopback_test(double* param, char param_no)
 
     		memset(&test_buf[0], 0xbb, CONFIG_S3MA_OCM_RAM_SIZE);
 
-    		for(j = 0; j < num_samples*2; j++)
+    		for(j = 0; j < num_samples; j++)
     		{
-    			tx_ptr[j] = pattern[i];
+    			((uint32_t*)tx_ptr)[j] = pattern[i];
     		}
     		console_print("Trying pattern %x\n", pattern[i]);
 
