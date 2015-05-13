@@ -714,7 +714,7 @@ void tx_loopback_test(double* param, char param_no)
 	uint32_t    tx_shift = 0;
 	uint32_t	pattern[] = {0x00000000, 0xfff0fff0, 0xaaa0aaa0, 0x55505550,
 							 0x82008200, 0x41004100, 0x20802080, 0x10401040,
-							 0x08200820,0x04100410,0xaaa05550};
+							 0x08200820,0x04100410,0xaaa05550,0x12304560,0xded0bef0};
 	int32_t		status = 0;
 	uint32_t    val;
 

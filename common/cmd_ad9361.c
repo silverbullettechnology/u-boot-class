@@ -207,4 +207,4 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 /***************************************************/
 
 U_BOOT_CMD(ad9361, 4, 1, do_ad9361, "AD9361 utility command",
-		"[<RFIC no>] <command> - Send and receive commands\n" "<RFIC no>             - Identifies the AD9361 IC number\n" "<command>             - Identifies the command\n" "Type ad9361 help!       for available commands\n");
+		"[<RFIC no>] <command> - Send and receive commands\n" "<RFIC no>             - Identifies the AD9361 IC number\n" "<command>             - Identifies the command\n" "Type ad9361 help?       for available commands\n");
