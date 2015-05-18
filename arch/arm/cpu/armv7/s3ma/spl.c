@@ -5,14 +5,60 @@
  */
 #include <common.h>
 #include <spl.h>
-
+#include <spi_flash.h>
 #include <asm/io.h>
+#include <asm/gpio.h>
 #include <asm/arch/hardware.h>
-//#include <asm/arch/spl.h>
+#include <asm/arch/gpio.h>
 #include <asm/arch/sys_proto.h>
-#include <spi.h>
+
+#define		HIGH	1
+#define		LOW		0
+#define		RESET_REQUEST_LEVEL		HIGH
+#define		PLL_BYPASS_MODE_LEVEL	HIGH
+#define		RESET_REQUEST_GPIO		GPIO18_16
+#define		PLL_BYPASS_MODE_GPIO	GPIO18_17
 
 DECLARE_GLOBAL_DATA_PTR;
+
+int s3ma_load_spi_image(void)
+{
+	struct spi_flash *flash;
+	struct image_header *header;
+	int	res = 1;
+	/*
+	 * Try loading U-Boot image from SPI data flash into RAM
+	 */
+
+	flash = spi_flash_probe(CONFIG_SPL_SPI_BUS, CONFIG_SPL_SPI_CS,
+				CONFIG_SF_DEFAULT_SPEED, SPI_MODE_3);
+	if (!flash) {
+		puts("SPI probe failed.\n");
+	}
+	else
+	{
+		/* use CONFIG_SYS_TEXT_BASE as temporary storage area */
+		header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
+
+			/* Load u-boot, mkimage header is 64 bytes. */
+			spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS, 0x40,
+				       (void *)header);
+			spl_parse_image_header(header);
+
+			spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS,
+				       spl_image.size, (void *)spl_image.load_addr);
+
+			res = 0;
+	}
+
+	return res;
+}
+int s3ma_load_mmc_image(void)
+{
+	int	res = 1;
+
+	return res;
+}
 
 void board_init_f(ulong dummy)
 {
@@ -22,7 +68,7 @@ void board_init_f(ulong dummy)
 	memset(__bss_start, 0, __bss_end - __bss_start);
 
 	/* Set global data pointer. */
-	gd = &gdata;
+//	gd = &gdata;
 #ifdef CONFIG_SPL_SERIAL_SUPPORT
 	preloader_console_init();
 #endif
@@ -32,29 +78,27 @@ void board_init_f(ulong dummy)
 
 u32 spl_boot_device(void)
 {
-	u32 mode;
-#if 0
-	switch ((zynq_slcr_get_boot_mode()) & ZYNQ_BM_MASK) {
-#ifdef CONFIG_SPL_SPI_SUPPORT
-	case ZYNQ_BM_QSPI:
-		puts("qspi boot\n");
-		mode = BOOT_DEVICE_SPI;
-		break;
-#endif
-#ifdef CONFIG_SPL_MMC_SUPPORT
-	case ZYNQ_BM_SD:
-		puts("mmc boot\n");
-		mode = BOOT_DEVICE_MMC1;
-		break;
-#endif
-	default:
-		puts("Unsupported boot mode selected\n");
-		hang();
+	u32 val;
+
+	/* Check if we are running in PLL_BYPASS or NORMAL mode */
+	val = gpio_get_value(PLL_BYPASS_MODE_GPIO);
+	if(PLL_BYPASS_MODE_LEVEL == val)
+	{
+		val = s3ma_load_spi_image();
+		if(0 != val)
+		{
+			val = s3ma_load_mmc_image();
+		}
+
+		if(0 == val)
+		{
+			gpio_set_value(RESET_REQUEST_GPIO, RESET_REQUEST_LEVEL);
+			while(1);
+		}
+
 	}
-#else
-	mode = BOOT_DEVICE_SPI;
-#endif
-	return mode;
+
+	return BOOT_DEVICE_RAM;
 }
 
 #ifdef CONFIG_SPL_MMC_SUPPORT

@@ -7,10 +7,9 @@
 #ifndef	_ASM_ARCH_SPL_H_
 #define	_ASM_ARCH_SPL_H_
 
+#define BOOT_DEVICE_RAM		88
 #define BOOT_DEVICE_MMC1	6
 #define BOOT_DEVICE_MMC2	5
-#define BOOT_DEVICE_UART	0x43
-#define BOOT_DEVICE_XIP       	2
 
 #if defined(CONFIG_AM33XX)
 #define BOOT_DEVICE_MMC1	8
