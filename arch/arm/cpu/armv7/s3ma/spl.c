@@ -57,6 +57,24 @@ int s3ma_load_mmc_image(void)
 {
 	int	res = 1;
 
+
+	return res;
+}
+extern uint32_t _end[];
+
+int	s3ma_load_nor_flash_image(void)
+{
+	struct image_header *header = (struct image_header*)_end;
+	int res = 1;
+
+
+	if(image_get_ep(header) == CONFIG_SYS_TEXT_BASE)
+	{
+		memcpy((void*)spl_image.load_addr, (void*)header, spl_image.size);
+		res = 0;
+
+	}
+
 	return res;
 }
 
@@ -79,23 +97,48 @@ void board_init_f(ulong dummy)
 u32 spl_boot_device(void)
 {
 	u32 val;
+	struct image_header *header;
 
 	/* Check if we are running in PLL_BYPASS or NORMAL mode */
+#if 0
 	val = gpio_get_value(PLL_BYPASS_MODE_GPIO);
+#else
+	val = PLL_BYPASS_MODE_LEVEL;
+
+	header = (struct image_header *)
+			(CONFIG_SYS_TEXT_BASE -	sizeof(struct image_header));
+
+
+	if(image_get_ep(header) == CONFIG_SYS_TEXT_BASE)
+	{
+		val = LOW;
+	}
+
+#endif
 	if(PLL_BYPASS_MODE_LEVEL == val)
 	{
+		printf("Locating image in data flash...\n");
 		val = s3ma_load_spi_image();
 		if(0 != val)
 		{
-			val = s3ma_load_mmc_image();
+//			val = s3ma_load_mmc_image();
+			printf("No image in SPI data flash\n");
+			printf("Locating image in nor flash...\n");
+			val = s3ma_load_nor_flash_image();
 		}
 
 		if(0 == val)
 		{
+			printf("Booting image ...\n");
 			gpio_set_value(RESET_REQUEST_GPIO, RESET_REQUEST_LEVEL);
 			while(1);
 		}
+		else
+		{
+			printf("No bootable image found\n ");
+			hang();
 
+		}
 	}
 
 	return BOOT_DEVICE_RAM;
