@@ -21,6 +21,7 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
+#ifdef CONFIG_SPL_SPI_FLASH_SUPPORT
 int s3ma_load_spi_image(void)
 {
 	struct spi_flash *flash;
@@ -53,6 +54,9 @@ int s3ma_load_spi_image(void)
 
 	return res;
 }
+#endif
+
+#ifdef CONFIG_SPL_MMC_SUPPORT
 int s3ma_load_mmc_image(void)
 {
 	int	res = 1;
@@ -60,6 +64,8 @@ int s3ma_load_mmc_image(void)
 
 	return res;
 }
+#endif
+
 extern uint32_t _end[];
 
 int	s3ma_load_nor_flash_image(void)
@@ -77,6 +83,9 @@ int	s3ma_load_nor_flash_image(void)
 
 	return res;
 }
+extern uint64_t _big_data_dst[];
+extern uint64_t _big_data_src[];
+extern uint64_t _big_data_size[];
 
 void board_init_f(ulong dummy)
 {
@@ -84,6 +93,16 @@ void board_init_f(ulong dummy)
 
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
+	/* copy data section */
+	{
+		uint32_t i ;
+		uint64_t *dst = _big_data_dst, *src = _big_data_src;
+		for(i = 0; i < (uint32_t)_big_data_size/sizeof(uint64_t); i++)
+		{
+			dst[i] = src[i];
+		}
+
+	}
 
 	/* Set global data pointer. */
 //	gd = &gdata;
@@ -118,15 +137,16 @@ u32 spl_boot_device(void)
 	if(PLL_BYPASS_MODE_LEVEL == val)
 	{
 		printf("Locating image in data flash...\n");
+#ifdef CONFIG_SPL_SPI_FLASH_SUPPORT
 		val = s3ma_load_spi_image();
 		if(0 != val)
+#endif
 		{
 //			val = s3ma_load_mmc_image();
 			printf("No image in SPI data flash\n");
 			printf("Locating image in nor flash...\n");
 			val = s3ma_load_nor_flash_image();
 		}
-
 		if(0 == val)
 		{
 			printf("Booting image ...\n");
