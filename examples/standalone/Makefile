@@ -13,6 +13,7 @@ extra-$(CONFIG_MPC5xxx)            += interrupt
 extra-$(CONFIG_8xx)                += test_burst timer
 extra-$(CONFIG_MPC8260)            += mem_to_mem_idma2intr
 extra-$(CONFIG_PPC)                += sched
+extra-$(CONFIG_AD9361)			   += ad9361_test
 
 #
 # Some versions of make do not handle trailing white spaces properly;

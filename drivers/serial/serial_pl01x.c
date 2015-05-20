@@ -30,6 +30,7 @@ static volatile unsigned char *const port[] = CONFIG_PL01x_PORTS;
 static void pl01x_putc (int portnum, char c);
 static int pl01x_getc (int portnum);
 static int pl01x_tstc (int portnum);
+static int pl01x_init(int portnum);
 unsigned int baudrate = CONFIG_BAUDRATE;
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -92,7 +93,12 @@ static int pl01x_serial_init(void)
 
 static int pl01x_serial_init(void)
 {
-	struct pl01x_regs *regs = pl01x_get_regs(CONSOLE_PORT);
+	return pl01x_init(CONSOLE_PORT);
+}
+
+static int pl01x_init(int portnum)
+{
+	struct pl01x_regs *regs = pl01x_get_regs(portnum);
 	unsigned int temp;
 	unsigned int divider;
 	unsigned int remainder;
@@ -250,3 +256,49 @@ __weak struct serial_device *default_serial_console(void)
 {
 	return &pl01x_serial_drv;
 }
+#ifdef CONFIG_S3MA
+#define SECONDARY_CONSOLE_PORT ((CONFIG_CONS_INDEX +1)%NUM_PORTS)
+static int secondary_pl01x_serial_init(void)
+{
+	return pl01x_init(SECONDARY_CONSOLE_PORT);
+
+}
+static void secondary_pl01x_serial_putc(const char c)
+{
+	if (c == '\n')
+		pl01x_putc (SECONDARY_CONSOLE_PORT, '\r');
+
+	pl01x_putc (SECONDARY_CONSOLE_PORT, c);
+}
+
+static int secondary_pl01x_serial_getc(void)
+{
+	return pl01x_getc (SECONDARY_CONSOLE_PORT);
+}
+
+static int secondary_pl01x_serial_tstc(void)
+{
+	return pl01x_tstc (SECONDARY_CONSOLE_PORT);
+}
+static void secondary_serial_puts(const char *s)
+{
+	while (*s)
+		secondary_pl01x_serial_putc(*s++);
+}
+
+static struct serial_device secondary_pl01x_serial_drv = {
+	.name	= "pl01x_uart",
+	.start	= secondary_pl01x_serial_init,
+	.stop	= NULL,
+	.setbrg	= NULL,
+	.putc	= secondary_pl01x_serial_putc,
+	.puts	= secondary_serial_puts,
+	.getc	= secondary_pl01x_serial_getc,
+	.tstc	= secondary_pl01x_serial_tstc,
+};
+
+struct serial_device *secondary_serial_console(void)
+{
+	return &secondary_pl01x_serial_drv;
+}
+#endif

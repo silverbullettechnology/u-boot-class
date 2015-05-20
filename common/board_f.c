@@ -367,7 +367,6 @@ static int setup_dest_addr(void)
 	/*
 	 * Ram is setup, size stored in gd !!
 	 */
-	debug("Ram size: %08lX\n", (ulong)gd->ram_size);
 #if defined(CONFIG_SYS_MEM_TOP_HIDE)
 	/*
 	 * Subtract specified amount of memory to hide so that it won't
@@ -384,10 +383,26 @@ static int setup_dest_addr(void)
 #ifdef CONFIG_SYS_SDRAM_BASE
 	gd->ram_top = CONFIG_SYS_SDRAM_BASE;
 #endif
+#if defined(CONFIG_S3MA) && (CONFIG_POST & CONFIG_SYS_POST_MEMORY)
+	if (!(gd->post_log_res & CONFIG_SYS_POST_MEMORY)){
+		gd->ram_top = CONFIG_S3MA_OCM_RAM_BASE;
+		gd->ram_size = CONFIG_S3MA_OCM_RAM_SIZE;
+		printf("Relocating to OCM\n");
+	}
+#endif
+
+#ifdef CONFIG_PALLADIUM
+	gd->ram_top = (CONFIG_S3MA_OCM_RAM_BASE + CONFIG_SYS_INIT_RAM_SIZE);
+	gd->ram_size = (CONFIG_S3MA_OCM_RAM_SIZE/2 - CONFIG_SYS_INIT_RAM_SIZE);
+	printf("Relocating to OCM\n");
+#endif
+	debug("Ram size: %08lX\n", (ulong)gd->ram_size);
+
 	gd->ram_top += get_effective_memsize();
 	gd->ram_top = board_get_usable_ram_top(gd->mon_len);
 	gd->relocaddr = gd->ram_top;
 	debug("Ram top: %08lX\n", (ulong)gd->ram_top);
+
 #if defined(CONFIG_MP) && (defined(CONFIG_MPC86xx) || defined(CONFIG_E500))
 	/*
 	 * We need to make sure the location we intend to put secondary core
@@ -514,9 +529,19 @@ static int reserve_uboot(void)
 /* reserve memory for malloc() area */
 static int reserve_malloc(void)
 {
-	gd->start_addr_sp = gd->start_addr_sp - TOTAL_MALLOC_LEN;
+	int malloc_len = TOTAL_MALLOC_LEN;
+#if defined(CONFIG_S3MA) && (CONFIG_POST & CONFIG_SYS_POST_MEMORY)
+	if (!(gd->post_log_res & CONFIG_SYS_POST_MEMORY)){
+		malloc_len = (CONFIG_SYS_FALLBACK_MALLOC_LEN + CONFIG_ENV_SIZE);
+	}
+
+#endif
+#ifdef CONFIG_PALLADIUM
+	malloc_len = (CONFIG_SYS_FALLBACK_MALLOC_LEN + CONFIG_ENV_SIZE);
+#endif
+	gd->start_addr_sp = gd->start_addr_sp - malloc_len;
 	debug("Reserving %dk for malloc() at: %08lx\n",
-			TOTAL_MALLOC_LEN >> 10, gd->start_addr_sp);
+			malloc_len >> 10, gd->start_addr_sp);
 	return 0;
 }
 
@@ -776,6 +801,10 @@ static int mark_bootstage(void)
 	return 0;
 }
 
+#ifdef CONFIG_S3MA
+extern int s3ma_dram_init(void);
+#endif
+
 static init_fnc_t init_sequence_f[] = {
 #ifdef CONFIG_SANDBOX
 	setup_ram_buf,
@@ -844,6 +873,9 @@ static init_fnc_t init_sequence_f[] = {
 #endif
 	display_options,	/* say that we are here */
 	display_text_info,	/* show debugging info if required */
+#ifdef CONFIG_S3MA
+	s3ma_dram_init,
+#endif
 #if defined(CONFIG_MPC8260)
 	prt_8260_rsr,
 	prt_8260_clks,
@@ -990,6 +1022,22 @@ void board_init_f(ulong boot_flags)
 	/* NOTREACHED - jump_to_copy() does not return */
 	hang();
 #endif
+
+	printf("Done with board_f sequence\n");
+
+#if 0
+	for(;;)
+	{
+		printf("\nInfinite loop, printing some values from GD structure\n");
+		printf("gd structure addr = %p\n", gd);
+		printf("gd->have_console = %lu\n", gd->have_console);
+		printf("gd->reloc_off = %lx\n", gd->reloc_off);
+		printf("gd->relocaddr = %lx\n", gd->relocaddr);
+
+
+	}
+#endif
+
 }
 
 #ifdef CONFIG_X86

@@ -1,0 +1,153 @@
+
+ /*
+  * Skeleton device tree; the bare minimum needed to boot; just include and
+  * add a compatible value.  The bootloader will typically populate the memory
+  * node.
+  */
+
+ /dts-v1/;
+ 
+  / {
+         #address-cells = <1>;
+         #size-cells = <1>;
+         chosen { };
+         aliases { };
+         
+         	   memory@0x00000000 { 
+               device_type = "memory"; 
+               reg = <0x00000000 0x04100000>;
+               
+               };
+        
+         	   memory@0x80000000 { 
+               device_type = "memory"; 
+               reg = <0x80000000 0x40000000>; 
+               };
+ 
+      intc: interrupt-controller@3be01000 {
+              compatible = "arm,cortex-a9-gic";
+              #interrupt-cells = <3>;
+              #address-cells = <1>;
+              #size-cells = <1>;
+              interrupt-controller;
+/*
+              reg = <0x3be01000 0x1000>,
+                    <0x3be00100 0x100>;
+*/
+              reg = <0x3be00100 0x100>;
+                   
+      };
+      cpus {
+             #address-cells = <1>;
+             #size-cells = <0>;
+             cpu@0 {
+                    compatible = "arm,cortex-a9";
+                    reg = <0>;
+             };
+
+             cpu@1 {
+                    compatible = "arm,cortex-a9";
+                    reg = <1>;
+             };
+             cpu@2 {
+                    compatible = "arm,cortex-a9";
+                    reg = <2>;
+             };
+             cpu@3 {
+                    compatible = "arm,cortex-a9";
+                    reg = <3>;
+             };
+       
+    };
+    
+     soc {
+              #address-cells = <1>;
+              #size-cells = <1>;
+              compatible = "simple-bus";
+              interrupt-parent = <&intc>;
+              ranges;
+
+
+              timer@3be00600 {
+                      compatible = "arm,cortex-a9-twd-timer";
+                      reg = <0x3be00600 0x20>;
+                   /*   interrupts = <1 13 0xf01>; */
+              };
+                   
+              timer@3be00200 {
+                      compatible = "arm,cortex-a9-global-timer";
+                      reg = <0x3be00200 0x100>;
+                   /*   interrupts = <1 13 0xf01>; */
+                   
+              };
+
+              L2: l2-cache@3be02000 {
+                      compatible = "arm,pl310-cache";
+                      reg = <0x3be02000 0x1000>;
+                      interrupts = <0 92 0x04>;
+                      cache-unified;
+                      cache-level = <2>;
+              };
+    		  
+    		  uart1: serial@080a1000 {
+                      compatible = "arm,pl011";
+                      reg = <0x080a1000 0x1000 >;
+                      interrupts = < 1 0 >;
+                     };
+                     
+    		  uart2: serial@080a2000 {
+                      compatible = "arm,pl011";
+                      reg = <0x080a2000 0x1000 >;
+                      interrupts = < 2 0 >;
+                     };
+                     
+    		  sdhci0: sdhci@080d0000 {
+                      compatible = "generic-sdhci";
+                      reg = <0x080d0000 0x1000 >;
+                      interrupts = < 3 0 >;
+                     };
+
+		usb_0: ps7-usb@e0002000 {
+			compatible = "xlnx,ps7-usb-1.00.a";
+			dr_mode = "OTG";
+			interrupts = < 0 21 4 >;
+			phy_type = "ulpi";
+			reg = < 0xe0002000 0x1000 >;
+			xlnx,usb-reset = "MIO 7";
+		} ;
+
+              spi0:	  ssi@0x080a4000 {
+              		   compatible = "pl022";
+              		   reg = <0x080a4000 0x1000>;
+              		  };
+              spi1:	  ssi@0x080a5000 {
+              		   compatible = "pl022";
+              		   reg = <0x080a5000 0x1000>;
+              		  };
+              spi2:	  ssi@0x080a6000 {
+              		   compatible = "pl022";
+              		   reg = <0x080a6000 0x1000>;
+              		  };
+              spi3:	  ssi@0x080a7000 {
+              		   compatible = "pl022";
+              		   reg = <0x080a7000 0x1000>;
+              		  };
+              spi4:	  ssi@0x080a8000 {
+              		   compatible = "pl022";
+              		   reg = <0x080a8000 0x1000>;
+              		  };
+			  gpio0:  gpio@0x080a9000 {
+			  		  compatible = "pl061";
+			  		  reg = <0x080a9000	0x1000>;
+			  		  };              		  
+			  gpio1:  gpio@0x080aa000 {
+			  		  compatible = "pl061";
+			  		  reg = <0x080aa000	0x1000>;
+			  		  };              		  
+			  gpio2:  gpio@0x080ab000 {
+			  		  compatible = "pl061";
+			  		  reg = <0x080ab000	0x1000>;
+			  		  };              		  
+
+      };
+ };

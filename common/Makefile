@@ -177,6 +177,7 @@ obj-$(CONFIG_YAFFS2) += cmd_yaffs2.o
 obj-$(CONFIG_CMD_SPL) += cmd_spl.o
 obj-$(CONFIG_CMD_ZIP) += cmd_zip.o
 obj-$(CONFIG_CMD_ZFS) += cmd_zfs.o
+obj-$(CONFIG_CMD_DAC) += cmd_dac.o
 
 # others
 obj-$(CONFIG_BOOTSTAGE) += bootstage.o
@@ -245,5 +246,9 @@ obj-$(CONFIG_FIT) += image-fit.o
 obj-$(CONFIG_FIT_SIGNATURE) += image-sig.o
 obj-y += memsize.o
 obj-y += stdio.o
+obj-$(CONFIG_AD9361) += cmd_ad9361.o
+obj-$(CONFIG_S3MA) += cmd_uartrx.o
+//obj-$(CONFIG_S3MA) += cmd_s3ma_ddr.o
+obj-$(CONFIG_S3MA) += cmd_s3ma_timer.o
 
 CFLAGS_env_embedded.o := -Wa,--no-warn -DENV_CRC=$(shell tools/envcrc 2>/dev/null)

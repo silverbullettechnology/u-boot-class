@@ -537,7 +537,11 @@ else
 
 endif # $(dot-config)
 
+ifeq ($(CONFIG_DEBUG_BUILD),)
 KBUILD_CFLAGS += -Os #-fomit-frame-pointer
+else
+KBUILD_CFLAGS += -O0 
+endif
 
 ifdef BUILD_TAG
 KBUILD_CFLAGS += -DBUILD_TAG='"$(BUILD_TAG)"'
@@ -703,12 +707,20 @@ export PLATFORM_LIBS
 # Special flags for CPP when processing the linker script.
 # Pass the version down so we can handle backwards compatibility
 # on the fly.
+ifneq ($(CONFIG_S3MA),)
+LDPPFLAGS += \
+	-include $(srctree)/include/u-boot/u-boot.lds.h \
+	-DCPUDIR=$(CPUDIR) \
+	-DBOARDDIR=$(BOARDDIR) \
+	$(shell $(LD) --version | \
+	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
+else
 LDPPFLAGS += \
 	-include $(srctree)/include/u-boot/u-boot.lds.h \
 	-DCPUDIR=$(CPUDIR) \
 	$(shell $(LD) --version | \
 	  sed -ne 's/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p')
-
+endif
 #########################################################################
 #########################################################################
 

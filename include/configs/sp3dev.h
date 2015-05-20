@@ -1,0 +1,310 @@
+/*
+ * Copyright (C) 2010-2011 Freescale Semiconductor, Inc.
+ *
+ * Configuration settings for the Boundary Devices Nitrogen6X
+ * and Freescale i.MX6Q Sabre Lite boards.
+ *
+ * SPDX-License-Identifier:	GPL-2.0+
+ */
+
+#ifndef __CONFIG_H
+#define __CONFIG_H
+
+#include "s3ma_common.h"
+
+/***********************/
+
+/* Custom build options for debugging  */
+//#define DEBUG
+//#define CONFIG_DEBUG_BUILD
+//#define CONFIG_RUN_ON_QEMU
+//#define CONFIG_RTL_SIMULATION
+//#define CONFIG_PALLADIUM
+#define CONFIG_SYS_ICACHE_OFF
+#define CONFIG_SYS_DCACHE_OFF
+#define CONFIG_SYS_L2CACHE_OFF
+#define CONFIG_S3MA_IGNORE_BUS_ERROR
+/***********************/
+
+#define CONFIG_S3MA
+
+
+/*This one has to be defined by
+ * http://www.arm.linux.org.uk/developer/machines/
+ * We don't have the number assigned, so just pick something for now
+ */
+#define CONFIG_MACH_TYPE	5000
+
+#include <asm/arch/s3ma-regs.h>
+#include <asm/arch/gpio.h>
+
+#define CONFIG_SYS_GENERIC_BOARD
+
+/* System clock rates */
+#define CONFIG_SYS_REF_CLK_HZ		(38400000)
+#define CONFIG_CPU_CLK_HZ			(20 * CONFIG_SYS_REF_CLK_HZ)
+#define CONFIG_ARM_PERIPHCLK_HZ		(CONFIG_CPU_CLK_HZ/2)
+#define CONFIG_APB_PERIPHCLK_HZ		(CONFIG_CPU_CLK_HZ/4)
+
+/* Size of malloc() pool */
+#define CONFIG_SYS_MALLOC_LEN				(1024 * 1024)
+#ifndef CONFIG_PALLADIUM
+#define CONFIG_SYS_FALLBACK_MALLOC_LEN		(32 * 1024)
+#else
+#define CONFIG_SYS_FALLBACK_MALLOC_LEN		(16 * 1024)
+#endif
+
+#define CONFIG_BOARD_EARLY_INIT_F
+#define CONFIG_MISC_INIT_R
+
+#define CONFIG_CMD_GPIO
+#define CONFIG_PL061_GPIO
+#define CONFIG_GPIO_BASE	(GPIO0_APB_ABSOLUTE_BASE)
+#define CONFIG_GPIO_BASE1	(GPIO1_APB_ABSOLUTE_BASE)
+#define CONFIG_GPIO_BASE2	(GPIO2_APB_ABSOLUTE_BASE)
+
+
+#define CONFIG_PL011_SERIAL
+#define CONFIG_PL011_CLOCK				38400000
+#define CONFIG_PL01x_PORTS				\
+			{(void *)CONFIG_SYS_SERIAL0,	\
+			 (void *)CONFIG_SYS_SERIAL1 }
+
+#define	CONFIG_SYS_SERIAL0	UART0_APB_ABSOLUTE_BASE
+#define	CONFIG_SYS_SERIAL1	UART1_APB_ABSOLUTE_BASE
+//#define CONFIG_PL011_SERIAL_FLUSH_ON_INIT
+
+#define CONFIG_CONS_INDEX	(0)
+
+#define CONFIG_BAUDRATE		(115200)
+
+//#define CONFIG_PL011_SERIAL_FLUSH_ON_INIT
+
+
+/* I2C Configs */
+#define CONFIG_CMD_I2C
+#define CONFIG_DW_I2C
+#define CONFIG_SYS_I2C_SPEED		(1000)
+#define CONFIG_SYS_I2C_BASE			(I2C_APB_ABSOLUTE_BASE)
+#define	CONFIG_SYS_I2C_SLAVE		(0)//(0x90)
+
+/* MMC Configs */
+#define CONFIG_SDHCI
+#define CONFIG_MMC
+#define CONFIG_CMD_MMC
+#define CONFIG_GENERIC_MMC
+//#define CONFIG_MMC_SDMA
+#define CONFIG_BOUNCE_BUFFER
+#define CONFIG_CMD_EXT2
+#define CONFIG_CMD_FAT
+#define CONFIG_DOS_PARTITION
+#define	CONFIG_SYS_MMC_MAX_DEVICE	1
+//#define CONFIG_MMC_TRACE
+
+/* SPI bus configs */
+#define CONFIG_CMD_SPI
+#define CONFIG_PL022_SPI
+#define	CONFIG_SYS_SPI_CLK		(CONFIG_CPU_CLK_HZ/20)   //38400000
+#define CONFIG_SYS_SPI_BASE		(SPI0_APB_ABSOLUTE_BASE)
+#define CONFIG_SYS_SPI_BASE1	(SPI1_APB_ABSOLUTE_BASE)
+#define CONFIG_SYS_SPI_BASE2	(SPI2_APB_ABSOLUTE_BASE)
+#define CONFIG_SYS_SPI_BASE3	(SPI3_APB_ABSOLUTE_BASE)
+#define CONFIG_SYS_SPI_BASE4	(SPI4_APB_ABSOLUTE_BASE)
+
+#if 1
+/* USB Configs */
+#if 1
+//#define CONFIG_CMD_USB
+#define CONFIG_USB_GADGET
+#define CONFIG_USB_GADGET_DUALSPEED
+#define CONFIG_USB_GADGET_S3C_UDC_OTG
+#define CONFIG_USB_DEVICE
+#define CONFIG_USB_ETHER
+#define CONFIG_USB_ETH_CDC
+#define CONFIG_USB_ETH_RNDIS
+#define CONFIG_CMD_PING
+#define CONFIG_CMD_NET
+#define CONFIG_CMD_LINK_LOCAL
+#define CONFIG_LIB_RAND
+#define CONFIG_USB_MAX_CONTROLLER_COUNT	2
+#define CONFIG_USBNET_DEV_ADDR "DE:AD:BE:EF:10:10"
+#define CONFIG_USBNET_HOST_ADDR "DE:AD:BE:EF:10:10"
+#else
+#define CONFIG_CMD_USB
+#define CONFIG_USB_DEVICE
+#define CONFIG_USB_ETH_CDC
+#define CONFIG_USB_TTY
+#define CONFIG_USBD_HS
+#define CONFIG_USB_ULPI
+#define CONFIG_USB_ULPI_VIEWPORT
+#define CONFIG_ULPI_REF_CLK		60000000
+#define CONFIG_USB_MAX_CONTROLLER_COUNT	2
+#endif
+
+#endif
+/* Miscellaneous commands */
+
+#define CONFIG_SYS_CACHELINE_SIZE	32
+
+
+/* allow to overwrite serial and ethaddr */
+#define CONFIG_ENV_OVERWRITE
+
+/* Command definition */
+#include <config_cmd_default.h>
+
+#undef CONFIG_CMD_IMLS
+
+#define CONFIG_BOOTDELAY	       1
+
+#define CONFIG_SYS_TEXT_BASE	       0x00000000
+
+#ifdef CONFIG_CMD_MMC
+#define CONFIG_DRIVE_MMC "mmc "
+#else
+#define CONFIG_DRIVE_MMC
+#endif
+
+#define CONFIG_DRIVE_TYPES CONFIG_DRIVE_SATA CONFIG_DRIVE_MMC
+
+
+/* Miscellaneous configurable options */
+#define CONFIG_SYS_LONGHELP
+#define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_PROMPT	       "U-Boot > "
+#define CONFIG_AUTO_COMPLETE
+#define CONFIG_SYS_CBSIZE	       1024
+
+/* Print Buffer Size */
+//#define CONFIG_SYS_VSNPRINTF
+#define CONFIG_SYS_PBSIZE (CONFIG_SYS_CBSIZE + sizeof(CONFIG_SYS_PROMPT) + 16)
+#define CONFIG_SYS_MAXARGS	       16
+#define CONFIG_SYS_BARGSIZE CONFIG_SYS_CBSIZE
+
+
+#define CONFIG_SYS_LOAD_ADDR	       CONFIG_LOADADDR
+
+#define CONFIG_CMDLINE_EDITING
+
+/* Physical Memory Map */
+#define CONFIG_NR_DRAM_BANKS	       1
+#define PHYS_SDRAM		       		   (DMC_S_ABSOLUTE_BASE)
+#define CONFIG_DDR_SIZE					(1024*1024*1024)
+
+#define CONFIG_S3MA_OCM_RAM_BASE		(OCM_S_ABSOLUTE_BASE)
+#define CONFIG_S3MA_OCM_RAM_SIZE		(OCM_S_SIZE/2)//Upper half of OCM can not be used for execution
+#define CONFIG_S3MA_RAM_SIZE			(CONFIG_DDR_SIZE)
+
+#define SYS_INIT_RAM_BASE				(CONFIG_S3MA_OCM_RAM_BASE)
+#define SYS_INIT_RAM_SIZE				(CONFIG_S3MA_OCM_RAM_SIZE)
+#define CONFIG_SYS_INIT_RAM_ADDR       SYS_INIT_RAM_BASE
+#define CONFIG_SYS_INIT_RAM_SIZE       SYS_INIT_RAM_SIZE
+#define CONFIG_SYS_SDRAM_BASE	       (PHYS_SDRAM)
+
+#define CONFIG_SYS_INIT_SP_OFFSET \
+	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+#define CONFIG_SYS_INIT_SP_ADDR \
+	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
+
+#define S3MA_L2_PL310_BASE		(PL310_L2_ABSOLUTE_BASE)
+#define L2_PL310_BASE			(S3MA_L2_PL310_BASE)
+
+
+
+#define CONFIG_LOADADDR			       CONFIG_SYS_SDRAM_BASE
+
+/* FLASH and environment organization */
+#define CONFIG_SYS_NO_FLASH
+
+
+#define CONFIG_CMD_SF
+#define CONFIG_CMD_SF_TEST
+#define CONFIG_SPI_FLASH
+#define CONFIG_SPI_FLASH_SST
+
+# define CONFIG_SF_DEFAULT_BUS		(4)
+# define CONFIG_SF_DEFAULT_CS		(GPIO33_3)
+# define CONFIG_SF_DEFAULT_MODE		SPI_MODE_0
+# define CONFIG_SF_DEFAULT_SPEED	(1000000)
+
+#if 0
+#define CONFIG_DELAY_ENVIRONMENT
+#define CONFIG_ENV_IS_IN_MMC
+#define CONFIG_ENV_SIZE			(4 * 1024)
+#else
+
+#define CONFIG_ENV_IS_IN_SPI_FLASH
+#define CONFIG_ENV_SIZE			(16 * 1024)
+#endif
+
+
+#if defined(CONFIG_ENV_IS_IN_MMC)
+#define CONFIG_ENV_OFFSET		(6 * 64 * 1024)
+#define CONFIG_SYS_MMC_ENV_DEV		0
+#elif defined(CONFIG_ENV_IS_IN_SPI_FLASH)
+#define CONFIG_ENV_OFFSET		(0)
+#define CONFIG_ENV_SECT_SIZE	(4 * 1024)
+#define CONFIG_ENV_SPI_BUS		(CONFIG_SF_DEFAULT_BUS)
+#define CONFIG_ENV_SPI_CS		(CONFIG_SF_DEFAULT_CS)
+#define CONFIG_ENV_SPI_MODE		(CONFIG_SF_DEFAULT_MODE)
+#define CONFIG_ENV_SPI_MAX_HZ	(CONFIG_SF_DEFAULT_SPEED)
+#endif
+
+
+#ifndef CONFIG_SYS_DCACHE_OFF
+#define CONFIG_CMD_CACHE
+#endif
+
+
+#define CONFIG_CMD_TIME
+#define CONFIG_SYS_ALT_MEMTEST
+
+#define CONFIG_CMD_FS_GENERIC
+
+
+/*
+ * AD9361
+ */
+#define CONFIG_AD9361
+#ifndef CONFIG_SP3DTC
+#define CONFIG_AD9361_MAX_DEVICE 4
+#else
+#define CONFIG_AD9361_MAX_DEVICE 2
+#endif
+#define CONFIG_AD9361_RAM_BUFFER_ADDR	(OCM_S_ABSOLUTE_BASE+CONFIG_S3MA_OCM_RAM_SIZE)
+#define CONFIG_AD9361_RAM_BUFFER_SIZE	(CONFIG_S3MA_OCM_RAM_SIZE/2)
+
+
+/*
+ * Standalone applications
+ */
+
+#define CONFIG_STANDALONE_LOAD_ADDR		0x80000000
+//#define CONFIG_API
+
+/*  Power-on self test */
+#ifndef CONFIG_PALLADIUM
+//#define CONFIG_POST	(CONFIG_SYS_POST_MEMORY)
+#define CONFIG_SYS_POST_WORD_ADDR	(CONFIG_S3MA_OCM_RAM_BASE)
+#endif
+//#define CONFIG_POST_STD_LIST
+
+/* Memory test commands */
+#define CONFIG_CMD_MEMTEST
+#define CONFIG_SYS_MEMTEST_START       (CONFIG_SYS_SDRAM_BASE)
+#define CONFIG_SYS_MEMTEST_END	       (CONFIG_SYS_MEMTEST_START+CONFIG_S3MA_RAM_SIZE - 8*1024*1024)
+#define CONFIG_SYS_MEMTEST_SCRATCH     0
+
+/* DAC configs */
+#ifndef SP3DTC
+
+#define CONFIG_CMD_DAC
+#define CONFIG_LT2640_DAC
+#define CONFIG_LT2640_DAC_SPEED		(1000000)
+#define CONFIG_LT2640_DAC_MODE		SPI_MODE_3
+#define CONFIG_LT2640_DAC_CS		(GPIO33_7)
+#define CONFIG_LT2640_DAC_BUS		(4)
+#define CONFIG_LT2640_DAC_DEFAULT	(0)
+
+#endif
+#endif	       /* __CONFIG_H */
