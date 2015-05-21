@@ -184,6 +184,7 @@ MLO MLO.byteswap: $(obj)/u-boot-spl.bin
 	$(call if_changed,mkimage)
 
 ALL-y	+= $(obj)/$(SPL_BIN).bin
+ALL-y	+= $(obj)/$(SPL_BIN).srec
 
 ifdef CONFIG_SAMSUNG
 ALL-y	+= $(obj)/$(BOARD)-spl.bin
@@ -207,8 +208,12 @@ quiet_cmd_objcopy = OBJCOPY $@
 cmd_objcopy = $(OBJCOPY) $(OBJCOPYFLAGS) $(OBJCOPYFLAGS_$(@F)) $< $@
 
 OBJCOPYFLAGS_$(SPL_BIN).bin = $(SPL_OBJCFLAGS) -O binary
+OBJCOPYFLAGS_$(SPL_BIN).srec = $(SPL_OBJCFLAGS) -O srec
 
 $(obj)/$(SPL_BIN).bin: $(obj)/$(SPL_BIN) FORCE
+	$(call if_changed,objcopy)
+
+$(obj)/$(SPL_BIN).srec: $(obj)/$(SPL_BIN) FORCE
 	$(call if_changed,objcopy)
 
 LDFLAGS_$(SPL_BIN) += -T u-boot-spl.lds $(LDFLAGS_FINAL)
