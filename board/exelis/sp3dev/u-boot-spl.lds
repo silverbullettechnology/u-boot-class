@@ -21,9 +21,9 @@ SECTIONS
 	{
 		*(.__image_copy_start)
 		*(.vectors)
-         arch/arm/cpu/armv7/start.o (.text*)
-         arch/arm/cpu/armv7*(.text*)
-         arch/arm/lib*(.text*)
+         CPUDIR/start.o (.text*)
+         CPUDIR*(.text*)
+         ARCH/lib*(.text*)
          drivers/serial*(.text*)
          BOARDDIR*(.text*)
          drivers/gpio*(.text*)
@@ -44,8 +44,9 @@ SECTIONS
 
 		*(.text*)
      
-	} > flash
+	} > flash =0x00
 
+#if 0
 	.fill  : 
 	{
 		FILL(0x00);
@@ -53,6 +54,7 @@ SECTIONS
 		BYTE(0xAA);
 	} > flash
 
+#endif
 
    .por : 
    {
@@ -61,6 +63,19 @@ SECTIONS
 	_end = _image_binary_end;
    } > por_flash
    
+	_big_data_src = ORIGIN(por_flash) + LENGTH(por_flash );
+		
+	.big_data : AT ( _big_data_src  )  
+	{
+	   . = ALIGN(4);
+    	_big_data_dst = . ; 
+    	  *(.data*)
+    	  . = ALIGN(4);
+    	  *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) 
+	   . = ALIGN(4);
+	} > ocm_d
+	
+	_big_data_size = SIZEOF( .big_data );
 		
  
  .bss  : {
@@ -71,25 +86,13 @@ SECTIONS
   __bss_end = .;
  } > ocm_bss
 	
-	_big_data_src = ADDR(.text) + SIZEOF( .text );
-		
-	.big_data  (NOLOAD) : AT ( _big_data_src  )  
-	{
-	   . = ALIGN(4);
-    	_big_data_dst = . ; 
-    	  *(.data*)
-    	  *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) 
-	   . = ALIGN(4);
-	} > ocm_d
-	
-	_big_data_size = SIZEOF( .big_data );
 
-
+#if 1
  /DISCARD/ : { *(.dynsym) }
  /DISCARD/ : { *(.dynstr*) }
  /DISCARD/ : { *(.dynamic*) }
  /DISCARD/ : { *(.plt*) }
  /DISCARD/ : { *(.interp*) }
  /DISCARD/ : { *(.gnu*) }
-
+#endif
 }

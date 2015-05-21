@@ -116,6 +116,12 @@ else
 OBJCOPYFLAGS += -j .text -j .rodata -j .hash -j .data -j .got.plt -j .u_boot_list -j .rel.dyn
 endif
 
+ifneq ($(CONFIG_S3MA),)
+ifdef CONFIG_SPL
+OBJCOPYFLAGS += -j .por -j .big_data
+endif
+endif
+
 ifneq ($(CONFIG_IMX_CONFIG),)
 ifdef CONFIG_SPL
 ifndef CONFIG_SPL_BUILD
