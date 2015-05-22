@@ -59,8 +59,6 @@ SECTIONS
    .por : 
    {
 	 *(.por_config*)
-	_image_binary_end = .;
-	_end = _image_binary_end;
    } > por_flash
    
 	_big_data_src = ORIGIN(por_flash) + LENGTH(por_flash );
@@ -76,6 +74,9 @@ SECTIONS
 	} > ocm_d
 	
 	_big_data_size = SIZEOF( .big_data );
+
+	_image_binary_end = _big_data_src + _big_data_size ;
+	_end = _image_binary_end;
 		
  
  .bss  : {

@@ -76,6 +76,7 @@ int	s3ma_load_nor_flash_image(void)
 
 	if(image_get_ep(header) == CONFIG_SYS_TEXT_BASE)
 	{
+		spl_parse_image_header(header);
 		memcpy((void*)spl_image.load_addr, (void*)header, spl_image.size);
 		res = 0;
 
@@ -94,6 +95,7 @@ void board_init_f(ulong dummy)
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
 	/* copy data section */
+#if 0
 	{
 		uint32_t i ;
 		uint64_t *dst = _big_data_dst, *src = _big_data_src;
@@ -103,7 +105,9 @@ void board_init_f(ulong dummy)
 		}
 
 	}
-
+#else
+	memcpy(_big_data_dst, _big_data_src, (uint32_t)_big_data_size);
+#endif
 	/* Set global data pointer. */
 //	gd = &gdata;
 #ifdef CONFIG_SPL_SERIAL_SUPPORT
