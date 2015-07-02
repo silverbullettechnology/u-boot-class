@@ -349,3 +349,12 @@ int s3ma_gpio33_get_value(unsigned gpio)
 	return (!!res);
 }
 
+void red_led_on(void)
+{
+	writel(0x00000010, 0x80af07c);
+}
+void red_led_off(void)
+{
+	writel(0x00000010, 0x80af080);
+
+}

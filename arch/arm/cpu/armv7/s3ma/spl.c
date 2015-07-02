@@ -84,34 +84,36 @@ int	s3ma_load_nor_flash_image(void)
 
 	return res;
 }
-extern uint64_t _big_data_dst[];
-extern uint64_t _big_data_src[];
-extern uint64_t _big_data_size[];
+
+extern uint32_t _rodata_dst_addr[];
+extern uint32_t _rodata_src_addr[];
+extern uint32_t _rodata_size[];
+extern uint32_t _data_dst_addr[];
+extern uint32_t _data_src_addr[];
+extern uint32_t _data_size[];
+
 
 void board_init_f(ulong dummy)
 {
 //	ps7_init();
 
+	red_led_off();
+
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
-	/* copy data section */
-#if 0
-	{
-		uint32_t i ;
-		uint64_t *dst = _big_data_dst, *src = _big_data_src;
-		for(i = 0; i < (uint32_t)_big_data_size/sizeof(uint64_t); i++)
-		{
-			dst[i] = src[i];
-		}
+	/* copy data sections */
+	memcpy(_rodata_dst_addr, _rodata_src_addr, _rodata_size);
+	memcpy(_data_dst_addr, _data_src_addr, _data_size);
 
-	}
-#else
-	memcpy(_big_data_dst, _big_data_src, (uint32_t)_big_data_size);
-#endif
+
 	/* Set global data pointer. */
 //	gd = &gdata;
+    /* Clear global data */
+	memset(gd, 0, sizeof(gd_t));
+
 #ifdef CONFIG_SPL_SERIAL_SUPPORT
 	preloader_console_init();
+
 #endif
 	arch_cpu_init();
 	board_init_r(NULL, 0);
