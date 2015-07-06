@@ -21,26 +21,21 @@ SECTIONS
 		*(.vectors)
          CPUDIR/start.o (.text*)
          CPUDIR*(.text*)
-		
-		. = 8K;
-		*(.por_config*)
-
          ARCH/lib*(.text*)
          drivers/serial*(.text*)
          BOARDDIR*(.text*)
          drivers/gpio*(.text*)
-
 		 common*(.text.puts)     
          common*(.text.printf)   
 		 common*(.text.sbrk)     
          common*(.text.mem_malloc_init)
-
          lib*(.text*) 
-		 
 		 common/spl*(.text*)
-
-
 		*(.text*)
+		
+		. = 8K;
+		*(.por_config*)
+
 
 	}
 
@@ -55,11 +50,11 @@ SECTIONS
 	.rodata : AT (_rodata_src_addr) 
 	{ 
 	    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) 
+	    . = ALIGN(4);
 	}
 	
 	_rodata_size = SIZEOF(.rodata);
 	
-	. = ALIGN(4);
 
 	_data_src_addr = _rodata_src_addr + _rodata_size ;
 
@@ -68,6 +63,8 @@ SECTIONS
 	.data : AT( _data_src_addr )
 	{
 		*(.data*)
+	    . = ALIGN(4);
+		
 	}
 
 	_data_size = SIZEOF(.data);

@@ -66,11 +66,11 @@ int s3ma_load_mmc_image(void)
 }
 #endif
 
-extern uint32_t _end[];
+extern uint32_t _image_binary_end[0];
 
 int	s3ma_load_nor_flash_image(void)
 {
-	struct image_header *header = (struct image_header*)_end;
+	struct image_header *header = (struct image_header*)_image_binary_end;
 	int res = 1;
 
 
