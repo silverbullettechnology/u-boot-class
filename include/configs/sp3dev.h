@@ -22,8 +22,6 @@
 //#define CONFIG_RTL_SIMULATION
 //#define CONFIG_PALLADIUM
 #endif
-#define DEBUG
-#define CONFIG_DEBUG_BUILD
 
 #define CONFIG_SYS_ICACHE_OFF
 #define CONFIG_SYS_DCACHE_OFF
@@ -317,6 +315,14 @@
 
 /* SPL configs */
 /*************************/
+#ifdef CONFIG_SPL_BUILD
+
+#if 0
+#define DEBUG
+#endif
+
+#endif
+
 #define		CONFIG_SPL
 
 #define     CONFIG_SPL_TEXT_BASE			0
@@ -336,8 +342,9 @@
 #define 	CONFIG_SPL_SERIAL_SUPPORT
 
 #define		CONFIG_SPL_RAM_DEVICE
-
+#if 0
 #define		CONFIG_SPL_SPI_FLASH_SUPPORT
+#endif
 
 #ifdef		CONFIG_SPL_SPI_FLASH_SUPPORT
 #define		CONFIG_SPL_SPI_SUPPORT
@@ -345,6 +352,7 @@
 #define		CONFIG_SPL_SPI_BUS					CONFIG_SF_DEFAULT_BUS
 #define     CONFIG_SPL_SPI_CS					CONFIG_SF_DEFAULT_CS
 #define     CONFIG_SPL_SPI_DEFAULT_MODE      	CONFIG_SF_DEFAULT_MODE
+#define		CONFIG_SPL_SPI_DEFAULT_SPEED		CONFIG_SF_DEFAULT_SPEED
 #define		CONFIG_SYS_SPI_U_BOOT_OFFS			64*1024
 #endif
 
@@ -361,24 +369,5 @@
 #endif
 
 
-#if 0
-/* SPL part from ZYNC */
-/* Just define any reasonable size */
-#define CONFIG_SPL_STACK_SIZE	0x1000
-
-/* SPL stack position - and stack goes down */
-#define CONFIG_SPL_STACK	(OCM_HIGH_ADDR + CONFIG_SPL_STACK_SIZE)
-
-/* On the top of OCM space */
-#define CONFIG_SYS_SPL_MALLOC_START	(CONFIG_SPL_STACK + \
-					 GENERATED_GBL_DATA_SIZE)
-#define CONFIG_SYS_SPL_MALLOC_SIZE	0x1000
-
-/* BSS setup */
-#define CONFIG_SPL_BSS_START_ADDR	0x100000
-#define CONFIG_SPL_BSS_MAX_SIZE		0x100000
-
-#define CONFIG_SYS_UBOOT_START	CONFIG_SYS_TEXT_BASE
-#endif
 
 #endif	       /* __CONFIG_H */

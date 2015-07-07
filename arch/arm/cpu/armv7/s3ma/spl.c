@@ -17,11 +17,12 @@
 #define		RESET_REQUEST_LEVEL		HIGH
 #define		PLL_BYPASS_MODE_LEVEL	HIGH
 #define		RESET_REQUEST_GPIO		GPIO18_16
-#define		PLL_BYPASS_MODE_GPIO	GPIO18_17
+#define		PLL_BYPASS_MODE_GPIO	GPIO18_20
 
 DECLARE_GLOBAL_DATA_PTR;
 
 #ifdef CONFIG_SPL_SPI_FLASH_SUPPORT
+static
 int s3ma_load_spi_image(void)
 {
 	struct spi_flash *flash;
@@ -32,28 +33,52 @@ int s3ma_load_spi_image(void)
 	 */
 	s3ma_gpio33_set_value(CONFIG_SPL_SPI_CS, 1);
 
+
 	flash = spi_flash_probe(CONFIG_SPL_SPI_BUS, CONFIG_SPL_SPI_CS,
-				CONFIG_SF_DEFAULT_SPEED, CONFIG_SPL_SPI_DEFAULT_MODE);
+			CONFIG_SPL_SPI_DEFAULT_SPEED, CONFIG_SPL_SPI_DEFAULT_MODE);
+
+
 	if (!flash) {
 		puts("SPI probe failed.\n");
 	}
 	else
 	{
+
+		printf("SF: Detected %s with page size ", flash->name);
+		print_size(flash->page_size, ", erase size ");
+		print_size(flash->erase_size, ", total ");
+		print_size(flash->size, "");
+
+		if (flash->memory_map)
+			printf(", mapped at %p", flash->memory_map);
+		puts("\n");
+
 		/* use CONFIG_SYS_TEXT_BASE as temporary storage area */
 		header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
 
-			/* Load u-boot, mkimage header is 64 bytes. */
-			spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS, 0x40,
+		/* Load u-boot, mkimage header is 64 bytes. */
+		spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS, 0x40,
 				       (void *)header);
-			if(image_get_ep(header) == CONFIG_SYS_TEXT_BASE)
-			{
-				spl_parse_image_header(header);
 
-				spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS,
+		print_buffer((uint32_t)header, header, 4, 16, 4 );
+		puts("\n");
+
+		if(image_get_magic(header) == IH_MAGIC)
+		{
+			printf("Valid image found\n");
+
+			spl_parse_image_header(header);
+
+			printf("Reading image %.s \n", spl_image.name);
+
+			spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS,
 					       spl_image.size, (void *)spl_image.load_addr);
 
-				res = 0;
-			}
+
+			printf("Done... \n");
+
+			res = 0;
+		}
 
 
 	}
@@ -72,8 +97,8 @@ int s3ma_load_mmc_image(void)
 }
 #endif
 
-extern uint32_t _image_binary_end[0];
-
+extern char _image_binary_end[0];
+static
 int	s3ma_load_nor_flash_image(void)
 {
 	struct image_header *header = (struct image_header*)_image_binary_end;
@@ -127,37 +152,43 @@ void board_init_f(ulong dummy)
 u32 spl_boot_device(void)
 {
 	u32 val;
-	struct image_header *header;
 
 	/* Check if we are running in PLL_BYPASS or NORMAL mode */
-#if 0
+
 	val = gpio_get_value(PLL_BYPASS_MODE_GPIO);
-#else
-	val = PLL_BYPASS_MODE_LEVEL;
 
-	header = (struct image_header *)
-			(CONFIG_SYS_TEXT_BASE -	sizeof(struct image_header));
-
-
-	if(image_get_ep(header) == CONFIG_SYS_TEXT_BASE)
+	if(val == PLL_BYPASS_MODE_LEVEL)
 	{
-		val = LOW;
-	}
-
-#endif
-	if(PLL_BYPASS_MODE_LEVEL == val)
-	{
-		printf("Locating image in data flash...\n");
-#ifdef CONFIG_SPL_SPI_FLASH_SUPPORT
-		val = s3ma_load_spi_image();
-		if(0 != val)
-#endif
+		do
 		{
-//			val = s3ma_load_mmc_image();
-			printf("No image in SPI data flash\n");
-			printf("Locating image in nor flash...\n");
+#ifdef CONFIG_SPL_SPI_FLASH_SUPPORT
+			printf("Locating image in data flash...\n");
+			val = s3ma_load_spi_image();
+			if(0 == val)
+			{
+				break;
+			}
+			else
+			{
+				printf("No image in SPI data flash\n");
+			}
+#endif
+			printf("Locating image in QSPI NOR flash...\n");
 			val = s3ma_load_nor_flash_image();
-		}
+			if(0 == val)
+			{
+				break;
+			}
+			else
+			{
+				printf("No image in QSPI NOR flash\n");
+			}
+
+			//				val = s3ma_load_mmc_image();
+
+		}while(0);
+
+
 		if(0 == val)
 		{
 			printf("Booting image ...\n");
