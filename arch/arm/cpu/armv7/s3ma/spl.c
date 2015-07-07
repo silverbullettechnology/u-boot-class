@@ -30,9 +30,10 @@ int s3ma_load_spi_image(void)
 	/*
 	 * Try loading U-Boot image from SPI data flash into RAM
 	 */
+	s3ma_gpio33_set_value(CONFIG_SPL_SPI_CS, 1);
 
 	flash = spi_flash_probe(CONFIG_SPL_SPI_BUS, CONFIG_SPL_SPI_CS,
-				CONFIG_SF_DEFAULT_SPEED, SPI_MODE_3);
+				CONFIG_SF_DEFAULT_SPEED, CONFIG_SPL_SPI_DEFAULT_MODE);
 	if (!flash) {
 		puts("SPI probe failed.\n");
 	}
@@ -44,12 +45,17 @@ int s3ma_load_spi_image(void)
 			/* Load u-boot, mkimage header is 64 bytes. */
 			spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS, 0x40,
 				       (void *)header);
-			spl_parse_image_header(header);
+			if(image_get_ep(header) == CONFIG_SYS_TEXT_BASE)
+			{
+				spl_parse_image_header(header);
 
-			spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS,
-				       spl_image.size, (void *)spl_image.load_addr);
+				spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS,
+					       spl_image.size, (void *)spl_image.load_addr);
 
-			res = 0;
+				res = 0;
+			}
+
+
 	}
 
 	return res;
@@ -85,31 +91,30 @@ int	s3ma_load_nor_flash_image(void)
 	return res;
 }
 
-extern uint32_t _rodata_dst_addr[];
-extern uint32_t _rodata_src_addr[];
-extern uint32_t _rodata_size[];
-extern uint32_t _data_dst_addr[];
-extern uint32_t _data_src_addr[];
-extern uint32_t _data_size[];
+extern char _rodata_dst_addr[0];
+extern char _rodata_src_addr[0];
+extern char _rodata_size[0];
+extern char _data_dst_addr[0];
+extern char _data_src_addr[0];
+extern char _data_size[0];
 
 
 void board_init_f(ulong dummy)
 {
 //	ps7_init();
 
-	red_led_off();
 
 	/* Clear the BSS. */
 	memset(__bss_start, 0, __bss_end - __bss_start);
 	/* copy data sections */
-	memcpy(_rodata_dst_addr, _rodata_src_addr, _rodata_size);
-	memcpy(_data_dst_addr, _data_src_addr, _data_size);
+	memcpy((void*)_rodata_dst_addr, (void*)_rodata_src_addr, (uint32_t)_rodata_size);
+	memcpy((void*)_data_dst_addr, (void*)_data_src_addr, (uint32_t)_data_size);
 
 
 	/* Set global data pointer. */
 //	gd = &gdata;
     /* Clear global data */
-	memset(gd, 0, sizeof(gd_t));
+	memset((void*)gd, 0, sizeof(gd_t));
 
 #ifdef CONFIG_SPL_SERIAL_SUPPORT
 	preloader_console_init();
