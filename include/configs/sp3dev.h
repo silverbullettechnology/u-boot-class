@@ -80,9 +80,9 @@
 #define CONFIG_CONS_INDEX	0
 
 #if defined(CONFIG_SPL_BUILD) && defined(CONFIG_SPL_PLL_BYPASS)
-#define CONFIG_BAUDRATE		(2400000/60)
+#define CONFIG_BAUDRATE		(115200/60)
 #else
-#define CONFIG_BAUDRATE		(2400000 )
+#define CONFIG_BAUDRATE		(115200)
 #endif
 
 
