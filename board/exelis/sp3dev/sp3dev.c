@@ -136,6 +136,13 @@ extern void platform_asfe_init(void);
 
 int board_early_init_f(void)
 {
+#ifndef CONFIG_SPL_PLL_BYPASS
+	struct image_header *header = (struct image_header *)
+											(CONFIG_SYS_TEXT_BASE -	sizeof(struct image_header));
+
+	header->ih_magic = 0;
+#endif
+
 #ifdef CONFIG_AD9361
 
 	/* Init ASFE PA control GPIOs */
@@ -347,14 +354,4 @@ int s3ma_gpio33_get_value(unsigned gpio)
 	}
 
 	return (!!res);
-}
-
-void red_led_on(void)
-{
-	writel(0x00000010, 0x80af07c);
-}
-void red_led_off(void)
-{
-	writel(0x00000010, 0x80af080);
-
 }

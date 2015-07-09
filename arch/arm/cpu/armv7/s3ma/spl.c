@@ -16,6 +16,7 @@
 #define		LOW		0
 #define		RESET_REQUEST_LEVEL		HIGH
 #define		PLL_BYPASS_MODE_LEVEL	HIGH
+#define		NORMAL_MODE_LEVEL	    LOW
 #define		RESET_REQUEST_GPIO		GPIO18_16
 #define		PLL_BYPASS_MODE_GPIO	GPIO18_20
 
@@ -105,7 +106,7 @@ int	s3ma_load_nor_flash_image(void)
 	int res = 1;
 
 
-	if(image_get_ep(header) == CONFIG_SYS_TEXT_BASE)
+	if(image_get_magic(header) == IH_MAGIC)
 	{
 		spl_parse_image_header(header);
 		memcpy((void*)spl_image.load_addr, (void*)header, spl_image.size);
@@ -152,11 +153,16 @@ void board_init_f(ulong dummy)
 u32 spl_boot_device(void)
 {
 	u32 val;
-
+#ifndef CONFIG_SPL_PLL_BYPASS
+	const struct image_header *header = (struct image_header *)
+											(CONFIG_SYS_TEXT_BASE -	sizeof(struct image_header));
+#endif
 	/* Check if we are running in PLL_BYPASS or NORMAL mode */
-
+#ifdef CONFIG_SPL_PLL_BYPASS
 	val = gpio_get_value(PLL_BYPASS_MODE_GPIO);
-
+#else
+	val = (image_get_magic(header) == IH_MAGIC) ? NORMAL_MODE_LEVEL : PLL_BYPASS_MODE_LEVEL;
+#endif
 	if(val == PLL_BYPASS_MODE_LEVEL)
 	{
 		do
@@ -192,8 +198,12 @@ u32 spl_boot_device(void)
 		if(0 == val)
 		{
 			printf("Booting image ...\n");
+#ifdef CONFIG_SPL_PLL_BYPASS
 			gpio_set_value(RESET_REQUEST_GPIO, RESET_REQUEST_LEVEL);
 			while(1);
+#else
+			reset_cpu(0);
+#endif
 		}
 		else
 		{
