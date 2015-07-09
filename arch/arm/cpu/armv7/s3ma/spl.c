@@ -102,14 +102,15 @@ extern char _image_binary_end[0];
 static
 int	s3ma_load_nor_flash_image(void)
 {
-	struct image_header *header = (struct image_header*)_image_binary_end;
+	struct image_header header;
 	int res = 1;
 
+	memcpy(&header, (void*)_image_binary_end, sizeof(header));
 
-	if(image_get_magic(header) == IH_MAGIC)
+	if(image_get_magic(&header) == IH_MAGIC)
 	{
-		spl_parse_image_header(header);
-		memcpy((void*)spl_image.load_addr, (void*)header, spl_image.size);
+
+		memcpy((void*)(CONFIG_SYS_TEXT_BASE - sizeof(header)), (void*)_image_binary_end, image_get_size(&header));
 		res = 0;
 
 	}
@@ -161,7 +162,8 @@ u32 spl_boot_device(void)
 #ifdef CONFIG_SPL_PLL_BYPASS
 	val = gpio_get_value(PLL_BYPASS_MODE_GPIO);
 #else
-	val = (image_get_magic(header) == IH_MAGIC) ? NORMAL_MODE_LEVEL : PLL_BYPASS_MODE_LEVEL;
+	//val = (image_get_magic(header) == IH_MAGIC) ? NORMAL_MODE_LEVEL : PLL_BYPASS_MODE_LEVEL;
+	val = PLL_BYPASS_MODE_LEVEL;
 #endif
 	if(val == PLL_BYPASS_MODE_LEVEL)
 	{
@@ -201,8 +203,6 @@ u32 spl_boot_device(void)
 #ifdef CONFIG_SPL_PLL_BYPASS
 			gpio_set_value(RESET_REQUEST_GPIO, RESET_REQUEST_LEVEL);
 			while(1);
-#else
-			reset_cpu(0);
 #endif
 		}
 		else
