@@ -27,7 +27,7 @@ SECTIONS
          drivers/gpio*(.text*)
 		 common*(.text.puts)     
          common*(.text.printf)   
-		 common*(.text.sbrk)     
+         common*(.text.sbrk)     
          common*(.text.mem_malloc_init)
          lib*(.text*) 
 		 common/spl*(.text*)
@@ -36,42 +36,37 @@ SECTIONS
 		. = 8K;
 		*(.por_config*)
 
+		. = ALIGN(4);
 
 	}
 
-	. = ALIGN(4);
-	
-	_rodata_src_addr = . ;
 	
 	. = CONFIG_SPL_RAM_START_ADDR;
 	
-	_rodata_dst_addr = . ;
+	. = ALIGN(4);
 
-	.rodata : AT (_rodata_src_addr) 
+	.rodata : AT ( LOADADDR(.text) + SIZEOF(.text) ) 
 	{ 
+		_rodata_dst_addr = . ;
 	    *(SORT_BY_ALIGNMENT(SORT_BY_NAME(.rodata*))) 
 	    . = ALIGN(4);
 	}
 	
+	_rodata_src_addr = LOADADDR(.rodata);
 	_rodata_size = SIZEOF(.rodata);
 	
-
-	_data_src_addr = _rodata_src_addr + _rodata_size ;
-
-	_data_dst_addr = . ;
-	
-	.data : AT( _data_src_addr )
+	.data : AT( LOADADDR(.rodata )+  SIZEOF(.rodata))
 	{
+		_data_dst_addr = . ;
 		*(.data*)
 	    . = ALIGN(4);
 		
 	}
 
+	_data_src_addr = LOADADDR(.data ) ;
 	_data_size = SIZEOF(.data);
 	
 	. = ALIGN(4);
-
-	. = .;
 
 	.bss : {
 		__bss_start = . ;
