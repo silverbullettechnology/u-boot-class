@@ -54,28 +54,18 @@ int s3ma_load_spi_image(void)
 			printf(", mapped at %p", flash->memory_map);
 		puts("\n");
 
-		/* use CONFIG_SYS_TEXT_BASE as temporary storage area */
-		header = (struct image_header *)(CONFIG_SYS_TEXT_BASE);
+		header = (struct image_header *)(CONFIG_SYS_TEXT_BASE - sizeof(*header));
 
 		/* Load u-boot, mkimage header is 64 bytes. */
 		spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS, 0x40,
 				       (void *)header);
 
-		print_buffer((uint32_t)header, header, 4, 16, 4 );
-		puts("\n");
-
 		if(image_get_magic(header) == IH_MAGIC)
 		{
 			printf("Valid image found\n");
-
-			spl_parse_image_header(header);
-
-			printf("Reading image %.s \n", spl_image.name);
-
+			printf("Reading image ... \n");
 			spi_flash_read(flash, CONFIG_SYS_SPI_U_BOOT_OFFS,
-					       spl_image.size, (void *)spl_image.load_addr);
-
-
+					image_get_size(header) + sizeof(*header), (void *)(CONFIG_SYS_TEXT_BASE - sizeof(*header)));
 			printf("Done... \n");
 
 			res = 0;
@@ -110,7 +100,7 @@ int	s3ma_load_nor_flash_image(void)
 	if(image_get_magic(&header) == IH_MAGIC)
 	{
 
-		memcpy((void*)(CONFIG_SYS_TEXT_BASE - sizeof(header)), (void*)_image_binary_end, image_get_size(&header));
+		memcpy((void*)(CONFIG_SYS_TEXT_BASE - sizeof(header)), (void*)_image_binary_end, image_get_size(&header) + sizeof(header));
 		res = 0;
 
 	}
@@ -154,10 +144,7 @@ void board_init_f(ulong dummy)
 u32 spl_boot_device(void)
 {
 	u32 val;
-#ifndef CONFIG_SPL_PLL_BYPASS
-	const struct image_header *header = (struct image_header *)
-											(CONFIG_SYS_TEXT_BASE -	sizeof(struct image_header));
-#endif
+
 	/* Check if we are running in PLL_BYPASS or NORMAL mode */
 #ifdef CONFIG_SPL_PLL_BYPASS
 	val = gpio_get_value(PLL_BYPASS_MODE_GPIO);
