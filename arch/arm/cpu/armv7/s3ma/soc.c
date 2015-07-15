@@ -263,7 +263,7 @@ void enable_caches(void)
 }
 #endif
 
-static inline void delay(ulong loops)
+void delay(ulong loops)
 {
 	__asm__ volatile ("1:\n"
 		"subs %0, %1, #1\n"
@@ -305,7 +305,9 @@ void s_init(void)
 	setbits_le32(IO_CTL_E2_CFG,(uint32_t)0x00020000);
 	/* Initialize Boot QSPI flash Slew Rate to fast */
 	setbits_le32(IO_CTL_SR_CFG,(uint32_t)0x00020000);
+#if 0
 	delay(1000000);
+#endif
 }
 
 

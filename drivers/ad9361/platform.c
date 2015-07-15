@@ -44,6 +44,7 @@
 #include <common.h>
 #include <spi.h>
 #include <asm/io.h>
+#include <asm/arch/s3ma-regs.h>
 #include <ad9361/platform.h>
 #include <ad9361/ad9361_api.h>
 #include <ad9361/util.h>

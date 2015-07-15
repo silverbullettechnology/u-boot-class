@@ -32,13 +32,10 @@ _continue:
 	 */
 	ldr	sp, =CONFIG_SYS_INIT_SP_ADDR
 	bic	sp, sp, #7 /* 8-byte alignment for ABI compliance */
-#ifdef CONFIG_SPL_BUILD
-	ldr	r9, =gdata
-#else
+
 	sub	sp, sp, #GD_SIZE
 	bic	sp, sp, #7
 	mov	r9, sp
-#endif
 	/*
 	 * Save the old lr(passed in ip) and the current lr to stack
 	 */

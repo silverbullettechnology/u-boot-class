@@ -17,7 +17,9 @@
 #include <asm/arch/sys_proto.h>
 
 /* Place holder for pll config */
+#ifdef CONFIG_SPL_BUILD
 static uint32_t	pll_config[3];
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -28,12 +30,14 @@ void s3ma_setup_pll(void)
 	 * For now just reference por record,
 	 * so linker keeps por structure in the image
 	 */
+#ifdef CONFIG_SPL_BUILD
 	int i;
+
 	for(i = 0; i < sizeof(pll_config)/sizeof(pll_config[0]); i++)
 	{
 		pll_config[i] =  por_config[i];
 	}
-
+#endif
 
 	/* Initialize values for clock rates */
 	gd->cpu_clk = CONFIG_CPU_CLK_HZ;
