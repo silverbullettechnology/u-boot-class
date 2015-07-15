@@ -18,7 +18,7 @@
 #define		PLL_BYPASS_MODE_LEVEL	HIGH
 #define		NORMAL_MODE_LEVEL	    LOW
 #define		RESET_REQUEST_GPIO		GPIO18_16
-#define		PLL_BYPASS_MODE_GPIO	GPIO18_20
+#define		PLL_BYPASS_MODE_GPIO	GPIO18_17
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -34,6 +34,7 @@ int s3ma_load_spi_image(void)
 	 */
 	s3ma_gpio33_set_value(CONFIG_SPL_SPI_CS, 1);
 
+	__udelay(2000);
 
 	flash = spi_flash_probe(CONFIG_SPL_SPI_BUS, CONFIG_SPL_SPI_CS,
 			CONFIG_SPL_SPI_DEFAULT_SPEED, CONFIG_SPL_SPI_DEFAULT_MODE);
@@ -157,16 +158,21 @@ u32 spl_boot_device(void)
 		do
 		{
 #ifdef CONFIG_SPL_SPI_FLASH_SUPPORT
-			printf("Locating image in data flash...\n");
-			val = s3ma_load_spi_image();
-			if(0 == val)
+			if(HIGH == gpio_get_value(GPIO18_20))
 			{
-				break;
+				printf("Locating image in data flash...\n");
+				val = s3ma_load_spi_image();
+				if(0 == val)
+				{
+					break;
+				}
+				else
+				{
+					printf("No image in SPI data flash\n");
+				}
+
 			}
-			else
-			{
-				printf("No image in SPI data flash\n");
-			}
+
 #endif
 			printf("Locating image in QSPI NOR flash...\n");
 			val = s3ma_load_nor_flash_image();
