@@ -42,7 +42,6 @@
 /******************************************************************************/
 /***************************** Include Files **********************************/
 /******************************************************************************/
-//#include "stdint.h"
 #include <ad9361/util.h>
 
 /******************************************************************************/
@@ -60,13 +59,13 @@
 #define ADI_STATUS				(1 << 0)
 
 #define ADI_REG_CHAN_CNTRL(c)	(0x0400 + (c) * 0x40)
-#define ADI_PN_SEL				(1 << 10)
+#define ADI_PN_SEL				(1 << 10) /* !v8.0 */
 #define ADI_IQCOR_ENB			(1 << 9)
 #define ADI_DCFILT_ENB			(1 << 8)
 #define ADI_FORMAT_SIGNEXT		(1 << 6)
 #define ADI_FORMAT_TYPE			(1 << 5)
 #define ADI_FORMAT_ENABLE		(1 << 4)
-#define ADI_PN23_TYPE			(1 << 1)
+#define ADI_PN23_TYPE			(1 << 1) /* !v8.0 */
 #define ADI_ENABLE				(1 << 0)
 
 #define ADI_REG_CHAN_STATUS(c)	(0x0404 + (c) * 0x40)
@@ -86,6 +85,17 @@
 #define ADI_IQCOR_COEFF_2(x)		(((x) & 0xFFFF) << 0)
 #define ADI_TO_IQCOR_COEFF_2(x)		(((x) >> 0) & 0xFFFF)
 
+#define PCORE_VERSION(major, minor, letter) ((major << 16) | (minor << 8) | letter)
+#define PCORE_VERSION_MAJOR(version) (version >> 16)
+#define PCORE_VERSION_MINOR(version) ((version >> 8) & 0xff)
+#define PCORE_VERSION_LETTER(version) (version & 0xff)
+
+#define ADI_REG_CHAN_CNTRL_3(c)		(0x0418 + (c) * 0x40) /* v8.0 */
+#define ADI_ADC_PN_SEL(x)		(((x) & 0xF) << 16)
+#define ADI_TO_ADC_PN_SEL(x)		(((x) >> 16) & 0xF)
+#define ADI_ADC_DATA_SEL(x)		(((x) & 0xF) << 0)
+#define ADI_TO_ADC_DATA_SEL(x)		(((x) >> 0) & 0xF)
+
 enum adc_pn_sel {
 	ADC_PN9 = 0,
 	ADC_PN23A = 1,
@@ -97,65 +107,28 @@ enum adc_pn_sel {
 	ADC_PN_END = 10,
 };
 
-enum adc_data_sel {
-	ADC_DATA_SEL_NORM,
-	ADC_DATA_SEL_LB, /* DAC loopback */
-	ADC_DATA_SEL_RAMP, /* TBD */
-};
-
-#define ASFE_AD1_TX1_PA_BIAS		0x00000001
-#define ASFE_AD1_TX2_PA_BIAS		0x00000002
-#define ASFE_AD2_TX1_PA_BIAS		0x00000004
-#define ASFE_AD2_TX2_PA_BIAS		0x00000008
-
-#define ASFE_AD1_RX1_LNA			0x00000010
-#define ASFE_AD1_RX2_LNA			0x00000020
-#define ASFE_AD2_RX1_LNA			0x00000040
-#define ASFE_AD2_RX2_LNA			0x00000080
-
-#define ASFE_AD1_TR_SWITCH			0x00000100
-#define ASFE_AD2_TR_SWITCH			0x00000200
-
-#define GPIO_AD1_TX1_PA_EN			GPIO33_6
-#define GPIO_AD1_TX2_PA_EN			GPIO33_2
-#define GPIO_AD2_TX1_PA_EN			GPIO33_4
-#define GPIO_AD2_TX2_PA_EN			GPIO33_1
-
-
-
-#define GPO_ADX_RX1_LNA_BYPASS		GPO_0
-#define GPO_ADX_RX2_LNA_BYPASS		GPO_1
-#define GPO_AD2_TR_N				GPO_3
-
 /******************************************************************************/
 /************************ Functions Declarations ******************************/
 /******************************************************************************/
 int32_t platform_spi_init(uint32_t device_id,
-				 	 	 uint8_t  clk_pha,
-				 	 	 uint8_t  clk_pol);
+				 uint8_t  clk_pha,
+				 uint8_t  clk_pol);
 int32_t platform_spi_read(uint8_t *data,
-				 	 	 uint8_t bytes_number);
+				 uint8_t bytes_number);
 int platform_spi_write_then_read(struct spi_device *spi,
-				const unsigned char *txbuf, unsigned n_tx,
-				unsigned char *rxbuf, unsigned n_rx);
+		const unsigned char *txbuf, unsigned n_tx,
+		unsigned char *rxbuf, unsigned n_rx);
 void platform_gpio_init(uint32_t device_id);
 void platform_gpio_direction(uint8_t pin, uint8_t direction);
 bool platform_gpio_is_valid(int number);
 void platform_gpio_set_value(unsigned gpio, int value);
-void platform_gpio_set_sync_value(int value);
-void platform_init_sync_pulse_shape(void);
-
 void platform_udelay(unsigned long usecs);
 void platform_mdelay(unsigned long msecs);
 unsigned long platform_msleep_interruptible(unsigned int msecs);
 void platform_axiadc_init(struct ad9361_rf_phy *phy);
+int platform_axiadc_post_setup(struct ad9361_rf_phy *phy);
 unsigned int platform_axiadc_read(struct axiadc_state *st, unsigned long reg);
 void platform_axiadc_write(struct axiadc_state *st, unsigned reg, unsigned val);
-void platform_pa_bias_en(uint32_t mask);
-void platform_pa_bias_dis(uint32_t mask);
-void platform_lna_dis(uint32_t mask);
-void platform_lna_en(uint32_t mask);
-void platform_tr_rx_en(uint32_t mask);
-void platform_tr_tx_en(uint32_t mask);
-void platform_asfe_init(void);
+int platform_axiadc_set_pnsel(struct axiadc_state *st, int channel, enum adc_pn_sel sel);
+
 #endif

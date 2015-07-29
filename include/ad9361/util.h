@@ -78,6 +78,7 @@
 #define pr_err						printf
 #define pr_warning					printf
 
+#   define ULONG_MAX	4294967295UL
 
 struct device {
 	uint32_t  bus;

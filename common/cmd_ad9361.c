@@ -35,16 +35,8 @@ NULL
 #endif
 };
 
-/*
- * SPI read/write
- *
- * Syntax:
- *   spi {dev} {num_bits} {dout}
- *     {dev} is the device number for controlling chip select (see TBD)
- *     {num_bits} is the number of bits to send & receive (base 10)
- *     {dout} is a hexadecimal string of data to send
- * The command prints out the hexadecimal string received via SPI.
- */
+
+
 
 int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 	char *cp = 0;
@@ -153,6 +145,8 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 
 					/* Initialize RESETB pin */
 					init_param_ptr->gpio_resetb = RESETB0_BITMASK << (bus * 8);
+					/* Save bus number */
+					init_param_ptr->id_no = bus;
 #ifdef CONFIG_SP3DTC
 					if(1 == bus)
 					{
@@ -169,7 +163,7 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 						init_param_ptr->aux_dac1_default_value_mV = env;
 					 }
 #endif
-					ad9361_phy_table[bus] = ad9361_init(init_param_ptr, bus);
+					ad9361_init(&ad9361_phy_table[bus],init_param_ptr);
 					free(init_param_ptr);
 
 

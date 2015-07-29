@@ -1,9 +1,9 @@
 /***************************************************************************//**
- *   @file   common.h
- *   @brief  Header file of Common Driver.
+ *   @file   config.h
+ *   @brief  Config file of AD9361/API Driver.
  *   @author DBogdan (dragos.bogdan@analog.com)
 ********************************************************************************
- * Copyright 2013(c) Analog Devices, Inc.
+ * Copyright 2015(c) Analog Devices, Inc.
  *
  * All rights reserved.
  *
@@ -36,52 +36,18 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *******************************************************************************/
-#ifndef COMMON_H_
-#define COMMON_H_
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
-/******************************************************************************/
-/***************************** Include Files **********************************/
-/******************************************************************************/
-#include <common.h>
+#define HAVE_VERBOSE_MESSAGES /* Recommended during development prints errors and warnings */
+//#define HAVE_DEBUG_MESSAGES /* For Debug purposes only */
 
-/******************************************************************************/
-/********************** Macros and Constants Definitions **********************/
-/******************************************************************************/
-#define false	0
-#define true	1
+/*
+ * In case memory footprint is a concern these options allow
+ * to disable unused functionality which may free up a few kb
+ */
 
-#define EIO			5	/* I/O error */
-#define EAGAIN		11	/* Try again */
-#define ENOMEM		12	/* Out of memory */
-#define EFAULT		14	/* Bad address */
-#define ENODEV		19	/* No such device */
-#define EINVAL		22	/* Invalid argument */
-#define ETIMEDOUT	110	/* Connection timed out */
-
-/******************************************************************************/
-/*************************** Types Declarations *******************************/
-/******************************************************************************/
-
-struct clk {
-	const char	*name;
-	uint32_t	rate;
-};
-
-struct clk_hw {
-		struct clk *clk;
-};
-
-struct clk_init_data {
-	const char				*name;
-	const struct clk_ops	*ops;
-	const char				**parent_names;
-	uint8_t					num_parents;
-	uint32_t				flags;
-};
-
-struct clk_onecell_data {
-	struct clk		**clks;
-	uint32_t		clk_num;
-};
-
+#define HAVE_SPLIT_GAIN_TABLE	1 /* only set to 0 in case split_gain_table_mode_enable = 0*/
+#define HAVE_TDD_SYNTH_TABLE	1 /* only set to 0 in case split_gain_table_mode_enable = 0*/
+#define AXI_ADC_NOT_PRESENT
 #endif
