@@ -288,7 +288,13 @@ void platform_axiadc_init(struct ad9361_rf_phy *phy)
 	platform_axiadc_write(NULL, TX_SOURCE, 0x55555555);
 
 }
-
+/***************************************************************************//**
+ * @brief axiadc_post_setup
+*******************************************************************************/
+int platform_axiadc_post_setup(struct ad9361_rf_phy *phy)
+{
+	return 0;
+}
 /***************************************************************************//**
  * @brief axiadc_read
 *******************************************************************************/
@@ -339,6 +345,15 @@ void platform_pa_bias_dis(uint32_t mask)
 	else
 		printf("%s: Invalid PA control IO\n", __func__);
 }
+
+/***************************************************************************//**
+* @brief axiadc_set_pnsel
+*******************************************************************************/
+int axiadc_set_pnsel(struct axiadc_state *st, int channel, enum adc_pn_sel sel)
+{
+	return 0;
+}
+
 
 /***************************************************************************//**
  * @brief platform_lna_dis

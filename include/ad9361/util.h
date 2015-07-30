@@ -55,6 +55,7 @@
 /******************************************************************************/
 /********************** Macros and Constants Definitions **********************/
 /******************************************************************************/
+#define ULONG_MAX	4294967295UL
 #define SUCCESS									0
 //#define ARRAY_SIZE(arr)							(sizeof(arr) / sizeof((arr)[0]))
 //#define min(x, y)								(((x) < (y)) ? (x) : (y))
@@ -69,16 +70,37 @@
 #define CLK_IGNORE_UNUSED						BIT(3)
 #define CLK_GET_RATE_NOCACHE					BIT(6)
 
-//#define dev_err(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
-#define dev_warn(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
-//#define dev_dbg(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
-//#define dev_info(dev, format, ...)		printf(format, ## __VA_ARGS__);printf("\n")
-//#define printk(format, ...)			printf(format, ## __VA_ARGS__)
-#define WARN(format, ...)			printf(format, ## __VA_ARGS__)
-#define pr_err						printf
-#define pr_warning					printf
+#ifdef dev_dbg
+#undef dev_dbg
+#endif
 
-#   define ULONG_MAX	4294967295UL
+#ifdef printk
+#undef printk
+#endif
+
+#ifdef dev_err
+#undef dev_err
+#endif
+
+#ifdef dev_warn
+#undef dev_warn
+#endif
+
+#if defined(HAVE_VERBOSE_MESSAGES)
+#define dev_err(dev, format, ...)		({printf(format, ## __VA_ARGS__);printf("\n"); })
+#define dev_warn(dev, format, ...)		({printf(format, ## __VA_ARGS__);printf("\n"); })
+#if defined(HAVE_DEBUG_MESSAGES)
+#define dev_dbg(dev, format, ...)		({printf(format, ## __VA_ARGS__);printf("\n"); })
+#else
+#define dev_dbg(dev, format, ...)	({ if (0) printf(format, ## __VA_ARGS__); })
+#endif
+#define printk(format, ...)			printf(format, ## __VA_ARGS__)
+#else
+#define dev_err(dev, format, ...)	({ if (0) printf(format, ## __VA_ARGS__); })
+#define dev_warn(dev, format, ...)	({ if (0) printf(format, ## __VA_ARGS__); })
+#define dev_dbg(dev, format, ...)	({ if (0) printf(format, ## __VA_ARGS__); })
+#define printk(format, ...)			({ if (0) printf(format, ## __VA_ARGS__); })
+#endif
 
 struct device {
 	uint32_t  bus;
@@ -86,10 +108,12 @@ struct device {
 
 
 struct spi_device {
-	struct device dev;
+	struct device	dev;
+	uint8_t 		id_no;
 };
 
 struct axiadc_state {
+	struct ad9361_rf_phy	*phy;
 };
 
 struct axiadc_chip_info {

@@ -205,10 +205,8 @@ typedef struct
 	uint32_t	elna_bypass_loss_mdB;	/* adi,elna-bypass-loss-mdB */
 	uint8_t		elna_rx1_gpo0_control_enable;	/* adi,elna-rx1-gpo0-control-enable */
 	uint8_t		elna_rx2_gpo1_control_enable;	/* adi,elna-rx2-gpo1-control-enable */
-	uint8_t		elna_gaintable_all_index_enable;	/* adi,elna-gaintable-all-index-enable */
 	/* Digital Interface Control */
-	uint8_t		digital_interface_tune_skip_mode;	/* adi,digital-interface-tune-skip-mode */
-	uint8_t		digital_interface_tune_fir_disable;	/* adi,digital-interface-tune-fir-disable */
+	uint32_t	digital_interface_tune_skip_mode;	/* adi,digital-interface-tune-skip-mode */
 	uint8_t		pp_tx_swap_enable;	/* adi,pp-tx-swap-enable */
 	uint8_t		pp_rx_swap_enable;	/* adi,pp-rx-swap-enable */
 	uint8_t		tx_channel_swap_enable;	/* adi,tx-channel-swap-enable */
@@ -276,10 +274,6 @@ typedef struct
 	int32_t		gpio_sync;		/* sync-gpios */
 	int32_t		gpio_cal_sw1;	/* cal-sw1-gpios */
 	int32_t		gpio_cal_sw2;	/* cal-sw2-gpios */
-	/* External LO clocks */
-	uint32_t (*ad9361_rfpll_ext_recalc_rate)(struct refclk_scale *clk_priv);
-	int32_t (*ad9361_rfpll_ext_round_rate)(struct refclk_scale *clk_priv, uint32_t rate);
-	int32_t (*ad9361_rfpll_ext_set_rate)(struct refclk_scale *clk_priv, uint32_t rate);
 }AD9361_InitParam;
 
 typedef struct
@@ -342,9 +336,6 @@ enum ad9361_ensm_mode {
 #define HIGHEST_OSR	0
 #define NOMINAL_OSR	1
 
-#define INT_LO		0
-#define EXT_LO		1
-
 extern struct ad9361_rf_phy *ad9361_phy;
 extern const AD9361_InitParam default_init_param;
 /******************************************************************************/
@@ -372,8 +363,6 @@ int32_t ad9361_get_rx_sampling_freq (struct ad9361_rf_phy *phy, uint32_t *sampli
 int32_t ad9361_set_rx_lo_freq (struct ad9361_rf_phy *phy, uint64_t lo_freq_hz);
 /* Get current RX LO frequency. */
 int32_t ad9361_get_rx_lo_freq (struct ad9361_rf_phy *phy, uint64_t *lo_freq_hz);
-/* Switch between internal and external LO. */
-int32_t ad9361_set_rx_lo_int_ext(struct ad9361_rf_phy *phy, uint8_t int_ext);
 /* Get the RSSI for the selected channel. */
 int32_t ad9361_get_rx_rssi (struct ad9361_rf_phy *phy, uint8_t ch, struct rf_rssi *rssi);
 /* Set the gain control mode for the selected channel. */
@@ -428,8 +417,6 @@ int32_t ad9361_get_tx_sampling_freq (struct ad9361_rf_phy *phy, uint32_t *sampli
 int32_t ad9361_set_tx_lo_freq (struct ad9361_rf_phy *phy, uint64_t lo_freq_hz);
 /* Get current TX LO frequency. */
 int32_t ad9361_get_tx_lo_freq (struct ad9361_rf_phy *phy, uint64_t *lo_freq_hz);
-/* Switch between internal and external LO. */
-int32_t ad9361_set_tx_lo_int_ext(struct ad9361_rf_phy *phy, uint8_t int_ext);
 /* Set the TX FIR filter configuration. */
 int32_t ad9361_set_tx_fir_config (struct ad9361_rf_phy *phy, AD9361_TXFIRConfig fir_cfg);
 /* Get the TX FIR filter configuration. */
