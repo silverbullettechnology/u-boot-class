@@ -91,7 +91,9 @@ command cmd_list[] = {
 	{"tx_loopback_test=","Runs DAC->ADC loopback test.","",tx_loopback_test},
 	{"asic_loopback_test=","Enables/Disables ADC->DAC loopback test.","",set_asfe_loopback_test},
 	{"bist_loopback_en=","Enables/Disables DAC->ADC data ports loopback.","",bist_loopback},
-
+	{"do_tx_calibration=","Run TX QUADRATURE calibration with phase offset as parameter","",do_tx_calibration},
+	{"ensm_mode=", "Switch ad9361 enable state machine mode.","",ensm_mode},
+	{"play_file=", "Transmit IQ file from address 0x04080000.","", play_file},
 #if 0
 	{"dds_tx1_tone1_freq?", "Gets current DDS TX1 Tone 1 frequency [Hz].", "", get_dds_tx1_tone1_freq},
 	{"dds_tx1_tone1_freq=", "Sets the DDS TX1 Tone 1 frequency [Hz].", "", set_dds_tx1_tone1_freq},
@@ -887,6 +889,8 @@ void set_asfe_loopback_test(double* param, char param_no)
 		{
 			double param[4];
 			char param_no;
+
+			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 			/* Setup AD9361 */
 			param[0] = 38400000;
 			param_no = 1;
@@ -990,10 +994,10 @@ void set_asfe_loopback_test(double* param, char param_no)
 			ad9361_get_en_state_machine_mode(ad9361_phy, &val);
 			if(ENSM_STATE_ALERT != val)
 			{
-				ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_STATE_ALERT);
+				ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 			}
 
-			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_STATE_FDD);
+			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_FDD);
 
 			/* Enable transfer */
 			platform_axiadc_write(NULL, RF_CONFIG,
@@ -1036,7 +1040,7 @@ void set_asfe_loopback_test(double* param, char param_no)
 	}
 	else
 	{
-		show_invalid_param_message(1);
+		show_invalid_param_message(38);
 
 	}
 
@@ -1100,6 +1104,295 @@ void set_aux_dac(double* param, char param_no)
 		show_invalid_param_message(1);
 	}
 
+}
+
+/**************************************************************************//***
+ * @brief Run TX QADRATUTE auto calibration.
+ * @param param[0] - phase offset 0 -31
+ * @return None.
+*******************************************************************************/
+void do_tx_calibration(double* param, char param_no)
+{
+	uint32_t val = (uint32_t)param[0];
+
+	if (param_no >= 1)
+	{
+		if(val < 31)
+		{
+			console_print("Running TX_QUAD_CAL with phase offset %d\n", val);
+			ad9361_do_calib(ad9361_phy, TX_QUAD_CAL, val);
+		}
+		else
+		{
+			console_print("phase offset %d must be 0-31\n", val);
+			show_invalid_param_message(39);
+		}
+	}
+
+}
+void ensm_mode(double* param, char param_no)
+{
+	int32_t val = (int32_t)param[0];
+
+	if (param_no == 1)
+	{
+		switch (val)
+		{
+		case ENSM_MODE_ALERT:
+			console_print("Switching to ENSM_MODE_ALERT\n");
+			break;
+		case ENSM_MODE_FDD:
+			console_print("Switching to ENSM_MODE_FDD\n");
+			break;
+		case ENSM_MODE_PINCTRL:
+			console_print("Switching to ENSM_MODE_PINCTRL\n");
+			break;
+		case ENSM_MODE_PINCTRL_FDD_INDEP:
+			console_print("Switching to ENSM_MODE_PINCTRL_FDD_INDEP\n");
+			break;
+		case ENSM_MODE_RX:
+			console_print("Switching to ENSM_MODE_RX\n");
+			break;
+		case ENSM_MODE_SLEEP:
+			console_print("Switching to ENSM_MODE_SLEEP\n");
+			break;
+		case ENSM_MODE_TX:
+			console_print("Switching to ENSM_MODE_TX\n");
+			break;
+		case ENSM_MODE_WAIT:
+			console_print("Switching to ENSM_MODE_WAIT\n");
+			break;
+		default:
+			console_print("Unknown ENSM_MODE: %d\n", val);
+			val = -1;
+			break;
+		}
+			if(val >= 0)
+			{
+				val = ad9361_set_en_state_machine_mode(ad9361_phy, val);
+			}
+
+	}
+	else
+	{
+		val = -1;
+	}
+
+	if( val < 0)
+	{
+		console_print("VALID ENSM_MODES:\n");
+		console_print("ENSM_MODE_AERT: %d\n", ENSM_MODE_ALERT);
+		console_print("ENSM_MODE_FDD: %d\n", ENSM_MODE_FDD);
+		console_print("ENSM_MODE_PINCTRL: %d\n", ENSM_MODE_PINCTRL);
+		console_print("ENSM_MODE_PINCTRL_FDD_INDEP: %d\n", ENSM_MODE_PINCTRL_FDD_INDEP);
+		console_print("ENSM_MODE_RX: %d\n", ENSM_MODE_RX);
+		console_print("ENSM_MODE_SLEEP: %d\n", ENSM_MODE_SLEEP);
+		console_print("ENSM_MODE_TX: %d\n", ENSM_MODE_TX);
+		console_print("ENSM_MODE_WAIT: %d\n", ENSM_MODE_WAIT);
+
+		show_invalid_param_message(40);
+
+	}
+
+
+}
+
+void play_file(double* param, char param_no)
+{
+	uint32_t size = 0;
+	uint32_t bigendian = 1;
+	uint32_t status = 0;
+	uint32_t bus = 0;
+	uint32_t num_samples, val, i;
+	uint16_t* samp_ptr;
+
+	if (param_no >= 1)
+	{
+		do
+		{
+			/* Get the file size */
+			size = (uint32_t) param[0];
+			if (size > (0x80000 - 2 * sizeof(uint32_t)))
+			{
+				status = 1;
+				break;
+			}
+
+			if (param_no >= 2)
+			{
+				bigendian = (uint32_t) param[1];
+			}
+			else
+			{
+				console_print("Assuming big endian sample format \n");
+
+			}
+		} while (0);
+
+		if (0 == status)
+		{
+			/* Disable any ongoing transfers first */
+			platform_axiadc_write(NULL, RF_CONFIG, 0);
+			platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
+#ifdef CONFIG_SP3DTC
+			/* Turn all PAs off */
+			platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
+			/* Turn all LNAs off  */
+			platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA | ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+#endif
+			if (NULL != ad9361_phy)
+			{
+				bus = ad9361_phy->spi->dev.bus;
+			}
+			else
+			{
+				console_print("%s: ad9361_phy structure is invalid\n", __func__);
+				return;
+			}
+
+			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
+
+#ifdef CONFIG_SP3DTC
+			if (0 == bus)
+			{
+
+				platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+			}
+			else
+			{
+				/* Setup ASFE for loopback */
+				platform_tr_tx_en(ASFE_AD2_TR_SWITCH);
+				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+			}
+#endif
+
+			num_samples = size / sizeof(uint32_t);
+
+			/* Setup TX DMA registers */
+			val = (uint32_t) CONFIG_AD9361_RAM_BUFFER_ADDR;
+			val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
+			debug("RF_READ_BASE setting to %x\n", val);
+			platform_axiadc_write(NULL, RF_READ_BASE, val);
+			debug("RF_READ_BASE is %x\n",
+					platform_axiadc_read(NULL, RF_READ_BASE));
+
+			val += num_samples * sizeof(uint32_t);
+			debug("RF_READ_TOP setting to %x\n", val);
+			platform_axiadc_write(NULL, RF_READ_TOP, val);
+			debug("RF_READ_TOP is %x\n",
+					platform_axiadc_read(NULL, RF_READ_TOP));
+
+			platform_axiadc_write(NULL, RF_READ_COUNT,
+					num_samples * sizeof(uint32_t));
+			debug("RF_READ_COUNT is %x\n",
+					platform_axiadc_read(NULL, RF_READ_COUNT));
+
+			num_samples = 2;
+			val = (uint32_t) CONFIG_AD9361_RAM_BUFFER_ADDR
+					- num_samples * sizeof(uint32_t);
+			val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
+
+			debug("RF_WRITE_BASE setting to %x\n", val);
+			platform_axiadc_write(NULL, RF_WRITE_BASE, (uint32_t) val);
+			debug("RF_WRITE_BASE is %x\n",
+					platform_axiadc_read(NULL,RF_WRITE_BASE));
+
+			val += num_samples * sizeof(uint32_t);
+			debug("RF_WRITE_TOP setting to %x\n", val);
+			platform_axiadc_write(NULL, RF_WRITE_TOP, val);
+			debug("RF_WRITE_TOP is %x\n",
+					platform_axiadc_read(NULL,RF_WRITE_TOP));
+
+			platform_axiadc_write(NULL, RF_WRITE_COUNT,
+					num_samples * sizeof(uint32_t));
+			debug("RF_WRITE_COUNT is %x\n",
+					platform_axiadc_read(NULL,RF_WRITE_COUNT));
+
+			/* Byte swap IQ samples if requested */
+			if (bigendian)
+			{
+				samp_ptr = (uint16_t*) CONFIG_AD9361_RAM_BUFFER_ADDR;
+
+				for (i = 0; i < size / sizeof(uint32_t); i++)
+				{
+					samp_ptr[2 * i] = be16_to_cpu(samp_ptr[2 * i]);
+					samp_ptr[2 * i + 1] = be16_to_cpu(samp_ptr[2 * i + 1]);
+				}
+
+			}
+
+			/* Select 1 channel for TX and RX*/
+			platform_axiadc_write(NULL,
+			RF_CHANNEL_EN,
+					((0x1 << RX_CH_ENABLE_SHIFT) | (0x1 << TX_CH_ENABLE_SHIFT))
+							<< (2 * bus));
+
+			debug("RF_CHANNEL_EN = 0x%x\n",
+					platform_axiadc_read(NULL,RF_CHANNEL_EN));
+
+			/* Select OCM as TX source */
+			platform_axiadc_write(NULL, TX_SOURCE, 0x55555555);
+			debug("TX_SOURCE = 0x%x\n", platform_axiadc_read(NULL,TX_SOURCE));
+
+			/* Multiplex time slot 0 sequentially onto all LVDS ports*/
+			platform_axiadc_write(NULL, (TX_SEL), (uint32_t) 0x0);
+			debug("TX_SEL = 0x%x\n", platform_axiadc_read(NULL,TX_SEL));
+
+			/* Transition RFIC into FDD mode */
+			ad9361_get_en_state_machine_mode(ad9361_phy, &val);
+			if (ENSM_STATE_ALERT != val)
+			{
+				ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
+			}
+
+			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_FDD);
+
+			/* Enable transfer */
+			platform_axiadc_write(NULL, RF_CONFIG,
+			RF_CONFIG_RX_ENABLE_BITMASK | RF_CONFIG_TX_ENABLE_BITMASK);
+
+			/* Wait for transfer to complete or CTRL^C */
+			while (!ctrlc())
+			{
+				if (platform_axiadc_read(NULL, RF_WRITE_COUNT_AXI) == 0x0)
+				{
+					/* Disable transfer */
+					platform_axiadc_write(NULL, RF_CONFIG, 0);
+					/* Re-Enable transfer */
+					platform_axiadc_write(NULL, RF_CONFIG,
+					RF_CONFIG_RX_ENABLE_BITMASK | RF_CONFIG_TX_ENABLE_BITMASK);
+				}
+
+			}
+
+			/* Disable transfer */
+			platform_axiadc_write(NULL, RF_CONFIG, 0);
+
+			/* Multiplex time slots sequentially onto LVDS ports*/
+			platform_axiadc_write(NULL, (TX_SEL), 0x76543210);
+
+#ifdef CONFIG_SP3DTC
+			/* Disable PA and LNA */
+			if(0 == bus)
+			{
+				platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
+				platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+			}
+			else
+			{
+				platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+				platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+			}
+#endif
+
+		}
+
+	}
+	else
+	{
+		show_invalid_param_message(41);
+
+	}
 }
 
 #if 0

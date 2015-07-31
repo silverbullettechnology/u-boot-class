@@ -247,5 +247,9 @@ void get_aux_dac(double* param, char param_no);
 /* Set AUX DAC value */
 void set_aux_dac(double* param, char param_no);
 
+void do_tx_calibration(double* param, char param_no);
 
+void ensm_mode(double* param, char param_no);
+
+void play_file(double* param, char param_no);
 #endif  // __COMMAND_H__
