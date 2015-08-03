@@ -1200,7 +1200,7 @@ void ensm_mode(double* param, char param_no)
 void play_file(double* param, char param_no)
 {
 	uint32_t size = 0;
-	uint32_t bigendian = 1;
+	uint32_t bigendian = 0;
 	uint32_t status = 0;
 	uint32_t bus = 0;
 	uint32_t num_samples, val, i;
@@ -1228,7 +1228,7 @@ void play_file(double* param, char param_no)
 			}
 			else
 			{
-				console_print("Assuming big endian sample format \n");
+				console_print("Assuming little endian sample format \n");
 
 			}
 		} while (0);
@@ -1269,6 +1269,41 @@ void play_file(double* param, char param_no)
 				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 			}
 #endif
+			/* Byte swap IQ samples if requested */
+			if (bigendian)
+			{
+				samp_ptr = (uint16_t*) CONFIG_AD9361_RAM_BUFFER_ADDR;
+
+				for (i = 0; i < size / sizeof(uint32_t); i++)
+				{
+					samp_ptr[2 * i] = be16_to_cpu(samp_ptr[2 * i]);
+					samp_ptr[2 * i + 1] = be16_to_cpu(samp_ptr[2 * i + 1]);
+				}
+
+			}
+
+			val = size % (8 * sizeof(uint32_t));
+			debug("%s:line%d: val = %d\n", __func__, __LINE__, val);
+
+			if(0 != val)
+			{
+				val = 8 * sizeof(uint32_t) - val;
+				debug("%s:line%d: val = %d\n", __func__, __LINE__, val);
+				memset((uint32_t*)(CONFIG_AD9361_RAM_BUFFER_ADDR + size), 0 , val);
+				size += val ;
+				debug("%s:line%d: size = %d\n", __func__, __LINE__, size);
+			}
+
+			/* Pad file with zeros on both sides to reach 50% duty cycle */
+			memcpy((uint32_t*)0x80000000, (uint32_t*)CONFIG_AD9361_RAM_BUFFER_ADDR, size);
+			val = CONFIG_AD9361_RAM_BUFFER_ADDR;
+			memset((uint32_t*)val, 0, size/2);
+			val += size/2;
+			memcpy((uint32_t*)val, (uint32_t*)0x80000000, size);
+			val += size;
+			memset((uint32_t*)val, 0, size/2);
+
+			size = 2 * size;
 
 			num_samples = size / sizeof(uint32_t);
 			debug("%s:line%d: num_samples = %d\n", __func__, __LINE__, num_samples);
@@ -1292,9 +1327,14 @@ void play_file(double* param, char param_no)
 
 			debug("%s:line%d: num_samples = %d\n", __func__, __LINE__, num_samples);
 
-
+#if 0
 			platform_axiadc_write(NULL, RF_READ_COUNT,
 					num_samples);
+#else
+			platform_axiadc_write(NULL, RF_READ_COUNT,
+					0xffffffff);
+
+#endif
 			debug("RF_READ_COUNT is %x\n",
 					platform_axiadc_read(NULL, RF_READ_COUNT));
 
@@ -1317,23 +1357,14 @@ void play_file(double* param, char param_no)
 			platform_axiadc_write(NULL, RF_WRITE_TOP, val);
 			debug("RF_WRITE_TOP is %x\n",
 					platform_axiadc_read(NULL,RF_WRITE_TOP));
-
+#if 0
 			platform_axiadc_write(NULL, RF_WRITE_COUNT,	num_samples);
+#else
+			platform_axiadc_write(NULL, RF_WRITE_COUNT,	0xffffffff);
+#endif
 			debug("RF_WRITE_COUNT is %x\n",
 					platform_axiadc_read(NULL,RF_WRITE_COUNT));
 
-			/* Byte swap IQ samples if requested */
-			if (bigendian)
-			{
-				samp_ptr = (uint16_t*) CONFIG_AD9361_RAM_BUFFER_ADDR;
-
-				for (i = 0; i < size / sizeof(uint32_t); i++)
-				{
-					samp_ptr[2 * i] = be16_to_cpu(samp_ptr[2 * i]);
-					samp_ptr[2 * i + 1] = be16_to_cpu(samp_ptr[2 * i + 1]);
-				}
-
-			}
 
 			/* Select 1 channel for TX and RX*/
 			platform_axiadc_write(NULL,
