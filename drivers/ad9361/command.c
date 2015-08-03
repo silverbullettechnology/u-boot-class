@@ -49,7 +49,7 @@
 #include <ad9361/ad9361.h>
 #include <ad9361/ad9361_api.h>
 #include <ad9361/platform.h>
-
+#define debug printf
 /******************************************************************************/
 /************************ Constants Definitions *******************************/
 /******************************************************************************/
@@ -857,7 +857,7 @@ void tx_loopback_test(double* param, char param_no)
 void set_asfe_loopback_test(double* param, char param_no)
 {
 	uint32_t *test_buf = (uint32_t*) CONFIG_AD9361_RAM_BUFFER_ADDR;
-	uint32_t num_samples = 8192;
+	uint32_t num_samples = 0x10000;
 	uint32_t en_dis = (uint32_t) param[0];
 	uint32_t bus = 0;
 	uint32_t val = 0;
@@ -897,12 +897,12 @@ void set_asfe_loopback_test(double* param, char param_no)
 			set_tx_samp_freq(param, param_no);
 			set_rx_samp_freq(param, param_no);
 
-			param[0] = 10000000;
+			param[0] = 20000000;
 			param_no = 1;
 			set_tx_rf_bandwidth(param, param_no);
 			set_rx_rf_bandwidth(param, param_no);
 
-			param[0] = 10000;
+			param[0] = 20000;
 			set_tx1_attenuation(param, param_no);
 			set_tx2_attenuation(param, param_no);
 
@@ -1212,15 +1212,19 @@ void play_file(double* param, char param_no)
 		{
 			/* Get the file size */
 			size = (uint32_t) param[0];
+			debug("Size = %d\n", size);
+
 			if (size > (0x80000 - 2 * sizeof(uint32_t)))
 			{
 				status = 1;
+				debug("File of size %d is too big\n",size);
 				break;
 			}
 
 			if (param_no >= 2)
 			{
 				bigendian = (uint32_t) param[1];
+				debug("Big endian flag = %d\n", bigendian);
 			}
 			else
 			{
@@ -1267,6 +1271,7 @@ void play_file(double* param, char param_no)
 #endif
 
 			num_samples = size / sizeof(uint32_t);
+			debug("%s:line%d: num_samples = %d\n", __func__, __LINE__, num_samples);
 
 			/* Setup TX DMA registers */
 			val = (uint32_t) CONFIG_AD9361_RAM_BUFFER_ADDR;
@@ -1282,14 +1287,23 @@ void play_file(double* param, char param_no)
 			debug("RF_READ_TOP is %x\n",
 					platform_axiadc_read(NULL, RF_READ_TOP));
 
+			num_samples = (platform_axiadc_read(NULL, RF_READ_TOP) -
+					            platform_axiadc_read(NULL, RF_READ_BASE))/4;
+
+			debug("%s:line%d: num_samples = %d\n", __func__, __LINE__, num_samples);
+
+
 			platform_axiadc_write(NULL, RF_READ_COUNT,
-					num_samples * sizeof(uint32_t));
+					num_samples);
 			debug("RF_READ_COUNT is %x\n",
 					platform_axiadc_read(NULL, RF_READ_COUNT));
 
-			num_samples = 2;
-			val = (uint32_t) CONFIG_AD9361_RAM_BUFFER_ADDR
-					- num_samples * sizeof(uint32_t);
+			/* Setup RX DMA registers */
+			num_samples = 8;
+			debug("%s:line%d: num_samples = %d\n", __func__, __LINE__, num_samples);
+			val = (uint32_t) 0x4100000 -
+					           num_samples * sizeof(uint32_t);
+
 			val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
 
 			debug("RF_WRITE_BASE setting to %x\n", val);
@@ -1298,13 +1312,13 @@ void play_file(double* param, char param_no)
 					platform_axiadc_read(NULL,RF_WRITE_BASE));
 
 			val += num_samples * sizeof(uint32_t);
+
 			debug("RF_WRITE_TOP setting to %x\n", val);
 			platform_axiadc_write(NULL, RF_WRITE_TOP, val);
 			debug("RF_WRITE_TOP is %x\n",
 					platform_axiadc_read(NULL,RF_WRITE_TOP));
 
-			platform_axiadc_write(NULL, RF_WRITE_COUNT,
-					num_samples * sizeof(uint32_t));
+			platform_axiadc_write(NULL, RF_WRITE_COUNT,	num_samples);
 			debug("RF_WRITE_COUNT is %x\n",
 					platform_axiadc_read(NULL,RF_WRITE_COUNT));
 
@@ -1354,15 +1368,14 @@ void play_file(double* param, char param_no)
 			/* Wait for transfer to complete or CTRL^C */
 			while (!ctrlc())
 			{
-				if (platform_axiadc_read(NULL, RF_WRITE_COUNT_AXI) == 0x0)
+				if(platform_axiadc_read(NULL, RF_READ_COUNT_AXI) == 0x0)
 				{
 					/* Disable transfer */
 					platform_axiadc_write(NULL, RF_CONFIG, 0);
-					/* Re-Enable transfer */
+					/* Enable transfer */
 					platform_axiadc_write(NULL, RF_CONFIG,
 					RF_CONFIG_RX_ENABLE_BITMASK | RF_CONFIG_TX_ENABLE_BITMASK);
 				}
-
 			}
 
 			/* Disable transfer */
@@ -1370,6 +1383,8 @@ void play_file(double* param, char param_no)
 
 			/* Multiplex time slots sequentially onto LVDS ports*/
 			platform_axiadc_write(NULL, (TX_SEL), 0x76543210);
+
+			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 
 #ifdef CONFIG_SP3DTC
 			/* Disable PA and LNA */
