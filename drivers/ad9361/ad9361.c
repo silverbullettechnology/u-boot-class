@@ -3923,7 +3923,7 @@ static int32_t ad9361_gpo_setup(struct ad9361_rf_phy *phy, struct gpo_control *c
 	ad9361_spi_write(spi, REG_GPO3_RX_DELAY, ctrl->gpo3_rx_delay_us);
 	ad9361_spi_write(spi, REG_GPO3_TX_DELAY, ctrl->gpo3_tx_delay_us);
 
-#ifdef CONFIG_SP3DTC
+
 	ad9361_spi_write(spi, REG_EXTERNAL_LNA_CTRL, GPO_MANUAL_SELECT);
 
 	val = 0 | GPO_SET_MASK(GPO_ADX_RX1_LNA_BYPASS);
@@ -3932,7 +3932,7 @@ static int32_t ad9361_gpo_setup(struct ad9361_rf_phy *phy, struct gpo_control *c
 	val = GPO_MANUAL_CTRL(val);
 	val |= GPO_INIT_STATE(0x03);
 	ad9361_spi_write(spi, REG_GPO_FORCE_AND_INIT, val); // GPO Manual and GPO auto value in ALERT
-#endif
+
 
 	return 0;
 }

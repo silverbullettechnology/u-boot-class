@@ -867,12 +867,12 @@ void set_asfe_loopback_test(double* param, char param_no)
 		/* Disable any ongoing transfers first */
 		platform_axiadc_write(NULL, RF_CONFIG, 0);
 		platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
-#ifdef CONFIG_SP3DTC
+
 		/* Turn all PAs off */
 		platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
 		/* Turn all LNAs off  */
 		platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA | ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
-#endif
+
 		if (NULL != ad9361_phy)
 		{
 			bus = ad9361_phy->spi->dev.bus;
@@ -918,11 +918,11 @@ void set_asfe_loopback_test(double* param, char param_no)
 				param[0] = 500.000000;
 				set_rx_lo_freq(param, param_no);
 
-#ifdef CONFIG_SP3DTC
+
 				/* Setup ASFE for loopback */
 				platform_lna_en(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
 				platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
-#endif
+
 			}
 			else
 			{
@@ -931,12 +931,12 @@ void set_asfe_loopback_test(double* param, char param_no)
 				set_tx_lo_freq(param, param_no);
 				param[0] = 2400.0000000;
 				set_rx_lo_freq(param, param_no);
-#ifdef CONFIG_SP3DTC
+
 				/* Setup ASFE for loopback */
 				platform_tr_rx_en(ASFE_AD2_TR_SWITCH);
 				platform_lna_en(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
 				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
-#endif
+
 			}
 
 			/* Setup digital ADC->DAC loopback */
@@ -1024,7 +1024,7 @@ void set_asfe_loopback_test(double* param, char param_no)
 		platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
 		ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_STATE_ALERT);
 
-#ifdef CONFIG_SP3DTC
+
 		/* Disable PA and LNA */
 		if(0 == bus)
 		{
@@ -1036,7 +1036,7 @@ void set_asfe_loopback_test(double* param, char param_no)
 			platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
 			platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 		}
-#endif
+
 	}
 	else
 	{
@@ -1238,12 +1238,12 @@ void play_file(double* param, char param_no)
 			/* Disable any ongoing transfers first */
 			platform_axiadc_write(NULL, RF_CONFIG, 0);
 			platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
-#ifdef CONFIG_SP3DTC
+
 			/* Turn all PAs off */
 			platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
 			/* Turn all LNAs off  */
 			platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA | ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
-#endif
+
 			if (NULL != ad9361_phy)
 			{
 				bus = ad9361_phy->spi->dev.bus;
@@ -1256,7 +1256,7 @@ void play_file(double* param, char param_no)
 
 			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 
-#ifdef CONFIG_SP3DTC
+
 			if (0 == bus)
 			{
 
@@ -1268,7 +1268,7 @@ void play_file(double* param, char param_no)
 				platform_tr_tx_en(ASFE_AD2_TR_SWITCH);
 				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 			}
-#endif
+
 			/* Byte swap IQ samples if requested */
 			if (bigendian)
 			{
@@ -1417,7 +1417,7 @@ void play_file(double* param, char param_no)
 
 			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 
-#ifdef CONFIG_SP3DTC
+
 			/* Disable PA and LNA */
 			if(0 == bus)
 			{
@@ -1429,7 +1429,7 @@ void play_file(double* param, char param_no)
 				platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
 				platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 			}
-#endif
+
 
 		}
 
