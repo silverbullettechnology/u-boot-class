@@ -3894,6 +3894,7 @@ struct ctrl_outs_control *ctrl)
 static int32_t ad9361_gpo_setup(struct ad9361_rf_phy *phy, struct gpo_control *ctrl)
 {
 	struct spi_device *spi = phy->spi;
+	uint8_t val = 0;
 
 	dev_dbg(&phy->spi->dev, "%s", __func__);
 
@@ -3921,6 +3922,17 @@ static int32_t ad9361_gpo_setup(struct ad9361_rf_phy *phy, struct gpo_control *c
 	ad9361_spi_write(spi, REG_GPO2_TX_DELAY, ctrl->gpo2_tx_delay_us);
 	ad9361_spi_write(spi, REG_GPO3_RX_DELAY, ctrl->gpo3_rx_delay_us);
 	ad9361_spi_write(spi, REG_GPO3_TX_DELAY, ctrl->gpo3_tx_delay_us);
+
+#ifdef CONFIG_SP3DTC
+	ad9361_spi_write(spi, REG_EXTERNAL_LNA_CTRL, GPO_MANUAL_SELECT);
+
+	val = 0 | GPO_SET_MASK(GPO_ADX_RX1_LNA_BYPASS);
+	val |= GPO_SET_MASK(GPO_ADX_RX2_LNA_BYPASS);
+	val &= ~(GPO_SET_MASK(GPO_AD2_TR_N));
+	val = GPO_MANUAL_CTRL(val);
+	val |= GPO_INIT_STATE(0x03);
+	ad9361_spi_write(spi, REG_GPO_FORCE_AND_INIT, val); // GPO Manual and GPO auto value in ALERT
+#endif
 
 	return 0;
 }
@@ -6821,4 +6833,61 @@ int32_t ad9361_post_setup(struct ad9361_rf_phy *phy)
 	ad9361_ensm_restore_prev_state(phy);
 
 	return ret;
+}
+/* Set GPO pin.
+ * @param phy The AD9361 state structure.
+ * @param gpo GPO number
+ * @return 0 in case of success, negative error code otherwise.
+ */
+int32_t ad9361_gpo_set(struct ad9361_rf_phy *phy, uint8_t gpo)
+{
+	struct spi_device *spi = phy->spi;
+	int32_t val = 0;
+	int32_t status = 0;
+
+	dev_dbg(&phy->spi->dev, "%s", __func__);
+
+	val = ad9361_spi_read(spi, REG_EXTERNAL_LNA_CTRL);
+
+	if((GPO_MANUAL_SELECT & val))
+	{
+		val = ad9361_spi_read(spi, REG_GPO_FORCE_AND_INIT);
+		val |= GPO_MANUAL_CTRL(GPO_SET_MASK(gpo));
+		ad9361_spi_write(spi, REG_GPO_FORCE_AND_INIT, val);
+	}
+	else
+	{
+		dev_err(&phy->spi->dev, "Manual GPO mode is not enabled\n");
+		status = -EINVAL;
+	}
+	return status;
+}
+
+/* Clear GPO pin.
+ * @param phy The AD9361 state structure.
+ * @param gpo GPO number
+ * @return 0 in case of success, negative error code otherwise.
+ */
+int32_t ad9361_gpo_clear(struct ad9361_rf_phy *phy, uint8_t gpo)
+{
+	struct spi_device *spi = phy->spi;
+	int32_t val = 0;
+	int32_t status = 0;
+
+	dev_dbg(&phy->spi->dev, "%s", __func__);
+
+	val = ad9361_spi_read(spi, REG_EXTERNAL_LNA_CTRL);
+
+	if((GPO_MANUAL_SELECT & val))
+	{
+		val = ad9361_spi_read(spi, REG_GPO_FORCE_AND_INIT);
+		val &= ~GPO_MANUAL_CTRL(GPO_SET_MASK(gpo));
+		ad9361_spi_write(spi, REG_GPO_FORCE_AND_INIT, val);
+	}
+	else
+	{
+		dev_err(&phy->spi->dev, "Manual GPO mode is not enabled\n");
+		status = -EINVAL;
+	}
+	return status;
 }
