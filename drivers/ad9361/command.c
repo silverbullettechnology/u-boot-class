@@ -290,7 +290,7 @@ void set_tx_rf_bandwidth(double* param, char param_no) // "tx_rf_bandwidth=" com
 
 	if(param_no >= 1)
 	{
-		bandwidth_hz = param[0];
+		bandwidth_hz = (uint32_t)param[0];
 		ad9361_set_tx_rf_bandwidth(ad9361_phy, bandwidth_hz);
 	}
 	else
@@ -321,7 +321,7 @@ void set_tx1_attenuation(double* param, char param_no) // "tx1_attenuation=" com
 
 	if(param_no >= 1)
 	{
-		attenuation_mdb = param[0];
+		attenuation_mdb = (uint32_t)param[0];
 		ad9361_set_tx_attenuation(ad9361_phy, 0, attenuation_mdb);
 		console_print("tx1_attenuation=%d\n", attenuation_mdb);
 	}
@@ -353,7 +353,7 @@ void set_tx2_attenuation(double* param, char param_no) // "tx1_attenuation=" com
 
 	if(param_no >= 1)
 	{
-		attenuation_mdb = param[0];
+		attenuation_mdb = (uint32_t)param[0];
 		ad9361_set_tx_attenuation(ad9361_phy, 1, attenuation_mdb);
 		console_print("tx2_attenuation=%d\n", attenuation_mdb);
 	}
@@ -486,7 +486,7 @@ void set_rx_rf_bandwidth(double* param, char param_no) // "rx_rf_bandwidth=" com
 
 	if(param_no >= 1)
 	{
-		bandwidth_hz = param[0];
+		bandwidth_hz = (uint32_t)param[0];
 		ad9361_set_rx_rf_bandwidth(ad9361_phy, bandwidth_hz);
 		console_print("rx_rf_bandwidth=%d Hz\n", bandwidth_hz);
 	}
@@ -861,6 +861,7 @@ void set_asfe_loopback_test(double* param, char param_no)
 	uint32_t en_dis = (uint32_t) param[0];
 	uint32_t bus = 0;
 	uint32_t val = 0;
+	uint64_t lo_freq_hz;
 
 	if (param_no >= 1)
 	{
@@ -887,36 +888,18 @@ void set_asfe_loopback_test(double* param, char param_no)
 
 		if (1 == en_dis)
 		{
-			double param[4];
-			char param_no;
 
 			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 			/* Setup AD9361 */
-			param[0] = 38400000;
-			param_no = 1;
-			set_tx_samp_freq(param, param_no);
-			set_rx_samp_freq(param, param_no);
-
-			param[0] = 20000000;
-			param_no = 1;
-			set_tx_rf_bandwidth(param, param_no);
-			set_rx_rf_bandwidth(param, param_no);
-
-			param[0] = 20000;
-			set_tx1_attenuation(param, param_no);
-			set_tx2_attenuation(param, param_no);
-
-			param[0] = 0;
-			set_rx1_rf_gain(param, param_no);
-			set_rx2_rf_gain(param, param_no);
 
 			if (0 == bus)
 			{
 
-				param[0] = 300.000000;
-				set_tx_lo_freq(param, param_no);
-				param[0] = 500.000000;
-				set_rx_lo_freq(param, param_no);
+				lo_freq_hz = (uint64_t)300000000;
+				ad9361_set_tx_lo_freq(ad9361_phy, lo_freq_hz);
+
+				lo_freq_hz = (uint64_t)500000000;
+				ad9361_set_rx_lo_freq(ad9361_phy, lo_freq_hz);
 
 
 				/* Setup ASFE for loopback */
@@ -927,10 +910,10 @@ void set_asfe_loopback_test(double* param, char param_no)
 			else
 			{
 				/* Setup AD9361 */
-				param[0] = 2500.0000000;
-				set_tx_lo_freq(param, param_no);
-				param[0] = 2400.0000000;
-				set_rx_lo_freq(param, param_no);
+				lo_freq_hz = (uint64_t)2500000000;
+				ad9361_set_tx_lo_freq(ad9361_phy, lo_freq_hz);
+				lo_freq_hz = (uint64_t)2400000000;
+				ad9361_set_rx_lo_freq(ad9361_phy, lo_freq_hz);
 
 				/* Setup ASFE for loopback */
 				platform_tr_rx_en(ASFE_AD2_TR_SWITCH);
@@ -938,6 +921,60 @@ void set_asfe_loopback_test(double* param, char param_no)
 				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 
 			}
+
+			ad9361_get_tx_lo_freq(ad9361_phy, &lo_freq_hz);
+			console_print("tx_lo_freq=%llu\n", lo_freq_hz);
+
+			ad9361_get_rx_lo_freq(ad9361_phy, &lo_freq_hz);
+			console_print("rx_lo_freq=%llu\n", lo_freq_hz);
+
+			val = 38400000;
+			ad9361_set_tx_sampling_freq(ad9361_phy, val);
+			ad9361_set_rx_sampling_freq(ad9361_phy, val);
+
+			ad9361_get_tx_sampling_freq(ad9361_phy, &val);
+			console_print("tx_samp_freq=%d\n", val);
+			ad9361_get_rx_sampling_freq(ad9361_phy, &val);
+			console_print("rx_samp_freq=%d\n", val);
+
+
+
+			val = 10000000;
+			ad9361_set_tx_rf_bandwidth(ad9361_phy,val);
+			ad9361_set_rx_rf_bandwidth(ad9361_phy,val);
+
+			ad9361_get_tx_rf_bandwidth(ad9361_phy,&val);
+			console_print("tx_rf_bandwidth=%d Hz\n", val);
+			ad9361_get_rx_rf_bandwidth(ad9361_phy,&val);
+			console_print("rx_rf_bandwidth=%d Hz\n", val);
+
+			val = 0;
+			ad9361_set_tx_attenuation(ad9361_phy, 0, val);
+			ad9361_set_tx_attenuation(ad9361_phy, 1, val);
+
+			ad9361_get_tx_attenuation(ad9361_phy, 0, &val);
+			console_print("tx1_attenuation=%d\n", val);
+			ad9361_get_tx_attenuation(ad9361_phy, 1, &val);
+			console_print("tx2_attenuation=%d\n", val);
+
+			val = RF_GAIN_MGC;
+			ad9361_set_rx_gain_control_mode(ad9361_phy, 0, val);
+			ad9361_set_rx_gain_control_mode(ad9361_phy, 1, val);
+
+			ad9361_get_rx_gain_control_mode(ad9361_phy, 0, (uint8_t*)&val);
+			console_print("rx1_gc_mode=%d\n", val);
+			ad9361_get_rx_gain_control_mode(ad9361_phy, 1, (uint8_t*)&val);
+			console_print("rx2_gc_mode=%d\n", val);
+
+			val = 65;
+
+			ad9361_set_rx_rf_gain (ad9361_phy, 0, val);
+			ad9361_set_rx_rf_gain (ad9361_phy, 1, val);
+
+			ad9361_get_rx_rf_gain (ad9361_phy, 0, (int32_t*)&val);
+			console_print("rx1_rf_gain=%d\n", (int32_t)val);
+			ad9361_get_rx_rf_gain (ad9361_phy, 1, (int32_t*)&val);
+			console_print("rx2_rf_gain=%d\n", (int32_t)val);
 
 			/* Setup digital ADC->DAC loopback */
 
