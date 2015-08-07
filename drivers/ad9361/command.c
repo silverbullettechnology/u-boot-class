@@ -44,6 +44,7 @@
 #include <malloc.h>
 #include <spi.h>
 #include <asm/arch/s3ma-regs.h>
+#include <asm/arch/sys_proto.h>
 #include <ad9361/command.h>
 #include <ad9361/console.h>
 #include <ad9361/ad9361.h>
@@ -94,6 +95,10 @@ command cmd_list[] = {
 	{"do_tx_calibration=","Run TX QUADRATURE calibration with phase offset as parameter","",do_tx_calibration},
 	{"ensm_mode=", "Switch ad9361 enable state machine mode.","",ensm_mode},
 	{"play_file=", "Transmit IQ file from address 0x04080000.","", play_file},
+	{"asfe_lna_byp=","Set ASFE AD_RXx_LNA_BYP line","asfe_lna_byp=<rx channel#[0-1]> <val[0-1]> ", set_asfe_lna_byp},
+	{"asfe_tx_en=","Set ASFE TXx_EN line","asfe_tx_en=<tx channel#[0-1]> <val[0-1]> ", set_asfe_tx_en},
+	{"asfe_trn=","Set ASFE AD_TR_N line","asfe_trn=<val[0-1]> ", set_asfe_trn},
+	{"asfe_reset=","Set ASFE reset line","asfe_reset=<val[0-1]> ", set_asfe_reset},
 #if 0
 	{"dds_tx1_tone1_freq?", "Gets current DDS TX1 Tone 1 frequency [Hz].", "", get_dds_tx1_tone1_freq},
 	{"dds_tx1_tone1_freq=", "Sets the DDS TX1 Tone 1 frequency [Hz].", "", set_dds_tx1_tone1_freq},
@@ -956,7 +961,7 @@ void set_asfe_loopback_test(double* param, char param_no)
 			console_print("tx1_attenuation=%d\n", val);
 			ad9361_get_tx_attenuation(ad9361_phy, 1, &val);
 			console_print("tx2_attenuation=%d\n", val);
-
+#if 1
 			val = RF_GAIN_MGC;
 			ad9361_set_rx_gain_control_mode(ad9361_phy, 0, val);
 			ad9361_set_rx_gain_control_mode(ad9361_phy, 1, val);
@@ -966,11 +971,11 @@ void set_asfe_loopback_test(double* param, char param_no)
 			ad9361_get_rx_gain_control_mode(ad9361_phy, 1, (uint8_t*)&val);
 			console_print("rx2_gc_mode=%d\n", val);
 
-			val = 65;
+			val = 10;
 
 			ad9361_set_rx_rf_gain (ad9361_phy, 0, val);
 			ad9361_set_rx_rf_gain (ad9361_phy, 1, val);
-
+#endif
 			ad9361_get_rx_rf_gain (ad9361_phy, 0, (int32_t*)&val);
 			console_print("rx1_rf_gain=%d\n", (int32_t)val);
 			ad9361_get_rx_rf_gain (ad9361_phy, 1, (int32_t*)&val);
@@ -1473,10 +1478,290 @@ void play_file(double* param, char param_no)
 	}
 	else
 	{
-		show_invalid_param_message(41);
+		show_invalid_param_message(39);
 
 	}
 }
+
+/* Set ASFE AD_RXx_LNA_BYP line */
+void set_asfe_lna_byp(double* param, char param_no)
+{
+	uint32_t status = 0;
+	uint32_t chan;
+	uint32_t val;
+	uint32_t bus = 0;
+	uint32_t lna_line;
+
+	if (param_no >= 2)
+	{
+		if (NULL != ad9361_phy)
+		{
+			bus = ad9361_phy->spi->dev.bus;
+		}
+		else
+		{
+			console_print("%s: ad9361_phy structure is invalid\n", __func__);
+			return;
+		}
+
+		do
+		{
+			chan = (uint32_t)param[0];
+
+			if(chan > 1)
+			{
+				console_print("Invalid channel number %d \n", chan);
+				status = 1;
+				break;
+			}
+
+			val = (uint32_t)param[1];
+
+			if(val > 1)
+			{
+				console_print("Invalid pin level %d \n", val);
+				status = 1;
+				break;
+			}
+
+			lna_line = ASFE_AD1_RX1_LNA;
+
+			if(chan)
+			{
+				lna_line <<= 1;
+			}
+
+			if(bus)
+			{
+				lna_line <<= 2;
+			}
+
+			if(val)
+			{
+				platform_lna_dis(lna_line);
+			}
+			else
+			{
+				platform_lna_en(lna_line);
+			}
+
+		}while(0);
+
+	}
+	else
+	{
+		status = 1;
+	}
+
+	if(status)
+	{
+		show_invalid_param_message(40);
+
+	}
+}
+
+/* Set ASFE TXx_EN line */
+void set_asfe_tx_en(double* param, char param_no)
+{
+	uint32_t status = 0;
+	uint32_t chan;
+	uint32_t val;
+	uint32_t bus = 0;
+	uint32_t pa_line;
+
+	if (param_no >= 2)
+	{
+		if (NULL != ad9361_phy)
+		{
+			bus = ad9361_phy->spi->dev.bus;
+		}
+		else
+		{
+			console_print("%s: ad9361_phy structure is invalid\n", __func__);
+			return;
+		}
+
+		do
+		{
+			chan = (uint32_t)param[0];
+
+			if(chan > 1)
+			{
+				console_print("Invalid channel number %d \n", chan);
+				status = 1;
+				break;
+			}
+
+			val = (uint32_t)param[1];
+
+			if(val > 1)
+			{
+				console_print("Invalid pin level %d \n", val);
+				status = 1;
+				break;
+			}
+
+			pa_line = ASFE_AD1_TX1_PA_BIAS;
+
+			if(chan)
+			{
+				pa_line <<= 1;
+			}
+
+			if(bus)
+			{
+				pa_line <<= 2;
+			}
+
+			if(val)
+			{
+				platform_pa_bias_en(pa_line);
+			}
+			else
+			{
+				platform_pa_bias_dis(pa_line);
+			}
+
+		}while(0);
+
+	}
+	else
+	{
+		status = 1;
+	}
+
+	if(status)
+	{
+		show_invalid_param_message(41);
+
+	}
+
+}
+
+/* Set ASFE AD_TR_N line */
+void set_asfe_trn(double* param, char param_no)
+{
+	uint32_t status = 0;
+	uint32_t val;
+	uint32_t bus = 0;
+	uint32_t trn_line;
+
+	if (param_no >= 1)
+	{
+		if (NULL != ad9361_phy)
+		{
+			bus = ad9361_phy->spi->dev.bus;
+		}
+		else
+		{
+			console_print("%s: ad9361_phy structure is invalid\n", __func__);
+			return;
+		}
+
+		do
+		{
+
+			val = (uint32_t)param[0];
+
+			if(val > 1)
+			{
+				console_print("Invalid pin level %d \n", val);
+				status = 1;
+				break;
+			}
+
+			trn_line = ASFE_AD1_TR_SWITCH;
+
+			if(bus)
+			{
+				trn_line <<= 1;
+			}
+
+
+			if(val)
+			{
+				platform_tr_tx_en(trn_line);
+			}
+			else
+			{
+				platform_tr_rx_en(trn_line);
+			}
+
+		}while(0);
+
+	}
+	else
+	{
+		status = 1;
+	}
+
+	if(status)
+	{
+		show_invalid_param_message(41);
+
+	}
+
+}
+
+/* Set ASFE reset line */
+void set_asfe_reset(double* param, char param_no)
+{
+	uint32_t bus = 0;
+	uint32_t status = 0;
+	uint32_t val;
+
+	if (param_no >= 1)
+	{
+		if (NULL != ad9361_phy)
+		{
+			bus = ad9361_phy->spi->dev.bus;
+		}
+		else
+		{
+			console_print("%s: ad9361_phy structure is invalid\n", __func__);
+			return;
+		}
+
+		do
+		{
+			val = (uint32_t)param[0];
+
+			if(val > 1)
+			{
+				console_print("Invalid pin level %d \n", val);
+				status = 1;
+				break;
+			}
+
+			if(bus)
+			{
+				s3ma_gpio33_set_value(GPIO_ASFE1_RESET, val);
+			}
+			else
+			{
+				s3ma_gpio33_set_value(GPIO_ASFE0_RESET, val);
+			}
+
+		}while(0);
+
+
+	}
+	else
+	{
+		status = 1;
+	}
+
+
+
+	if(status)
+	{
+		show_invalid_param_message(42);
+
+	}
+
+}
+
+
 
 #if 0
 /**************************************************************************//***

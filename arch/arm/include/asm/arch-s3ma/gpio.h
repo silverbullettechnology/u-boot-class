@@ -39,5 +39,7 @@
 #define GPIO33_5	(29)
 #define GPIO33_6	(30)
 #define GPIO33_7	(31)
+#define GPIO33_8	(32)
+#define GPIO33_9	(33)
 
 #endif	/* __S3MA_GPIO_H */

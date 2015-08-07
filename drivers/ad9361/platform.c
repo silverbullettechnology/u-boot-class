@@ -45,6 +45,7 @@
 #include <spi.h>
 #include <asm/io.h>
 #include <asm/arch/s3ma-regs.h>
+#include <asm/arch/sys_proto.h>
 #include <ad9361/platform.h>
 #include <ad9361/ad9361_api.h>
 #include <ad9361/util.h>
@@ -319,13 +320,13 @@ void platform_axiadc_write(struct axiadc_state *st, unsigned reg, unsigned val)
 void platform_pa_bias_en(uint32_t mask)
 {
 	if(ASFE_AD1_TX1_PA_BIAS & mask)
-		gpio_set_value(GPIO_AD1_TX1_PA_EN, 1);
+		s3ma_gpio33_set_value(GPIO_AD1_TX1_PA_EN, 1);
 	else if(ASFE_AD1_TX2_PA_BIAS & mask)
-		gpio_set_value(GPIO_AD1_TX2_PA_EN, 1);
+		s3ma_gpio33_set_value(GPIO_AD1_TX2_PA_EN, 1);
 	else if(ASFE_AD2_TX1_PA_BIAS & mask)
-		gpio_set_value(GPIO_AD2_TX1_PA_EN, 1);
+		s3ma_gpio33_set_value(GPIO_AD2_TX1_PA_EN, 1);
 	else if(ASFE_AD2_TX2_PA_BIAS & mask)
-		gpio_set_value(GPIO_AD2_TX2_PA_EN, 1);
+		s3ma_gpio33_set_value(GPIO_AD2_TX2_PA_EN, 1);
 	else
 		printf("%s: Invalid PA control IO\n", __func__);
 }
@@ -335,13 +336,13 @@ void platform_pa_bias_en(uint32_t mask)
 void platform_pa_bias_dis(uint32_t mask)
 {
 	if(ASFE_AD1_TX1_PA_BIAS & mask)
-		gpio_set_value(GPIO_AD1_TX1_PA_EN, 0);
+		s3ma_gpio33_set_value(GPIO_AD1_TX1_PA_EN, 0);
 	else if(ASFE_AD1_TX2_PA_BIAS & mask)
-		gpio_set_value(GPIO_AD1_TX2_PA_EN, 0);
+		s3ma_gpio33_set_value(GPIO_AD1_TX2_PA_EN, 0);
 	else if(ASFE_AD2_TX1_PA_BIAS & mask)
-		gpio_set_value(GPIO_AD2_TX1_PA_EN, 0);
+		s3ma_gpio33_set_value(GPIO_AD2_TX1_PA_EN, 0);
 	else if(ASFE_AD2_TX2_PA_BIAS & mask)
-		gpio_set_value(GPIO_AD2_TX2_PA_EN, 0);
+		s3ma_gpio33_set_value(GPIO_AD2_TX2_PA_EN, 0);
 	else
 		printf("%s: Invalid PA control IO\n", __func__);
 }
@@ -409,6 +410,9 @@ void platform_tr_tx_en(uint32_t mask)
 
 void platform_asfe_init(void)
 {
+	/* Reset ASFE */
+	s3ma_gpio33_set_value(GPIO_ASFE0_RESET,0);
+	s3ma_gpio33_set_value(GPIO_ASFE1_RESET,0);
 	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
 	platform_lna_dis(0|ASFE_AD1_RX1_LNA|ASFE_AD1_RX2_LNA|ASFE_AD2_RX1_LNA|ASFE_AD2_RX2_LNA);
 

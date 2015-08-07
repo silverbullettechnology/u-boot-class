@@ -332,7 +332,7 @@ int s3ma_gpio33_set_value(unsigned gpio, int value)
 {
 	int res = -1;
 
-	if((gpio >= GPIO33_0)&&(gpio <= GPIO33_7)){
+	if((gpio >= GPIO33_0)&&(gpio <= GPIO33_9)){
 		res = 0;
 		if(value){
 			writel(1 << (gpio - GPIO33_0),ASFE_CONTROL_SET);
@@ -348,7 +348,7 @@ int s3ma_gpio33_set_value(unsigned gpio, int value)
 int s3ma_gpio33_get_value(unsigned gpio)
 {
 	int res = 0;
-	if((gpio >= GPIO33_0)&&(gpio <= GPIO33_7)){
+	if((gpio >= GPIO33_0)&&(gpio <= GPIO33_9)){
 		res = readl(ASFE_CONTROL);
 		res &= 1 << (gpio - GPIO33_0);
 	}

@@ -252,4 +252,17 @@ void do_tx_calibration(double* param, char param_no);
 void ensm_mode(double* param, char param_no);
 
 void play_file(double* param, char param_no);
+
+/* Set ASFE AD_RXx_LNA_BYP line */
+void set_asfe_lna_byp(double* param, char param_no);
+
+/* Set ASFE TXx_EN line */
+void set_asfe_tx_en(double* param, char param_no);
+
+/* Set ASFE AD_TR_N line */
+void set_asfe_trn(double* param, char param_no);
+
+/* Set ASFE reset line */
+void set_asfe_reset(double* param, char param_no);
+
 #endif  // __COMMAND_H__

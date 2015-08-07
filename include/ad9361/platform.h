@@ -124,7 +124,8 @@ enum adc_pn_sel {
 #define GPIO_AD1_TX2_PA_EN			GPIO33_2
 #define GPIO_AD2_TX1_PA_EN			GPIO33_4
 #define GPIO_AD2_TX2_PA_EN			GPIO33_1
-
+#define GPIO_ASFE0_RESET			GPIO33_8
+#define GPIO_ASFE1_RESET			GPIO33_9
 
 
 #define GPO_ADX_RX1_LNA_BYPASS		GPO_0
