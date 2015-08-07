@@ -303,8 +303,9 @@
 #define CONFIG_SYS_MEMTEST_SCRATCH     0
 
 /* DAC configs */
-#ifndef SP3DTC
 
+
+#ifndef CONFIG_SP3DTC
 #define CONFIG_CMD_DAC
 #define CONFIG_LT2640_DAC
 #define CONFIG_LT2640_DAC_SPEED		(1000000)
@@ -312,6 +313,7 @@
 #define CONFIG_LT2640_DAC_CS		(GPIO33_7)
 #define CONFIG_LT2640_DAC_BUS		(4)
 #define CONFIG_LT2640_DAC_DEFAULT	(0)
+#endif
 
 /* SPL configs */
 /*************************/
@@ -366,7 +368,6 @@
 #define CONFIG_SPL_FAT_LOAD_PAYLOAD_NAME     "u-boot.img"
 #endif
 
-#endif
 
 
 
