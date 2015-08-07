@@ -143,10 +143,9 @@ int board_early_init_f(void)
 	header->ih_magic = 0;
 #endif
 
-#ifdef CONFIG_AD9361
-
+#ifdef CONFIG_SP3DTC
 	/* Init ASFE PA control GPIOs */
-//	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
+	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
 	platform_asfe_init();
 #endif
 	return 0;
@@ -163,10 +162,13 @@ int overwrite_console(void)
 
 int board_init(void)
 {
+#ifdef CONFIG_SPI_FLASH
 	/* Initialize CS lines on SPI4 */
 	s3ma_gpio33_set_value(CONFIG_SF_DEFAULT_CS, 1);
+#endif
+#ifdef CONFIG_LT2640_DAC
 	s3ma_gpio33_set_value(CONFIG_LT2640_DAC_CS, 1);
-
+#endif
 	return 0;
 }
 
