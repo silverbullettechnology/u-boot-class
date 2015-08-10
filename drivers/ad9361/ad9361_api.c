@@ -182,9 +182,9 @@ const AD9361_InitParam default_init_param = {
 		/* AuxDAC Control */
 		1,		//aux_dac_manual_mode_enable ***  adi,aux-dac-manual-mode-enable
 		0,		//aux_dac1_default_value_mV ***  adi,aux-dac1-default-value-mV
-		0,		//aux_dac1_active_in_rx_enable ***  adi,aux-dac1-active-in-rx-enable
-		0,		//aux_dac1_active_in_tx_enable ***  adi,aux-dac1-active-in-tx-enable
-		0,		//aux_dac1_active_in_alert_enable ***  adi,aux-dac1-active-in-alert-enable
+		1,		//aux_dac1_active_in_rx_enable ***  adi,aux-dac1-active-in-rx-enable
+		1,		//aux_dac1_active_in_tx_enable ***  adi,aux-dac1-active-in-tx-enable
+		1,		//aux_dac1_active_in_alert_enable ***  adi,aux-dac1-active-in-alert-enable
 		0,		//aux_dac1_rx_delay_us ***  adi,aux-dac1-rx-delay-us
 		0,		//aux_dac1_tx_delay_us ***  adi,aux-dac1-tx-delay-us
 		0,		//aux_dac2_default_value_mV ***  adi,aux-dac2-default-value-mV

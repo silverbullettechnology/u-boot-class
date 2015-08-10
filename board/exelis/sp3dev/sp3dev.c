@@ -32,6 +32,10 @@
 #ifdef CONFIG_POST
 #include <post.h>
 #endif
+
+#ifdef CONFIG_AD9361
+#include <ad9361/platform.h>
+#endif
 DECLARE_GLOBAL_DATA_PTR;
 
 /* Declare Power on reset configuration space data
@@ -146,7 +150,7 @@ int board_early_init_f(void)
 #ifdef CONFIG_SP3DTC
 	/* Init ASFE PA control GPIOs */
 	platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
-	platform_asfe_init();
+//	platform_asfe_init();
 #endif
 	return 0;
 }
