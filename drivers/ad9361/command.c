@@ -961,7 +961,7 @@ void set_asfe_loopback_test(double* param, char param_no)
 			console_print("tx1_attenuation=%d\n", val);
 			ad9361_get_tx_attenuation(ad9361_phy, 1, &val);
 			console_print("tx2_attenuation=%d\n", val);
-#if 1
+#if 0
 			val = RF_GAIN_MGC;
 			ad9361_set_rx_gain_control_mode(ad9361_phy, 0, val);
 			ad9361_set_rx_gain_control_mode(ad9361_phy, 1, val);
@@ -971,7 +971,7 @@ void set_asfe_loopback_test(double* param, char param_no)
 			ad9361_get_rx_gain_control_mode(ad9361_phy, 1, (uint8_t*)&val);
 			console_print("rx2_gc_mode=%d\n", val);
 
-			val = 10;
+			val = 73;
 
 			ad9361_set_rx_rf_gain (ad9361_phy, 0, val);
 			ad9361_set_rx_rf_gain (ad9361_phy, 1, val);
