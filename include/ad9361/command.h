@@ -265,4 +265,8 @@ void set_asfe_trn(double* param, char param_no);
 /* Set ASFE reset line */
 void set_asfe_reset(double* param, char param_no);
 
+void bist_tx_tone_en(double* param, char param_no);
+
+void bist_tx_tone_dis(double* param, char param_no);
+
 #endif  // __COMMAND_H__

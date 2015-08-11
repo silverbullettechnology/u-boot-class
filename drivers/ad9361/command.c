@@ -99,6 +99,8 @@ command cmd_list[] = {
 	{"asfe_tx_en=","Set ASFE TXx_EN line","asfe_tx_en=<tx channel#[0-1]> <val[0-1]> ", set_asfe_tx_en},
 	{"asfe_trn=","Set ASFE AD_TR_N line","asfe_trn=<val[0-1]> ", set_asfe_trn},
 	{"asfe_reset=","Set ASFE reset line","asfe_reset=<val[0-1]> ", set_asfe_reset},
+	{"bist_tx_tone_en=", "Enable bist TX tone generation ","bist_tx_tone=<freq_Hz> <level_db>",bist_tx_tone_en},
+	{"bist_tx_tone_dis=", "Disable bist TX tone generation ","bist_tx_tone=0",bist_tx_tone_dis},
 #if 0
 	{"dds_tx1_tone1_freq?", "Gets current DDS TX1 Tone 1 frequency [Hz].", "", get_dds_tx1_tone1_freq},
 	{"dds_tx1_tone1_freq=", "Sets the DDS TX1 Tone 1 frequency [Hz].", "", set_dds_tx1_tone1_freq},
@@ -1335,7 +1337,7 @@ void play_file(double* param, char param_no)
 				size += val ;
 				debug("%s:line%d: size = %d\n", __func__, __LINE__, size);
 			}
-
+#if 0
 			/* Pad file with zeros on both sides to reach 50% duty cycle */
 			memcpy((uint32_t*)0x80000000, (uint32_t*)CONFIG_AD9361_RAM_BUFFER_ADDR, size);
 			val = CONFIG_AD9361_RAM_BUFFER_ADDR;
@@ -1346,7 +1348,7 @@ void play_file(double* param, char param_no)
 			memset((uint32_t*)val, 0, size/2);
 
 			size = 2 * size;
-
+#endif
 			num_samples = size / sizeof(uint32_t);
 			debug("%s:line%d: num_samples = %d\n", __func__, __LINE__, num_samples);
 
@@ -1761,6 +1763,69 @@ void set_asfe_reset(double* param, char param_no)
 
 }
 
+void bist_tx_tone_en(double* param, char param_no)
+{
+	uint32_t status = 0;
+	uint32_t freq_Hz, level_db;
+
+	if (param_no >= 2)
+	{
+		if (NULL == ad9361_phy)
+		{
+			console_print("%s: ad9361_phy structure is invalid\n", __func__);
+			return;
+		}
+
+
+		freq_Hz = (uint32_t)param[0];
+		level_db = (uint32_t)param[1];
+		ad9361_bist_tone(ad9361_phy, BIST_INJ_TX, freq_Hz, level_db, 0);
+	}
+	else
+	{
+		status = 1;
+	}
+
+
+
+	if(status)
+	{
+		show_invalid_param_message(43);
+
+	}
+
+}
+
+
+void bist_tx_tone_dis(double* param, char param_no)
+{
+	uint32_t status = 0;
+
+	if (param_no >= 1)
+	{
+		if (NULL == ad9361_phy)
+		{
+			console_print("%s: ad9361_phy structure is invalid\n", __func__);
+			return;
+		}
+
+
+		ad9361_bist_tone(ad9361_phy, BIST_DISABLE, 0, 0, 0);
+	}
+	else
+	{
+		status = 1;
+	}
+
+
+
+	if(status)
+	{
+		show_invalid_param_message(44);
+
+	}
+
+}
 
 
 #if 0
