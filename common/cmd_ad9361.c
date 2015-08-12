@@ -19,21 +19,14 @@
 #include <ad9361/ad9361_api.h>
 #include <ad9361/command.h>
 #include <ad9361/console.h>
+#include <ad9361/platform.h>
+
 
 /*-----------------------------------------------------------------------
  * Definitions
  */
 
 
-
-static struct ad9361_rf_phy* ad9361_phy_table[CONFIG_AD9361_MAX_DEVICE] = {
-NULL,
-NULL,
-#ifndef CONFIG_SP3DTC
-NULL,
-NULL
-#endif
-};
 
 
 
@@ -135,6 +128,13 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 			/*
 			 * Init RFIC if needed
 			 */
+#ifdef	CONFIG_SP3DTC
+		i = bus;
+		bus = 0;
+		while(bus < CONFIG_AD9361_MAX_DEVICE)
+		{
+
+#endif
 			if (NULL == ad9361_phy_table[bus]) {
 
 				init_param_ptr = malloc(sizeof(AD9361_InitParam));
@@ -170,19 +170,29 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 				}
 				else{
 					rcode = 1;
+#ifdef CONFIG_SP3DTC
+					break;
+#endif
 				}
 			}
+#ifdef CONFIG_SP3DTC
+			bus++;
+		}
 
+		bus = i;
+#endif
+		if(0 == rcode)
+		{
 			if(bus < CONFIG_AD9361_MAX_DEVICE){
 				if(NULL != ad9361_phy_table[bus]){
 					ad9361_phy = ad9361_phy_table[bus];
-#ifdef DEBUG
+	#ifdef DEBUG
 					debug("Param_no = %d\n", param_no);
 					for(i = 0; i < param_no; i++)
 					{
 						debug("Param %d = %d\n", i, (int32_t)param[i]);
 					}
-#endif
+	#endif
 					cmd_list[cmd].function(param, param_no);
 				}
 
@@ -190,6 +200,8 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 			else{
 				rcode = 1;
 			}
+
+		}
 
 	}
 

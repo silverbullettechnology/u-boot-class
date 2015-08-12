@@ -61,6 +61,17 @@
 #   define CONFIG_DEFAULT_SPI_MODE	SPI_MODE_1
 #endif
 
+struct ad9361_rf_phy* ad9361_phy_table[CONFIG_AD9361_MAX_DEVICE] = {
+NULL,
+NULL,
+#ifndef CONFIG_SP3DTC
+NULL,
+NULL
+#endif
+};
+
+
+
 /***************************************************************************//**
  * @brief usleep
 *******************************************************************************/

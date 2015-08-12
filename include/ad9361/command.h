@@ -235,8 +235,11 @@ void tx_loopback_test(double* param, char param_no);
 /* Enables/disables BIST DAC->ADC loopback */
 void bist_loopback(double* param, char param_no);
 
-/* Enables/Disables ADC->DAC loopback test */
-void set_asfe_loopback_test(double* param, char param_no);
+/* Enables/Disables sindle AD9361 ADC->DAC loopback test */
+void ll_loopback_test(double* param, char param_no);
+
+/* Enables/Disables dual AD9361 ADC->DAC loopback test */
+void slan_loopback_test(double* param, char param_no);
 
 /* Read AUX ADC value */
 void get_aux_adc(double* param, char param_no);

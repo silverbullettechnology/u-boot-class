@@ -90,7 +90,7 @@ command cmd_list[] = {
 	{"rx_fir_en?", "Gets current RX FIR state.", "", get_rx_fir_en},
 	{"rx_fir_en=", "Sets the RX FIR state.", "", set_rx_fir_en},
 	{"tx_loopback_test=","Runs DAC->ADC loopback test.","",tx_loopback_test},
-	{"asic_loopback_test=","Enables/Disables ADC->DAC loopback test.","",set_asfe_loopback_test},
+	{"ll_loopback_test=","Enables/Disables single AD9361 ADC->DAC loopback test.","",ll_loopback_test},
 	{"bist_loopback_en=","Enables/Disables DAC->ADC data ports loopback.","",bist_loopback},
 	{"do_tx_calibration=","Run TX QUADRATURE calibration with phase offset as parameter","",do_tx_calibration},
 	{"ensm_mode=", "Switch ad9361 enable state machine mode.","",ensm_mode},
@@ -101,6 +101,7 @@ command cmd_list[] = {
 	{"asfe_reset=","Set ASFE reset line","asfe_reset=<val[0-1]> ", set_asfe_reset},
 	{"bist_tx_tone_en=", "Enable bist TX tone generation ","bist_tx_tone=<freq_Hz> <level_db>",bist_tx_tone_en},
 	{"bist_tx_tone_dis=", "Disable bist TX tone generation ","bist_tx_tone=0",bist_tx_tone_dis},
+	{"slan_loopback_test=","Enables/Disables dual AD9361 ADC->DAC loopback test.","slan_loopback_test=<1/0 en/dis <0/1 rx/tx>",slan_loopback_test},
 #if 0
 	{"dds_tx1_tone1_freq?", "Gets current DDS TX1 Tone 1 frequency [Hz].", "", get_dds_tx1_tone1_freq},
 	{"dds_tx1_tone1_freq=", "Sets the DDS TX1 Tone 1 frequency [Hz].", "", set_dds_tx1_tone1_freq},
@@ -857,11 +858,11 @@ void tx_loopback_test(double* param, char param_no)
 
 }
 /**************************************************************************//***
- * @brief Enables/Disables ADC->DAC loopback test
+ * @brief Enables/Disables single AD9361 ADC->DAC loopback test
  *
  * @return None.
 */
-void set_asfe_loopback_test(double* param, char param_no)
+void ll_loopback_test(double* param, char param_no)
 {
 	uint32_t *test_buf = (uint32_t*) CONFIG_AD9361_RAM_BUFFER_ADDR;
 	uint32_t num_samples = 0x10000;
@@ -1066,7 +1067,7 @@ void set_asfe_loopback_test(double* param, char param_no)
 		/* Disable transfer */
 		platform_axiadc_write(NULL, RF_CONFIG, 0);
 		platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
-		ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_STATE_ALERT);
+		ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 
 
 		/* Disable PA and LNA */
@@ -1084,12 +1085,267 @@ void set_asfe_loopback_test(double* param, char param_no)
 	}
 	else
 	{
-		show_invalid_param_message(38);
+		show_invalid_param_message(45);
 
 	}
 
 }
 
+/**************************************************************************/
+/***
+ * @brief Enables/Disables dual AD9361 ADC->DAC loopback test
+ *
+ * @return None.
+*/
+void slan_loopback_test(double* param, char param_no)
+{
+	uint32_t *test_buf = (uint32_t*) CONFIG_AD9361_RAM_BUFFER_ADDR;
+	uint32_t num_samples = 0x10000;
+	uint32_t en_dis = (uint32_t) param[0];
+	uint32_t tx_rx = (uint32_t) param[1];
+	uint32_t bus = 0;
+	uint32_t val = 0;
+	uint64_t lo_freq_hz;
+
+	if (param_no >= 2)
+	{
+		/* Disable any ongoing transfers first */
+		platform_axiadc_write(NULL, RF_CONFIG, 0);
+		platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
+
+		/* Turn all PAs off */
+		platform_pa_bias_dis(0|ASFE_AD1_TX1_PA_BIAS|ASFE_AD1_TX2_PA_BIAS|ASFE_AD2_TX1_PA_BIAS|ASFE_AD2_TX2_PA_BIAS);
+		/* Turn all LNAs off  */
+		platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA | ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+
+		if ((NULL == ad9361_phy_table[0]) || (NULL == ad9361_phy_table[1]))
+		{
+			console_print("%s: ad9361_phy structure is invalid\n", __func__);
+			return;
+		}
+
+		if (1 == en_dis)
+		{
+
+			for(bus = 0; bus < 2; bus++)
+			{
+				ad9361_set_en_state_machine_mode(ad9361_phy_table[bus], ENSM_MODE_ALERT);
+				/* Setup AD9361 */
+
+				if (0 == bus)
+				{
+					/* Setup LL frequency*/
+					lo_freq_hz = (uint64_t)300000000;
+					ad9361_set_tx_lo_freq(ad9361_phy_table[bus], lo_freq_hz);
+					ad9361_set_rx_lo_freq(ad9361_phy_table[bus], lo_freq_hz);
+
+
+					/* Setup ASFE for loopback */
+					ad9361_phy = ad9361_phy_table[0];
+
+					if(1 == tx_rx)
+					{
+						/* Setup LL for RX */
+						platform_lna_en(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
+						platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+
+					}
+					else
+					{
+						/* Setup LL for TX */
+						platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
+						platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+
+					}
+				}
+				else
+				{
+					/* Setup SLAN frequency  */
+					lo_freq_hz = (uint64_t)2400000000;
+					ad9361_set_tx_lo_freq(ad9361_phy_table[bus], lo_freq_hz);
+					ad9361_set_rx_lo_freq(ad9361_phy_table[bus], lo_freq_hz);
+
+					/* Setup ASFE for loopback */
+					ad9361_phy = ad9361_phy_table[1];
+					if(1 == tx_rx)
+					{
+						/* Setup SLAN for TX */
+						platform_tr_tx_en(ASFE_AD2_TR_SWITCH);
+						platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+						platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+
+					}
+					else
+					{
+						/* Setup SLAN for RX */
+						platform_tr_rx_en(ASFE_AD2_TR_SWITCH);
+						platform_lna_en(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+						platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+
+					}
+				}
+
+				ad9361_get_tx_lo_freq(ad9361_phy_table[bus], &lo_freq_hz);
+				console_print("Bus %d: tx_lo_freq=%llu\n", bus, lo_freq_hz);
+
+				ad9361_get_rx_lo_freq(ad9361_phy_table[bus], &lo_freq_hz);
+				console_print("Bus %d: rx_lo_freq=%llu\n", bus, lo_freq_hz);
+
+				val = 38400000;
+				ad9361_set_tx_sampling_freq(ad9361_phy_table[bus], val);
+				ad9361_set_rx_sampling_freq(ad9361_phy_table[bus], val);
+
+				ad9361_get_tx_sampling_freq(ad9361_phy_table[bus], &val);
+				console_print("Bus %d: tx_samp_freq=%d\n", bus, val);
+				ad9361_get_rx_sampling_freq(ad9361_phy_table[bus], &val);
+				console_print("Bus %d: rx_samp_freq=%d\n", bus, val);
+
+
+
+				val = 10000000;
+				ad9361_set_tx_rf_bandwidth(ad9361_phy_table[bus],val);
+				ad9361_set_rx_rf_bandwidth(ad9361_phy_table[bus],val);
+
+				ad9361_get_tx_rf_bandwidth(ad9361_phy_table[bus],&val);
+				console_print("Bus %d: tx_rf_bandwidth=%d Hz\n", bus, val);
+				ad9361_get_rx_rf_bandwidth(ad9361_phy_table[bus],&val);
+				console_print("Bus %d: rx_rf_bandwidth=%d Hz\n", bus, val);
+
+				val = 0;
+				ad9361_set_tx_attenuation(ad9361_phy_table[bus], 0, val);
+				ad9361_set_tx_attenuation(ad9361_phy_table[bus], 1, val);
+
+				ad9361_get_tx_attenuation(ad9361_phy_table[bus], 0, &val);
+				console_print("Bus %d: tx1_attenuation=%d\n", bus, val);
+				ad9361_get_tx_attenuation(ad9361_phy_table[bus], 1, &val);
+				console_print("Bus %d: tx2_attenuation=%d\n", bus, val);
+
+				ad9361_get_rx_rf_gain (ad9361_phy_table[bus], 0, (int32_t*)&val);
+				console_print("Bus %d: rx1_rf_gain=%d\n", bus, (int32_t)val);
+				ad9361_get_rx_rf_gain (ad9361_phy_table[bus], 1, (int32_t*)&val);
+				console_print("Bus %d: rx2_rf_gain=%d\n", bus, (int32_t)val);
+
+			}
+
+			/* Setup digital ADC->DAC loopback */
+
+			/* Setup TX DMA registers */
+			val = (uint32_t) test_buf;
+			val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
+			debug("RF_READ_BASE setting to %x\n", val);
+			platform_axiadc_write(NULL, RF_READ_BASE, val);
+			debug("RF_READ_BASE is %x\n",
+					platform_axiadc_read(NULL, RF_READ_BASE));
+
+			val += num_samples * sizeof(uint32_t);
+			debug("RF_READ_TOP setting to %x\n", val);
+			platform_axiadc_write(NULL, RF_READ_TOP, val);
+			debug("RF_READ_TOP is %x\n",
+					platform_axiadc_read(NULL, RF_READ_TOP));
+
+			platform_axiadc_write(NULL, RF_READ_COUNT, 0xffffffff);
+			debug("RF_READ_COUNT is %x\n",
+					platform_axiadc_read(NULL, RF_READ_COUNT));
+
+			val = (uint32_t) test_buf;
+			val -= CONFIG_AD9361_RAM_BUFFER_ADDR;
+
+			debug("RF_WRITE_BASE setting to %x\n", val);
+			platform_axiadc_write(NULL, RF_WRITE_BASE, (uint32_t) val);
+			debug("RF_WRITE_BASE is %x\n",
+					platform_axiadc_read(NULL,RF_WRITE_BASE));
+
+			val += num_samples * sizeof(uint32_t);
+			debug("RF_WRITE_TOP setting to %x\n", val);
+			platform_axiadc_write(NULL, RF_WRITE_TOP, val);
+			debug("RF_WRITE_TOP is %x\n",
+					platform_axiadc_read(NULL,RF_WRITE_TOP));
+
+			platform_axiadc_write(NULL, RF_WRITE_COUNT, 0xffffffff);
+			debug("RF_WRITE_COUNT is %x\n",
+					platform_axiadc_read(NULL,RF_WRITE_COUNT));
+
+			/* Select TX source */
+			platform_axiadc_write(NULL, TX_SOURCE, 0x55555555);
+			debug("TX_SOURCE = 0x%x\n", platform_axiadc_read(NULL,TX_SOURCE));
+
+			if(1 == tx_rx)
+			{
+				/* Select LL RX channels and SLAN TX channels*/
+				platform_axiadc_write(NULL,	RF_CHANNEL_EN, ((uint32_t)0x3 << RX_CH_ENABLE_SHIFT) | ((uint32_t)0xC << TX_CH_ENABLE_SHIFT));
+			}
+			else
+			{
+				/* Select LL TX channels and SLAN RX channels*/
+				platform_axiadc_write(NULL, RF_CHANNEL_EN, ((uint32_t)0xC << RX_CH_ENABLE_SHIFT) | ((uint32_t)0x3 << TX_CH_ENABLE_SHIFT));
+			}
+
+			debug("RF_CHANNEL_EN = 0x%x\n",
+					platform_axiadc_read(NULL,RF_CHANNEL_EN));
+
+			for(bus = 0; bus < 2; bus++)
+			{
+				ad9361_set_en_state_machine_mode(ad9361_phy_table[bus], ENSM_MODE_FDD);
+			}
+
+			/* Enable transfer */
+			platform_axiadc_write(NULL, RF_CONFIG,
+					RF_CONFIG_RX_ENABLE_BITMASK | RF_CONFIG_TX_ENABLE_BITMASK);
+#if 0
+			/* Wait for transfer to complete or CTRL^C */
+			while (!ctrlc())
+			{
+				if(platform_axiadc_read(NULL, RF_WRITE_COUNT_AXI) == 0x0)
+				{
+					/* Disable transfer */
+					platform_axiadc_write(NULL, RF_CONFIG, 0);
+				    /* Re-Enable transfer */
+					platform_axiadc_write(NULL, RF_CONFIG,
+							RF_CONFIG_RX_ENABLE_BITMASK | RF_CONFIG_TX_ENABLE_BITMASK);
+				}
+
+			}
+#endif
+		}
+		else
+		{
+			/* Disable transfer */
+			platform_axiadc_write(NULL, RF_CONFIG, 0);
+			platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
+			for(bus = 0; bus < 2; bus++)
+			{
+				ad9361_set_en_state_machine_mode(ad9361_phy_table[bus], ENSM_MODE_ALERT);
+			}
+
+
+			for(bus = 0; bus < 2; bus++)
+			{
+				/* Disable PA and LNA */
+				if(0 == bus)
+				{
+					ad9361_phy = ad9361_phy_table[0];
+					platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
+					platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+				}
+				else
+				{
+					ad9361_phy = ad9361_phy_table[1];
+					platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+					platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+				}
+
+			}
+
+		}
+
+	}
+	else
+	{
+		show_invalid_param_message(46);
+
+	}
+
+}
 
 
 /**************************************************************************//***
