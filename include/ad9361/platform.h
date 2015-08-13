@@ -130,7 +130,7 @@ enum adc_pn_sel {
 
 #define GPO_ADX_RX1_LNA_BYPASS		GPO_0
 #define GPO_ADX_RX2_LNA_BYPASS		GPO_1
-#define GPO_AD2_TR_N				GPO_3
+#define GPO_ADX_TR_N				GPO_3
 
 extern struct ad9361_rf_phy* ad9361_phy_table[CONFIG_AD9361_MAX_DEVICE];
 /******************************************************************************/

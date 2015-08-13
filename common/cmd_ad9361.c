@@ -143,11 +143,14 @@ int do_ad9361(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[]) {
 				{
 					memcpy(init_param_ptr, &default_init_param, sizeof(AD9361_InitParam));
 
-					/* Initialize RESETB pin */
-					init_param_ptr->gpio_resetb = RESETB0_BITMASK << (bus * 8);
 					/* Save bus number */
 					init_param_ptr->id_no = bus;
+					/* Initialize RESETB pin */
+					init_param_ptr->gpio_resetb = RESETB0_BITMASK << (bus* 8);
+
 #ifdef CONFIG_SP3DTC
+					/* Initialize RESETB pin */
+					init_param_ptr->gpio_resetb = RESETB0_BITMASK << (((bus+1) & 0x1) * 8);
 					if(1 == bus)
 					{
 						ulong env;

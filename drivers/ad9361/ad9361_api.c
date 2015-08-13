@@ -394,6 +394,10 @@ int32_t ad9361_init (struct ad9361_rf_phy **ad9361_phy, AD9361_InitParam *init_p
 	/* Identification number */
 	phy->id_no = init_param->id_no;
 	phy->spi->dev.bus = init_param->id_no;
+
+#ifdef CONFIG_SP3DTC
+	phy->spi->dev.bus = (init_param->id_no + 1) & 0x1;
+#endif
 	/* Reference Clock */
 	phy->clk_refin->rate = init_param->reference_clk_rate;
 

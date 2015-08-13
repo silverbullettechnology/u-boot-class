@@ -332,14 +332,15 @@ void platform_pa_bias_en(uint32_t mask)
 {
 	if(ASFE_AD1_TX1_PA_BIAS & mask)
 		s3ma_gpio33_set_value(GPIO_AD1_TX1_PA_EN, 1);
-	else if(ASFE_AD1_TX2_PA_BIAS & mask)
+
+	if(ASFE_AD1_TX2_PA_BIAS & mask)
 		s3ma_gpio33_set_value(GPIO_AD1_TX2_PA_EN, 1);
-	else if(ASFE_AD2_TX1_PA_BIAS & mask)
+
+	if(ASFE_AD2_TX1_PA_BIAS & mask)
 		s3ma_gpio33_set_value(GPIO_AD2_TX1_PA_EN, 1);
-	else if(ASFE_AD2_TX2_PA_BIAS & mask)
+
+	if(ASFE_AD2_TX2_PA_BIAS & mask)
 		s3ma_gpio33_set_value(GPIO_AD2_TX2_PA_EN, 1);
-	else
-		printf("%s: Invalid PA control IO\n", __func__);
 }
 /***************************************************************************//**
  * @brief platform_dis_pa_bias
@@ -348,14 +349,15 @@ void platform_pa_bias_dis(uint32_t mask)
 {
 	if(ASFE_AD1_TX1_PA_BIAS & mask)
 		s3ma_gpio33_set_value(GPIO_AD1_TX1_PA_EN, 0);
-	else if(ASFE_AD1_TX2_PA_BIAS & mask)
+
+	if(ASFE_AD1_TX2_PA_BIAS & mask)
 		s3ma_gpio33_set_value(GPIO_AD1_TX2_PA_EN, 0);
-	else if(ASFE_AD2_TX1_PA_BIAS & mask)
+
+	if(ASFE_AD2_TX1_PA_BIAS & mask)
 		s3ma_gpio33_set_value(GPIO_AD2_TX1_PA_EN, 0);
-	else if(ASFE_AD2_TX2_PA_BIAS & mask)
+
+	if(ASFE_AD2_TX2_PA_BIAS & mask)
 		s3ma_gpio33_set_value(GPIO_AD2_TX2_PA_EN, 0);
-	else
-		printf("%s: Invalid PA control IO\n", __func__);
 }
 
 /***************************************************************************//**
@@ -372,12 +374,23 @@ int axiadc_set_pnsel(struct axiadc_state *st, int channel, enum adc_pn_sel sel)
 *******************************************************************************/
 void platform_lna_dis(uint32_t mask)
 {
-	if((ASFE_AD1_RX1_LNA|ASFE_AD2_RX1_LNA) & mask)
-		ad9361_gpo_set(ad9361_phy,GPO_ADX_RX1_LNA_BYPASS);
-	else if((ASFE_AD1_RX2_LNA|ASFE_AD2_RX2_LNA) & mask)
-		ad9361_gpo_set(ad9361_phy,GPO_ADX_RX2_LNA_BYPASS);
-	else
-		printf("%s: Invalid LNA control IO\n", __func__);
+	struct ad9361_rf_phy *phy;
+
+	phy = ad9361_phy_table[0];
+
+	if(ASFE_AD1_RX1_LNA & mask)
+		ad9361_gpo_set(phy, GPO_ADX_RX1_LNA_BYPASS);
+
+	if(ASFE_AD1_RX2_LNA & mask)
+		ad9361_gpo_set(phy, GPO_ADX_RX2_LNA_BYPASS);
+
+	phy = ad9361_phy_table[1];
+
+	if(ASFE_AD2_RX1_LNA & mask)
+		ad9361_gpo_set(phy, GPO_ADX_RX1_LNA_BYPASS);
+
+	if(ASFE_AD2_RX2_LNA & mask)
+		ad9361_gpo_set(phy,GPO_ADX_RX2_LNA_BYPASS);
 }
 
 /***************************************************************************//**
@@ -385,12 +398,23 @@ void platform_lna_dis(uint32_t mask)
 *******************************************************************************/
 void platform_lna_en(uint32_t mask)
 {
-	if((ASFE_AD1_RX1_LNA|ASFE_AD2_RX1_LNA) & mask)
-		ad9361_gpo_clear(ad9361_phy,GPO_ADX_RX1_LNA_BYPASS);
-	else if((ASFE_AD1_RX2_LNA|ASFE_AD2_RX2_LNA) & mask)
-		ad9361_gpo_clear(ad9361_phy,GPO_ADX_RX2_LNA_BYPASS);
-	else
-		printf("%s: Invalid LNA control IO\n", __func__);
+	struct ad9361_rf_phy *phy;
+
+	phy = ad9361_phy_table[0];
+
+	if(ASFE_AD1_RX1_LNA & mask)
+		ad9361_gpo_clear(phy,GPO_ADX_RX1_LNA_BYPASS);
+
+	if(ASFE_AD1_RX2_LNA & mask)
+		ad9361_gpo_clear(phy,GPO_ADX_RX2_LNA_BYPASS);
+
+	phy = ad9361_phy_table[1];
+
+	if(ASFE_AD2_RX1_LNA & mask)
+		ad9361_gpo_clear(phy,GPO_ADX_RX1_LNA_BYPASS);
+
+	if(ASFE_AD2_RX2_LNA & mask)
+		ad9361_gpo_clear(phy,GPO_ADX_RX2_LNA_BYPASS);
 }
 
 /***************************************************************************//**
@@ -398,12 +422,17 @@ void platform_lna_en(uint32_t mask)
 *******************************************************************************/
 void platform_tr_rx_en(uint32_t mask)
 {
+	struct ad9361_rf_phy *phy;
+
+	phy = ad9361_phy_table[0];
+
+	if(ASFE_AD1_TR_SWITCH & mask)
+		ad9361_gpo_clear(phy,GPO_ADX_TR_N);
+
+	phy = ad9361_phy_table[1];
+
 	if(ASFE_AD2_TR_SWITCH & mask)
-		ad9361_gpo_clear(ad9361_phy,GPO_AD2_TR_N);
-	else if(ASFE_AD1_TR_SWITCH & mask)
-		ad9361_gpo_clear(ad9361_phy,GPO_AD2_TR_N);
-	else
-		printf("%s: Invalid TR switch control IO\n", __func__);
+		ad9361_gpo_clear(phy,GPO_ADX_TR_N);
 }
 
 /***************************************************************************//**
@@ -411,12 +440,17 @@ void platform_tr_rx_en(uint32_t mask)
 *******************************************************************************/
 void platform_tr_tx_en(uint32_t mask)
 {
+	struct ad9361_rf_phy *phy;
+
+	phy = ad9361_phy_table[0];
+
+	if(ASFE_AD1_TR_SWITCH & mask)
+		ad9361_gpo_set(phy, GPO_ADX_TR_N);
+
+	phy = ad9361_phy_table[1];
+
 	if(ASFE_AD2_TR_SWITCH & mask)
-		ad9361_gpo_set(ad9361_phy,GPO_AD2_TR_N);
-	else if(ASFE_AD1_TR_SWITCH & mask)
-		ad9361_gpo_set(ad9361_phy,GPO_AD2_TR_N);
-	else
-		printf("%s: Invalid TR switch control IO\n", __func__);
+		ad9361_gpo_set(phy, GPO_ADX_TR_N);
 }
 
 void platform_asfe_init(void)

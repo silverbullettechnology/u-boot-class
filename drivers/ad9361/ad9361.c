@@ -3928,7 +3928,7 @@ static int32_t ad9361_gpo_setup(struct ad9361_rf_phy *phy, struct gpo_control *c
 
 	val = 0 | GPO_SET_MASK(GPO_ADX_RX1_LNA_BYPASS);
 	val |= GPO_SET_MASK(GPO_ADX_RX2_LNA_BYPASS);
-	val &= ~(GPO_SET_MASK(GPO_AD2_TR_N));
+	val &= ~(GPO_SET_MASK(GPO_ADX_TR_N));
 	val = GPO_MANUAL_CTRL(val);
 	val |= GPO_INIT_STATE(0x03);
 	ad9361_spi_write(spi, REG_GPO_FORCE_AND_INIT, val); // GPO Manual and GPO auto value in ALERT

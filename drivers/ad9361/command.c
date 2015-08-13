@@ -870,6 +870,7 @@ void ll_loopback_test(double* param, char param_no)
 	uint32_t bus = 0;
 	uint32_t val = 0;
 	uint64_t lo_freq_hz;
+	uint32_t ic_id = 0;
 
 	if (param_no >= 1)
 	{
@@ -885,6 +886,7 @@ void ll_loopback_test(double* param, char param_no)
 		if (NULL != ad9361_phy)
 		{
 			bus = ad9361_phy->spi->dev.bus;
+			ic_id = ad9361_phy->id_no;
 		}
 		else
 		{
@@ -893,6 +895,7 @@ void ll_loopback_test(double* param, char param_no)
 		}
 
 		debug("Bus = %d \n", bus);
+		debug("ic_id = %d \n", ic_id);
 
 		if (1 == en_dis)
 		{
@@ -900,7 +903,7 @@ void ll_loopback_test(double* param, char param_no)
 			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 			/* Setup AD9361 */
 
-			if (0 == bus)
+			if (0 == ic_id)
 			{
 
 				lo_freq_hz = (uint64_t)300000000;
@@ -956,7 +959,7 @@ void ll_loopback_test(double* param, char param_no)
 			ad9361_get_rx_rf_bandwidth(ad9361_phy,&val);
 			console_print("rx_rf_bandwidth=%d Hz\n", val);
 
-			val = 0;
+			val = 23000;
 			ad9361_set_tx_attenuation(ad9361_phy, 0, val);
 			ad9361_set_tx_attenuation(ad9361_phy, 1, val);
 
@@ -1071,7 +1074,7 @@ void ll_loopback_test(double* param, char param_no)
 
 
 		/* Disable PA and LNA */
-		if(0 == bus)
+		if(0 == ic_id)
 		{
 			platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
 			platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
@@ -1103,9 +1106,10 @@ void slan_loopback_test(double* param, char param_no)
 	uint32_t num_samples = 0x10000;
 	uint32_t en_dis = (uint32_t) param[0];
 	uint32_t tx_rx = (uint32_t) param[1];
-	uint32_t bus = 0;
+//	uint32_t bus = 0;
 	uint32_t val = 0;
 	uint64_t lo_freq_hz;
+	uint32_t ic_id = 0;
 
 	if (param_no >= 2)
 	{
@@ -1127,22 +1131,22 @@ void slan_loopback_test(double* param, char param_no)
 		if (1 == en_dis)
 		{
 
-			for(bus = 0; bus < 2; bus++)
+			for(ic_id = 0; ic_id < 2; ic_id++)
 			{
-				ad9361_set_en_state_machine_mode(ad9361_phy_table[bus], ENSM_MODE_ALERT);
+				ad9361_set_en_state_machine_mode(ad9361_phy_table[ic_id], ENSM_MODE_ALERT);
 				/* Setup AD9361 */
 
-				if (0 == bus)
+				if (0 == ic_id)
 				{
 					/* Setup LL frequency*/
 					lo_freq_hz = (uint64_t)300000000;
-					ad9361_set_tx_lo_freq(ad9361_phy_table[bus], lo_freq_hz);
-					ad9361_set_rx_lo_freq(ad9361_phy_table[bus], lo_freq_hz);
-
+					ad9361_set_tx_lo_freq(ad9361_phy_table[ic_id], lo_freq_hz);
+					ad9361_set_rx_lo_freq(ad9361_phy_table[ic_id], lo_freq_hz);
 
 					/* Setup ASFE for loopback */
+#if 0
 					ad9361_phy = ad9361_phy_table[0];
-
+#endif
 					if(1 == tx_rx)
 					{
 						/* Setup LL for RX */
@@ -1162,11 +1166,13 @@ void slan_loopback_test(double* param, char param_no)
 				{
 					/* Setup SLAN frequency  */
 					lo_freq_hz = (uint64_t)2400000000;
-					ad9361_set_tx_lo_freq(ad9361_phy_table[bus], lo_freq_hz);
-					ad9361_set_rx_lo_freq(ad9361_phy_table[bus], lo_freq_hz);
+					ad9361_set_tx_lo_freq(ad9361_phy_table[ic_id], lo_freq_hz);
+					ad9361_set_rx_lo_freq(ad9361_phy_table[ic_id], lo_freq_hz);
 
 					/* Setup ASFE for loopback */
+#if 0
 					ad9361_phy = ad9361_phy_table[1];
+#endif
 					if(1 == tx_rx)
 					{
 						/* Setup SLAN for TX */
@@ -1185,45 +1191,45 @@ void slan_loopback_test(double* param, char param_no)
 					}
 				}
 
-				ad9361_get_tx_lo_freq(ad9361_phy_table[bus], &lo_freq_hz);
-				console_print("Bus %d: tx_lo_freq=%llu\n", bus, lo_freq_hz);
+				ad9361_get_tx_lo_freq(ad9361_phy_table[ic_id], &lo_freq_hz);
+				console_print("IC %d: tx_lo_freq=%llu\n", ic_id, lo_freq_hz);
 
-				ad9361_get_rx_lo_freq(ad9361_phy_table[bus], &lo_freq_hz);
-				console_print("Bus %d: rx_lo_freq=%llu\n", bus, lo_freq_hz);
+				ad9361_get_rx_lo_freq(ad9361_phy_table[ic_id], &lo_freq_hz);
+				console_print("IC %d: rx_lo_freq=%llu\n", ic_id, lo_freq_hz);
 
 				val = 38400000;
-				ad9361_set_tx_sampling_freq(ad9361_phy_table[bus], val);
-				ad9361_set_rx_sampling_freq(ad9361_phy_table[bus], val);
+				ad9361_set_tx_sampling_freq(ad9361_phy_table[ic_id], val);
+				ad9361_set_rx_sampling_freq(ad9361_phy_table[ic_id], val);
 
-				ad9361_get_tx_sampling_freq(ad9361_phy_table[bus], &val);
-				console_print("Bus %d: tx_samp_freq=%d\n", bus, val);
-				ad9361_get_rx_sampling_freq(ad9361_phy_table[bus], &val);
-				console_print("Bus %d: rx_samp_freq=%d\n", bus, val);
+				ad9361_get_tx_sampling_freq(ad9361_phy_table[ic_id], &val);
+				console_print("IC %d: tx_samp_freq=%d\n", ic_id, val);
+				ad9361_get_rx_sampling_freq(ad9361_phy_table[ic_id], &val);
+				console_print("IC %d: rx_samp_freq=%d\n", ic_id, val);
 
 
 
 				val = 10000000;
-				ad9361_set_tx_rf_bandwidth(ad9361_phy_table[bus],val);
-				ad9361_set_rx_rf_bandwidth(ad9361_phy_table[bus],val);
+				ad9361_set_tx_rf_bandwidth(ad9361_phy_table[ic_id],val);
+				ad9361_set_rx_rf_bandwidth(ad9361_phy_table[ic_id],val);
 
-				ad9361_get_tx_rf_bandwidth(ad9361_phy_table[bus],&val);
-				console_print("Bus %d: tx_rf_bandwidth=%d Hz\n", bus, val);
-				ad9361_get_rx_rf_bandwidth(ad9361_phy_table[bus],&val);
-				console_print("Bus %d: rx_rf_bandwidth=%d Hz\n", bus, val);
+				ad9361_get_tx_rf_bandwidth(ad9361_phy_table[ic_id],&val);
+				console_print("IC %d: tx_rf_bandwidth=%d Hz\n", ic_id, val);
+				ad9361_get_rx_rf_bandwidth(ad9361_phy_table[ic_id],&val);
+				console_print("IC %d: rx_rf_bandwidth=%d Hz\n", ic_id, val);
 
-				val = 0;
-				ad9361_set_tx_attenuation(ad9361_phy_table[bus], 0, val);
-				ad9361_set_tx_attenuation(ad9361_phy_table[bus], 1, val);
+				val = 23000;
+				ad9361_set_tx_attenuation(ad9361_phy_table[ic_id], 0, val);
+				ad9361_set_tx_attenuation(ad9361_phy_table[ic_id], 1, val);
 
-				ad9361_get_tx_attenuation(ad9361_phy_table[bus], 0, &val);
-				console_print("Bus %d: tx1_attenuation=%d\n", bus, val);
-				ad9361_get_tx_attenuation(ad9361_phy_table[bus], 1, &val);
-				console_print("Bus %d: tx2_attenuation=%d\n", bus, val);
+				ad9361_get_tx_attenuation(ad9361_phy_table[ic_id], 0, &val);
+				console_print("Bus %d: tx1_attenuation=%d\n", ic_id, val);
+				ad9361_get_tx_attenuation(ad9361_phy_table[ic_id], 1, &val);
+				console_print("Bus %d: tx2_attenuation=%d\n", ic_id, val);
 
-				ad9361_get_rx_rf_gain (ad9361_phy_table[bus], 0, (int32_t*)&val);
-				console_print("Bus %d: rx1_rf_gain=%d\n", bus, (int32_t)val);
-				ad9361_get_rx_rf_gain (ad9361_phy_table[bus], 1, (int32_t*)&val);
-				console_print("Bus %d: rx2_rf_gain=%d\n", bus, (int32_t)val);
+				ad9361_get_rx_rf_gain (ad9361_phy_table[ic_id], 0, (int32_t*)&val);
+				console_print("Bus %d: rx1_rf_gain=%d\n", ic_id, (int32_t)val);
+				ad9361_get_rx_rf_gain (ad9361_phy_table[ic_id], 1, (int32_t*)&val);
+				console_print("Bus %d: rx2_rf_gain=%d\n", ic_id, (int32_t)val);
 
 			}
 
@@ -1272,20 +1278,20 @@ void slan_loopback_test(double* param, char param_no)
 			if(1 == tx_rx)
 			{
 				/* Select LL RX channels and SLAN TX channels*/
-				platform_axiadc_write(NULL,	RF_CHANNEL_EN, ((uint32_t)0x3 << RX_CH_ENABLE_SHIFT) | ((uint32_t)0xC << TX_CH_ENABLE_SHIFT));
+				platform_axiadc_write(NULL,	RF_CHANNEL_EN, ((uint32_t)0xC << RX_CH_ENABLE_SHIFT) | ((uint32_t)0x3 << TX_CH_ENABLE_SHIFT));
 			}
 			else
 			{
 				/* Select LL TX channels and SLAN RX channels*/
-				platform_axiadc_write(NULL, RF_CHANNEL_EN, ((uint32_t)0xC << RX_CH_ENABLE_SHIFT) | ((uint32_t)0x3 << TX_CH_ENABLE_SHIFT));
+				platform_axiadc_write(NULL, RF_CHANNEL_EN, ((uint32_t)0x3 << RX_CH_ENABLE_SHIFT) | ((uint32_t)0xC << TX_CH_ENABLE_SHIFT));
 			}
 
 			debug("RF_CHANNEL_EN = 0x%x\n",
 					platform_axiadc_read(NULL,RF_CHANNEL_EN));
 
-			for(bus = 0; bus < 2; bus++)
+			for(ic_id = 0; ic_id < 2; ic_id++)
 			{
-				ad9361_set_en_state_machine_mode(ad9361_phy_table[bus], ENSM_MODE_FDD);
+				ad9361_set_en_state_machine_mode(ad9361_phy_table[ic_id], ENSM_MODE_FDD);
 			}
 
 			/* Enable transfer */
@@ -1307,29 +1313,29 @@ void slan_loopback_test(double* param, char param_no)
 			}
 #endif
 		}
-		else
+//		else
 		{
 			/* Disable transfer */
 			platform_axiadc_write(NULL, RF_CONFIG, 0);
 			platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
-			for(bus = 0; bus < 2; bus++)
+			for(ic_id = 0; ic_id < 2; ic_id++)
 			{
-				ad9361_set_en_state_machine_mode(ad9361_phy_table[bus], ENSM_MODE_ALERT);
+				ad9361_set_en_state_machine_mode(ad9361_phy_table[ic_id], ENSM_MODE_ALERT);
 			}
 
 
-			for(bus = 0; bus < 2; bus++)
+			for(ic_id = 0; ic_id < 2; ic_id++)
 			{
 				/* Disable PA and LNA */
-				if(0 == bus)
+				if(0 == ic_id)
 				{
-					ad9361_phy = ad9361_phy_table[0];
+//					ad9361_phy = ad9361_phy_table[0];
 					platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
 					platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
 				}
 				else
 				{
-					ad9361_phy = ad9361_phy_table[1];
+//					ad9361_phy = ad9361_phy_table[1];
 					platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
 					platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 				}
@@ -1505,6 +1511,7 @@ void play_file(double* param, char param_no)
 	uint32_t bus = 0;
 	uint32_t num_samples, val, i;
 	uint16_t* samp_ptr;
+	uint32_t ic_id = 0;
 
 	if (param_no >= 1)
 	{
@@ -1547,6 +1554,7 @@ void play_file(double* param, char param_no)
 			if (NULL != ad9361_phy)
 			{
 				bus = ad9361_phy->spi->dev.bus;
+				ic_id = ad9361_phy->id_no;
 			}
 			else
 			{
@@ -1557,7 +1565,7 @@ void play_file(double* param, char param_no)
 			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 
 
-			if (0 == bus)
+			if (0 == ic_id)
 			{
 
 				platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
@@ -1668,9 +1676,7 @@ void play_file(double* param, char param_no)
 
 			/* Select 1 channel for TX and RX*/
 			platform_axiadc_write(NULL,
-			RF_CHANNEL_EN,
-					((0x1 << RX_CH_ENABLE_SHIFT) | (0x1 << TX_CH_ENABLE_SHIFT))
-							<< (2 * bus));
+			RF_CHANNEL_EN, ((0x1 << RX_CH_ENABLE_SHIFT) | (0x1 << TX_CH_ENABLE_SHIFT) << 2*bus));
 
 			debug("RF_CHANNEL_EN = 0x%x\n",
 					platform_axiadc_read(NULL,RF_CHANNEL_EN));
@@ -1680,7 +1686,7 @@ void play_file(double* param, char param_no)
 			debug("TX_SOURCE = 0x%x\n", platform_axiadc_read(NULL,TX_SOURCE));
 
 			/* Multiplex time slot 0 sequentially onto all LVDS ports*/
-			platform_axiadc_write(NULL, (TX_SEL), (uint32_t) 0x0);
+//			platform_axiadc_write(NULL, (TX_SEL), (uint32_t) 0x0);
 			debug("TX_SEL = 0x%x\n", platform_axiadc_read(NULL,TX_SEL));
 
 			/* Transition RFIC into FDD mode */
@@ -1719,7 +1725,7 @@ void play_file(double* param, char param_no)
 
 
 			/* Disable PA and LNA */
-			if(0 == bus)
+			if(0 == ic_id)
 			{
 				platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
 				platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
@@ -1747,14 +1753,16 @@ void set_asfe_lna_byp(double* param, char param_no)
 	uint32_t status = 0;
 	uint32_t chan;
 	uint32_t val;
-	uint32_t bus = 0;
+//	uint32_t bus = 0;
 	uint32_t lna_line;
+	uint32_t ic_id = 0;
 
 	if (param_no >= 2)
 	{
 		if (NULL != ad9361_phy)
 		{
-			bus = ad9361_phy->spi->dev.bus;
+//			bus = ad9361_phy->spi->dev.bus;
+			ic_id = ad9361_phy->id_no;
 		}
 		else
 		{
@@ -1789,7 +1797,7 @@ void set_asfe_lna_byp(double* param, char param_no)
 				lna_line <<= 1;
 			}
 
-			if(bus)
+			if(ic_id)
 			{
 				lna_line <<= 2;
 			}
@@ -1824,14 +1832,18 @@ void set_asfe_tx_en(double* param, char param_no)
 	uint32_t status = 0;
 	uint32_t chan;
 	uint32_t val;
-	uint32_t bus = 0;
+//	uint32_t bus = 0;
 	uint32_t pa_line;
+	uint32_t ic_id = 0;
+
 
 	if (param_no >= 2)
 	{
 		if (NULL != ad9361_phy)
 		{
-			bus = ad9361_phy->spi->dev.bus;
+//			bus = ad9361_phy->spi->dev.bus;
+			ic_id = ad9361_phy->id_no;
+
 		}
 		else
 		{
@@ -1866,7 +1878,7 @@ void set_asfe_tx_en(double* param, char param_no)
 				pa_line <<= 1;
 			}
 
-			if(bus)
+			if(ic_id)
 			{
 				pa_line <<= 2;
 			}
@@ -1901,14 +1913,16 @@ void set_asfe_trn(double* param, char param_no)
 {
 	uint32_t status = 0;
 	uint32_t val;
-	uint32_t bus = 0;
+//	uint32_t bus = 0;
 	uint32_t trn_line;
+	uint32_t ic_id = 0;
 
 	if (param_no >= 1)
 	{
 		if (NULL != ad9361_phy)
 		{
-			bus = ad9361_phy->spi->dev.bus;
+//			bus = ad9361_phy->spi->dev.bus;
+			ic_id = ad9361_phy->id_no;
 		}
 		else
 		{
@@ -1930,7 +1944,7 @@ void set_asfe_trn(double* param, char param_no)
 
 			trn_line = ASFE_AD1_TR_SWITCH;
 
-			if(bus)
+			if(ic_id)
 			{
 				trn_line <<= 1;
 			}
@@ -1964,15 +1978,17 @@ void set_asfe_trn(double* param, char param_no)
 /* Set ASFE reset line */
 void set_asfe_reset(double* param, char param_no)
 {
-	uint32_t bus = 0;
+//	uint32_t bus = 0;
 	uint32_t status = 0;
 	uint32_t val;
+	uint32_t ic_id = 0;
 
 	if (param_no >= 1)
 	{
 		if (NULL != ad9361_phy)
 		{
-			bus = ad9361_phy->spi->dev.bus;
+//			bus = ad9361_phy->spi->dev.bus;
+			ic_id = ad9361_phy->id_no;
 		}
 		else
 		{
@@ -1991,7 +2007,7 @@ void set_asfe_reset(double* param, char param_no)
 				break;
 			}
 
-			if(bus)
+			if(ic_id)
 			{
 				s3ma_gpio33_set_value(GPIO_ASFE1_RESET, val);
 			}
