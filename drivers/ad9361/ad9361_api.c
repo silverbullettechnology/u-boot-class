@@ -110,10 +110,10 @@ const AD9361_InitParam default_init_param = {
 		24,		//gc_low_power_thresh *** adi,gc-low-power-thresh
 		15,		//gc_max_dig_gain *** adi,gc-max-dig-gain
 		/* Gain MGC Control */
-		2,		//mgc_dec_gain_step *** adi,mgc-dec-gain-step
-		2,		//mgc_inc_gain_step *** adi,mgc-inc-gain-step
-		0,		//mgc_rx1_ctrl_inp_enable *** adi,mgc-rx1-ctrl-inp-enable
-		0,		//mgc_rx2_ctrl_inp_enable *** adi,mgc-rx2-ctrl-inp-enable
+		1,		//mgc_dec_gain_step *** adi,mgc-dec-gain-step
+		1,		//mgc_inc_gain_step *** adi,mgc-inc-gain-step
+		1,		//mgc_rx1_ctrl_inp_enable *** adi,mgc-rx1-ctrl-inp-enable
+		1,		//mgc_rx2_ctrl_inp_enable *** adi,mgc-rx2-ctrl-inp-enable
 		0,		//mgc_split_table_ctrl_inp_gain_mode *** adi,mgc-split-table-ctrl-inp-gain-mode
 		/* Gain AGC Control */
 		10,		//agc_adc_large_overload_exceed_counter *** adi,agc-adc-large-overload-exceed-counter

@@ -50,7 +50,7 @@
 #include <ad9361/ad9361.h>
 #include <ad9361/ad9361_api.h>
 #include <ad9361/platform.h>
-#define debug printf
+//#define debug printf
 /******************************************************************************/
 /************************ Constants Definitions *******************************/
 /******************************************************************************/
@@ -103,6 +103,7 @@ command cmd_list[] = {
 	{"bist_tx_tone_dis=", "Disable bist TX tone generation ","bist_tx_tone=0",bist_tx_tone_dis},
 	{"slan_loopback_test=","Enables/Disables dual AD9361 ADC->DAC loopback test.","slan_loopback_test=<1/0 en/dis <0/1 rx/tx>",slan_loopback_test},
 	{"ctrl_out_pins?","Gets CTRL_OUT pins status","",get_ctrl_out_pins},
+	{"ctrl_in_rx_gain=","Sets rx channel gain with CTRL_IN pins","ctrl_in_rx_gain=<channel #0/1 <gain dB>",set_ctrl_in_rx_gain},
 #if 0
 	{"dds_tx1_tone1_freq?", "Gets current DDS TX1 Tone 1 frequency [Hz].", "", get_dds_tx1_tone1_freq},
 	{"dds_tx1_tone1_freq=", "Sets the DDS TX1 Tone 1 frequency [Hz].", "", set_dds_tx1_tone1_freq},
@@ -968,7 +969,7 @@ void ll_loopback_test(double* param, char param_no)
 			console_print("tx1_attenuation=%d\n", val);
 			ad9361_get_tx_attenuation(ad9361_phy, 1, &val);
 			console_print("tx2_attenuation=%d\n", val);
-#if 0
+#if 1
 			val = RF_GAIN_MGC;
 			ad9361_set_rx_gain_control_mode(ad9361_phy, 0, val);
 			ad9361_set_rx_gain_control_mode(ad9361_phy, 1, val);
@@ -978,7 +979,7 @@ void ll_loopback_test(double* param, char param_no)
 			ad9361_get_rx_gain_control_mode(ad9361_phy, 1, (uint8_t*)&val);
 			console_print("rx2_gc_mode=%d\n", val);
 
-			val = 73;
+			val = 70;
 
 			ad9361_set_rx_rf_gain (ad9361_phy, 0, val);
 			ad9361_set_rx_rf_gain (ad9361_phy, 1, val);
@@ -1051,7 +1052,7 @@ void ll_loopback_test(double* param, char param_no)
 			/* Enable transfer */
 			platform_axiadc_write(NULL, RF_CONFIG,
 					RF_CONFIG_RX_ENABLE_BITMASK | RF_CONFIG_TX_ENABLE_BITMASK);
-
+#if 0
 			/* Wait for transfer to complete or CTRL^C */
 			while (!ctrlc())
 			{
@@ -1065,9 +1066,12 @@ void ll_loopback_test(double* param, char param_no)
 				}
 
 			}
-
 		}
-
+#else
+		}
+		else
+#endif
+		{
 		/* Disable transfer */
 		platform_axiadc_write(NULL, RF_CONFIG, 0);
 		platform_axiadc_write(NULL, (RF_CHANNEL_EN), 0);
@@ -1077,6 +1081,8 @@ void ll_loopback_test(double* param, char param_no)
 		/* Disable PA and LNA */
 		platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA | ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
 		platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS | ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+
+		}
 
 	}
 	else
@@ -1219,6 +1225,21 @@ void slan_loopback_test(double* param, char param_no)
 				ad9361_get_tx_attenuation(ad9361_phy_table[ic_id], 1, &val);
 				console_print("IC %d: tx2_attenuation=%d\n", ic_id, val);
 
+#if 1
+				val = RF_GAIN_MGC;
+				ad9361_set_rx_gain_control_mode(ad9361_phy, 0, val);
+				ad9361_set_rx_gain_control_mode(ad9361_phy, 1, val);
+
+				ad9361_get_rx_gain_control_mode(ad9361_phy, 0, (uint8_t*)&val);
+				console_print("rx1_gc_mode=%d\n", val);
+				ad9361_get_rx_gain_control_mode(ad9361_phy, 1, (uint8_t*)&val);
+				console_print("rx2_gc_mode=%d\n", val);
+
+				val = 70;
+
+				ad9361_set_rx_rf_gain (ad9361_phy, 0, val);
+				ad9361_set_rx_rf_gain (ad9361_phy, 1, val);
+#endif
 				ad9361_get_rx_rf_gain (ad9361_phy_table[ic_id], 0, (int32_t*)&val);
 				console_print("Bus %d: rx1_rf_gain=%d\n", ic_id, (int32_t)val);
 				ad9361_get_rx_rf_gain (ad9361_phy_table[ic_id], 1, (int32_t*)&val);
@@ -2101,6 +2122,82 @@ void get_ctrl_out_pins(double* param, char param_no)
 		console_print("%s: ad9361_phy structure is invalid\n", __func__);
 	}
 }
+
+void set_ctrl_in_rx_gain(double* param, char param_no)
+{
+	uint32_t bus;
+	uint32_t rf_ctrl;
+	uint32_t val, ch, gain_db;
+	int32_t s_gain;
+
+	if(param_no >= 2)
+	{
+		if (NULL != ad9361_phy)
+		{
+			bus = ad9361_phy->spi->dev.bus;
+
+			ch = (uint32_t)param[0];
+			if(ch > 1)
+			{
+				/* *default to channel 0 */
+				ch = 0;
+			}
+
+			console_print("Switching channel %d to maunual gain control mode\n", ch);
+			ad9361_set_rx_gain_control_mode(ad9361_phy,ch, RF_GAIN_MGC);
+
+			gain_db = (uint32_t)param[1];
+			console_print("Setting channel %d gain to %d dB\n", ch, gain_db);
+
+			ad9361_get_rx_rf_gain (ad9361_phy, ch, &s_gain);
+
+			val = (uint32_t)1 << (2*ch);
+			val <<= (CTRL_IN1_SHIFT - CTRL_IN0_SHIFT)*bus;
+
+			while(gain_db > s_gain)
+			{
+				/* Bump up the gain by pulsing CTRL_IN0 or CTRL_IN2 depending on the channel*/
+				rf_ctrl = platform_axiadc_read(NULL, RF_CONTROL);
+				debug("UP:rf_control =  0x%x \n",  rf_ctrl);
+				platform_axiadc_write(NULL, RF_CONTROL, rf_ctrl ^ val);
+				//platform_mdelay(1000);
+				rf_ctrl = platform_axiadc_read(NULL, RF_CONTROL);
+				debug("UP:rf_control =  0x%x \n", rf_ctrl);
+				platform_axiadc_write(NULL, RF_CONTROL, rf_ctrl ^ val);
+				ad9361_get_rx_rf_gain (ad9361_phy, ch, &s_gain);
+				debug("UP:channel %d gain  %d dB\n", ch, s_gain);
+			}
+
+			val = (uint32_t)2 << (2*ch);
+			val <<= (CTRL_IN1_SHIFT - CTRL_IN0_SHIFT)*bus;
+
+			while(gain_db < s_gain)
+			{
+				/* Bump up the gain by pulsing CTRL_IN0 or CTRL_IN2 depending on the channel*/
+				rf_ctrl = platform_axiadc_read(NULL, RF_CONTROL);
+				debug("DOWN:rf_control =  0x%x \n", rf_ctrl);
+				platform_axiadc_write(NULL, RF_CONTROL, rf_ctrl ^ val);
+				//platform_mdelay(1000);
+				rf_ctrl = platform_axiadc_read(NULL, RF_CONTROL);
+				debug("DOWN:rf_control =  0x%x \n", rf_ctrl);
+				platform_axiadc_write(NULL, RF_CONTROL, rf_ctrl ^ val);
+				ad9361_get_rx_rf_gain (ad9361_phy, ch, &s_gain);
+				debug("DOWN:channel %d gain  %d dB\n", ch, s_gain);
+			}
+
+			console_print("Channel %d gain is set to %d dB\n", ch, s_gain);
+
+
+		}
+
+	}
+	else
+	{
+		show_invalid_param_message(46);
+	}
+}
+
+
 
 #if 0
 /**************************************************************************//***
