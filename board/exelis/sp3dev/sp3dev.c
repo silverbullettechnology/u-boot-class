@@ -66,7 +66,7 @@ int board_mmc_init(bd_t *bis)
 	add_sdhci(host, 48000000, 48000000);
 #else
 	s3ma_sdhc_clk_enable();
-	add_sdhci(host, 48000000, 48000000/32);
+	add_sdhci(host, 48000000/2, 48000000/32);
 #endif
 	return 0;
 

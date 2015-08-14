@@ -1074,16 +1074,8 @@ void ll_loopback_test(double* param, char param_no)
 
 
 		/* Disable PA and LNA */
-		if(0 == ic_id)
-		{
-			platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
-			platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
-		}
-		else
-		{
-			platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
-			platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
-		}
+		platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA | ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+		platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS | ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 
 	}
 	else
@@ -1222,9 +1214,9 @@ void slan_loopback_test(double* param, char param_no)
 				ad9361_set_tx_attenuation(ad9361_phy_table[ic_id], 1, val);
 
 				ad9361_get_tx_attenuation(ad9361_phy_table[ic_id], 0, &val);
-				console_print("Bus %d: tx1_attenuation=%d\n", ic_id, val);
+				console_print("IC %d: tx1_attenuation=%d\n", ic_id, val);
 				ad9361_get_tx_attenuation(ad9361_phy_table[ic_id], 1, &val);
-				console_print("Bus %d: tx2_attenuation=%d\n", ic_id, val);
+				console_print("IC %d: tx2_attenuation=%d\n", ic_id, val);
 
 				ad9361_get_rx_rf_gain (ad9361_phy_table[ic_id], 0, (int32_t*)&val);
 				console_print("Bus %d: rx1_rf_gain=%d\n", ic_id, (int32_t)val);
@@ -1313,7 +1305,7 @@ void slan_loopback_test(double* param, char param_no)
 			}
 #endif
 		}
-//		else
+		else
 		{
 			/* Disable transfer */
 			platform_axiadc_write(NULL, RF_CONFIG, 0);
@@ -1324,23 +1316,10 @@ void slan_loopback_test(double* param, char param_no)
 			}
 
 
-			for(ic_id = 0; ic_id < 2; ic_id++)
-			{
-				/* Disable PA and LNA */
-				if(0 == ic_id)
-				{
-//					ad9361_phy = ad9361_phy_table[0];
-					platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
-					platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
-				}
-				else
-				{
-//					ad9361_phy = ad9361_phy_table[1];
-					platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
-					platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
-				}
+			/* Disable PA and LNA */
+			platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA | ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
+			platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS | ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 
-			}
 
 		}
 
