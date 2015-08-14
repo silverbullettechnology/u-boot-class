@@ -272,4 +272,6 @@ void bist_tx_tone_en(double* param, char param_no);
 
 void bist_tx_tone_dis(double* param, char param_no);
 
+void get_ctrl_out_pins(double* param, char param_no);
+
 #endif  // __COMMAND_H__

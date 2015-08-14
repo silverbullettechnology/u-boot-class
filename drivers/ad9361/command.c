@@ -102,6 +102,7 @@ command cmd_list[] = {
 	{"bist_tx_tone_en=", "Enable bist TX tone generation ","bist_tx_tone=<freq_Hz> <level_db>",bist_tx_tone_en},
 	{"bist_tx_tone_dis=", "Disable bist TX tone generation ","bist_tx_tone=0",bist_tx_tone_dis},
 	{"slan_loopback_test=","Enables/Disables dual AD9361 ADC->DAC loopback test.","slan_loopback_test=<1/0 en/dis <0/1 rx/tx>",slan_loopback_test},
+	{"ctrl_out_pins?","Gets CTRL_OUT pins status","",get_ctrl_out_pins},
 #if 0
 	{"dds_tx1_tone1_freq?", "Gets current DDS TX1 Tone 1 frequency [Hz].", "", get_dds_tx1_tone1_freq},
 	{"dds_tx1_tone1_freq=", "Sets the DDS TX1 Tone 1 frequency [Hz].", "", set_dds_tx1_tone1_freq},
@@ -2078,6 +2079,28 @@ void bist_tx_tone_dis(double* param, char param_no)
 
 }
 
+void get_ctrl_out_pins(double* param, char param_no)
+{
+	uint32_t bus;
+	uint32_t ic_id;
+	uint32_t val;
+
+	if (NULL != ad9361_phy)
+	{
+		bus = ad9361_phy->spi->dev.bus;
+		ic_id = ad9361_phy->id_no;
+		val = ad9361_get_auxadc(ad9361_phy);
+		console_print("Scaled to 8 bits AUX ADC value = 0x%x\n", val >> 4);
+		val = platform_axiadc_read(NULL, RF_STATUS);
+		val >>= (STATUS1_SHIFT - STATUS0_SHIFT) * bus;
+		val &= 0xff;
+		console_print("IC: %d, BUS: %d, CTRL_OUT[8] = 0x%x\n", ic_id, bus, val);
+	}
+	else
+	{
+		console_print("%s: ad9361_phy structure is invalid\n", __func__);
+	}
+}
 
 #if 0
 /**************************************************************************//***

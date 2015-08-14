@@ -200,7 +200,7 @@ const AD9361_InitParam default_init_param = {
 		1,		//temp_sense_periodic_measurement_enable *** adi,temp-sense-periodic-measurement-enable
 		/* Control Out Setup */
 		0xFF,	//ctrl_outs_enable_mask *** adi,ctrl-outs-enable-mask
-		0,		//ctrl_outs_index *** adi,ctrl-outs-index
+		0x11,	//ctrl_outs_index *** adi,ctrl-outs-index
 		/* External LNA Control */
 		0,		//elna_settling_delay_ns *** adi,elna-settling-delay-ns
 		0,		//elna_gain_mdB *** adi,elna-gain-mdB
