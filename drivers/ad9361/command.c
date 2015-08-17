@@ -1138,7 +1138,7 @@ void slan_loopback_test(double* param, char param_no)
 				if (0 == ic_id)
 				{
 					/* Setup LL frequency*/
-					lo_freq_hz = (uint64_t)300000000;
+					lo_freq_hz = (uint64_t)500000000;
 					ad9361_set_tx_lo_freq(ad9361_phy_table[ic_id], lo_freq_hz);
 					ad9361_set_rx_lo_freq(ad9361_phy_table[ic_id], lo_freq_hz);
 
@@ -1164,7 +1164,7 @@ void slan_loopback_test(double* param, char param_no)
 				else
 				{
 					/* Setup SLAN frequency  */
-					lo_freq_hz = (uint64_t)2400000000;
+					lo_freq_hz = (uint64_t)2450000000;
 					ad9361_set_tx_lo_freq(ad9361_phy_table[ic_id], lo_freq_hz);
 					ad9361_set_rx_lo_freq(ad9361_phy_table[ic_id], lo_freq_hz);
 
