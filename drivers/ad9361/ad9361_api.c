@@ -94,7 +94,7 @@ const AD9361_InitParam default_init_param = {
 		10000,	//tx_attenuation_mdB *** adi,tx-attenuation-mdB
 		0,		//update_tx_gain_in_alert_enable *** adi,update-tx-gain-in-alert-enable
 		/* Reference Clock Control */
-	1,		//xo_disable_use_ext_refclk_enable *** adi,xo-disable-use-ext-refclk-enable
+		1,		//xo_disable_use_ext_refclk_enable *** adi,xo-disable-use-ext-refclk-enable
 		{8, 5920},	//dcxo_coarse_and_fine_tune[2] *** adi,dcxo-coarse-and-fine-tune
 		0,		//clk_output_mode_select *** adi,clk-output-mode-select
 		/* Gain Control */
@@ -214,7 +214,7 @@ const AD9361_InitParam default_init_param = {
 		0,		//tx_channel_swap_enable *** adi,tx-channel-swap-enable
 		0,		//rx_channel_swap_enable *** adi,rx-channel-swap-enable
 		1,		//rx_frame_pulse_mode_enable *** adi,rx-frame-pulse-mode-enable
-	1,		//two_t_two_r_timing_enable *** adi,2t2r-timing-enable
+		1,		//two_t_two_r_timing_enable *** adi,2t2r-timing-enable
 		0,		//invert_data_bus_enable *** adi,invert-data-bus-enable
 		0,		//invert_data_clk_enable *** adi,invert-data-clk-enable
 		0,		//fdd_alt_word_order_enable *** adi,fdd-alt-word-order-enable
@@ -230,8 +230,8 @@ const AD9361_InitParam default_init_param = {
 		0,		//delay_rx_data *** adi,delay-rx-data
 		0,		//rx_data_clock_delay *** adi,rx-data-clock-delay
 		4,		//rx_data_delay *** adi,rx-data-delay
-	0,		//tx_fb_clock_delay *** adi,tx-fb-clock-delay
-	5,		//tx_data_delay *** adi,tx-data-delay
+		0,		//tx_fb_clock_delay *** adi,tx-fb-clock-delay
+		5,		//tx_data_delay *** adi,tx-data-delay
 		150,	//lvds_bias_mV *** adi,lvds-bias-mV
 		1,		//lvds_rx_onchip_termination_enable *** adi,lvds-rx-onchip-termination-enable
 		0,		//rx1rx2_phase_inversion_en *** adi,rx1-rx2-phase-inversion-enable
