@@ -1573,7 +1573,7 @@ void play_file(double* param, char param_no)
 			}
 			else
 			{
-				/* Setup ASFE for loopback */
+				/* Setup ASFE for tx */
 				platform_tr_tx_en(ASFE_AD2_TR_SWITCH);
 				platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 			}
@@ -1677,7 +1677,7 @@ void play_file(double* param, char param_no)
 
 			/* Select 1 channel for TX and RX*/
 			platform_axiadc_write(NULL,
-			RF_CHANNEL_EN, ((0x1 << RX_CH_ENABLE_SHIFT) | (0x1 << TX_CH_ENABLE_SHIFT) << 2*bus));
+			RF_CHANNEL_EN, (0x1 << RX_CH_ENABLE_SHIFT) | (0x1 << TX_CH_ENABLE_SHIFT));
 
 			debug("RF_CHANNEL_EN = 0x%x\n",
 					platform_axiadc_read(NULL,RF_CHANNEL_EN));
@@ -1687,7 +1687,7 @@ void play_file(double* param, char param_no)
 			debug("TX_SOURCE = 0x%x\n", platform_axiadc_read(NULL,TX_SOURCE));
 
 			/* Multiplex time slot 0 sequentially onto all LVDS ports*/
-//			platform_axiadc_write(NULL, (TX_SEL), (uint32_t) 0x0);
+			platform_axiadc_write(NULL, (TX_SEL), (uint32_t) 0x0);
 			debug("TX_SEL = 0x%x\n", platform_axiadc_read(NULL,TX_SEL));
 
 			/* Transition RFIC into FDD mode */
