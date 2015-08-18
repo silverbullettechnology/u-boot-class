@@ -308,6 +308,9 @@ void s_init(void)
 #if 0
 	delay(1000000);
 #endif
+
+	/* Invalidate SCU tag RAMs */
+	writel(0x0000FFFF, ARM_PRIVATE_ABSOLUTE_BASE + 0xc);
 }
 
 

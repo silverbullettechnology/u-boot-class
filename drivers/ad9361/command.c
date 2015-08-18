@@ -101,7 +101,7 @@ command cmd_list[] = {
 	{"asfe_reset=","Set ASFE reset line","asfe_reset=<val[0-1]> ", set_asfe_reset},
 	{"bist_tx_tone_en=", "Enable bist TX tone generation ","bist_tx_tone=<freq_Hz> <level_db>",bist_tx_tone_en},
 	{"bist_tx_tone_dis=", "Disable bist TX tone generation ","bist_tx_tone=0",bist_tx_tone_dis},
-	{"slan_loopback_test=","Enables/Disables dual AD9361 ADC->DAC loopback test.","slan_loopback_test=<1/0 en/dis <0/1 rx/tx>",slan_loopback_test},
+	{"slan_loopback_test=","Enables/Disables dual AD9361 ADC->DAC loopback test.","slan_loopback_test=<1/0 en/dis> <0/1 rx/tx>",slan_loopback_test},
 	{"ctrl_out_pins?","Gets CTRL_OUT pins status","",get_ctrl_out_pins},
 	{"ctrl_in_rx_gain=","Sets rx channel gain with CTRL_IN pins","ctrl_in_rx_gain=<channel #0/1 <gain dB>",set_ctrl_in_rx_gain},
 #if 0

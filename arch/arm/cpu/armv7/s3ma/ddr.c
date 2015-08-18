@@ -46,8 +46,10 @@ static int s3ma_init_dmc_main(void)				// TODO: turn into separate LPDDR2_200 an
 	// Send DMC to CONFIG State
 	// -------------------------------
 
-	writel(0x00000000,MEMC_CMD);				// Waiting until DMC is in config status
-	while(readl(MEMC_STATUS) != 0);
+	if(readl(MEMC_STATUS) != 0) {
+		writel(0x00000000,MEMC_CMD);				// Waiting until DMC is in config status
+		while(readl(MEMC_STATUS) != 0);
+	}
 
 
 	// -------------------------------
@@ -141,7 +143,7 @@ static int s3ma_init_phy_main(void)
 	// -------------------------------
 
 	writel(0x0000000c,PUBL_DCR);				// LPDDR2-S4 8-Bank mode
-	writel(0x00000044,PUBL_MR1);				// write recovery of 4, wrap, sequential burst, Burst Length (BL) of 8
+	writel(0x00000044,PUBL_MR1);				// write recovery of 4, wrap, sequential burst, Burst Length (BL) of 16
 	writel(0x00000002,PUBL_MR2);				// Read Latency (RL) of 5 and Write Latency (WL) of 2
 	writel(0x00000002,PUBL_MR3);				// drive strength (not needed for simulation bring-up, but keep anyway)
 	writel(0x1a49444a,PUBL_DTPR0);				// SDRAM timing parameters
