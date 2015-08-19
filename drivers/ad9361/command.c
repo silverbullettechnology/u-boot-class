@@ -2040,6 +2040,8 @@ void bist_tx_tone_en(double* param, char param_no)
 {
 	uint32_t status = 0;
 	uint32_t freq_Hz, level_db;
+	uint32_t ic_id, val, trn_line;
+	uint64_t  lo_freq_hz;
 
 	if (param_no >= 2)
 	{
@@ -2049,10 +2051,92 @@ void bist_tx_tone_en(double* param, char param_no)
 			return;
 		}
 
+		ic_id = ad9361_phy->id_no;
+
+		/* Transition RFIC into Alert mode */
+		ad9361_get_en_state_machine_mode(ad9361_phy, &val);
+
+		if (ENSM_STATE_ALERT != val)
+		{
+			ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
+		}
+
+		ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_FDD);
+
+		if (0 == ic_id)
+		{
+			/* Setup LL frequency*/
+			lo_freq_hz = (uint64_t)300000000;
+			ad9361_set_tx_lo_freq(ad9361_phy, lo_freq_hz);
+			ad9361_set_rx_lo_freq(ad9361_phy, lo_freq_hz);
+
+		}
+		else
+		{
+			/* Setup SLAN frequency  */
+			lo_freq_hz = (uint64_t)2450000000;
+			ad9361_set_tx_lo_freq(ad9361_phy, lo_freq_hz);
+			ad9361_set_rx_lo_freq(ad9361_phy, lo_freq_hz);
+
+		}
+
+		ad9361_get_tx_lo_freq(ad9361_phy, &lo_freq_hz);
+		console_print("IC %d: tx_lo_freq=%llu\n", ic_id, lo_freq_hz);
+
+		val = 38400000;
+		ad9361_set_tx_sampling_freq(ad9361_phy, val);
+		ad9361_set_rx_sampling_freq(ad9361_phy, val);
+
+		ad9361_get_tx_sampling_freq(ad9361_phy, &val);
+		console_print("IC %d: tx_samp_freq=%d\n", ic_id, val);
+		ad9361_get_rx_sampling_freq(ad9361_phy, &val);
+		console_print("IC %d: rx_samp_freq=%d\n", ic_id, val);
+
+
+
+		val = 10000000;
+		ad9361_set_tx_rf_bandwidth(ad9361_phy,val);
+		ad9361_set_rx_rf_bandwidth(ad9361_phy,val);
+
+		ad9361_get_tx_rf_bandwidth(ad9361_phy,&val);
+		console_print("IC %d: tx_rf_bandwidth=%d Hz\n", ic_id, val);
+		ad9361_get_rx_rf_bandwidth(ad9361_phy,&val);
+		console_print("IC %d: rx_rf_bandwidth=%d Hz\n", ic_id, val);
+
+
+		val = 0;
+
+		if(0 == ic_id)
+		{
+			val = 23000;
+		}
+
+
+		ad9361_set_tx_attenuation(ad9361_phy, 0, val);
+		ad9361_set_tx_attenuation(ad9361_phy, 1, val);
+
+		ad9361_get_tx_attenuation(ad9361_phy, 0, &val);
+		console_print("IC %d: tx1_attenuation=%d\n", ic_id, val);
+		ad9361_get_tx_attenuation(ad9361_phy, 1, &val);
+		console_print("IC %d: tx2_attenuation=%d\n", ic_id, val);
 
 		freq_Hz = (uint32_t)param[0];
 		level_db = (uint32_t)param[1];
 		ad9361_bist_tone(ad9361_phy, BIST_INJ_TX, freq_Hz, level_db, 0);
+
+		/* Transition RFIC into FDD mode */
+
+		ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_FDD);
+
+		trn_line = ASFE_AD2_TR_SWITCH;
+
+		if(ic_id)
+		{
+			platform_tr_tx_en(trn_line);
+		}
+
+
+
 	}
 	else
 	{
@@ -2082,8 +2166,11 @@ void bist_tx_tone_dis(double* param, char param_no)
 			return;
 		}
 
+		ad9361_set_en_state_machine_mode(ad9361_phy, ENSM_MODE_ALERT);
 
 		ad9361_bist_tone(ad9361_phy, BIST_DISABLE, 0, 0, 0);
+		platform_pa_bias_dis(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+		platform_pa_bias_dis(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
 	}
 	else
 	{
