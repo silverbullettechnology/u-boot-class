@@ -90,7 +90,7 @@ command cmd_list[] = {
 	{"rx_fir_en?", "Gets current RX FIR state.", "", get_rx_fir_en},
 	{"rx_fir_en=", "Sets the RX FIR state.", "", set_rx_fir_en},
 	{"tx_loopback_test=","Runs DAC->ADC loopback test.","",tx_loopback_test},
-	{"ll_loopback_test=","Enables/Disables single AD9361 ADC->DAC loopback test.","",ll_loopback_test},
+	{"ll_loopback_test=","Enables/Disables single AD9361 ADC->DAC loopback test.","ll_loopback_test=<1/0 (en/dis)> <0-1 channel#>",ll_loopback_test},
 	{"bist_loopback_en=","Enables/Disables DAC->ADC data ports loopback.","",bist_loopback},
 	{"do_tx_calibration=","Run TX QUADRATURE calibration with phase offset as parameter","",do_tx_calibration},
 	{"ensm_mode=", "Switch ad9361 enable state machine mode.","",ensm_mode},
@@ -101,7 +101,7 @@ command cmd_list[] = {
 	{"asfe_reset=","Set ASFE reset line","asfe_reset=<val[0-1]> ", set_asfe_reset},
 	{"bist_tx_tone_en=", "Enable bist TX tone generation ","bist_tx_tone=<freq_Hz> <level_db>",bist_tx_tone_en},
 	{"bist_tx_tone_dis=", "Disable bist TX tone generation ","bist_tx_tone=0",bist_tx_tone_dis},
-	{"slan_loopback_test=","Enables/Disables dual AD9361 ADC->DAC loopback test.","slan_loopback_test=<1/0 en/dis> <0/1 rx/tx>",slan_loopback_test},
+	{"slan_loopback_test=","Enables/Disables dual AD9361 ADC->DAC loopback test.","slan_loopback_test=<1/0 en/dis> <0/1 rx/tx> <0-1 channel#>",slan_loopback_test},
 	{"ctrl_out_pins?","Gets CTRL_OUT pins status","",get_ctrl_out_pins},
 	{"ctrl_in_rx_gain=","Sets rx channel gain with CTRL_IN pins","ctrl_in_rx_gain=<channel #0/1 <gain dB>",set_ctrl_in_rx_gain},
 #if 0
@@ -873,7 +873,7 @@ void ll_loopback_test(double* param, char param_no)
 	uint32_t val = 0;
 	uint64_t lo_freq_hz;
 	uint32_t ic_id = 0;
-
+	uint32_t ch;
 	if (param_no >= 1)
 	{
 		/* Disable any ongoing transfers first */
@@ -914,10 +914,31 @@ void ll_loopback_test(double* param, char param_no)
 				lo_freq_hz = (uint64_t)500000000;
 				ad9361_set_rx_lo_freq(ad9361_phy, lo_freq_hz);
 
+				ch = 2;
+
+				if(param_no >= 2)
+				{
+					ch = param[1];
+				}
+
+				switch(ch)
+				{
+				case 0:
+					platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS);
+					break;
+				case 1:
+					platform_pa_bias_en(ASFE_AD1_TX2_PA_BIAS);
+					break;
+				case 2:
+					console_print("Warning!, turning both LL PAs ON \n");
+					platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+					break;
+				default:
+					break;
+				}
 
 				/* Setup ASFE for loopback */
 				platform_lna_en(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
-				platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
 
 			}
 			else
@@ -1108,7 +1129,7 @@ void slan_loopback_test(double* param, char param_no)
 //	uint32_t bus = 0;
 	uint32_t val = 0;
 	uint64_t lo_freq_hz;
-	uint32_t ic_id = 0;
+	uint32_t ic_id = 0, ch = 0;
 
 	if (param_no >= 2)
 	{
@@ -1125,6 +1146,12 @@ void slan_loopback_test(double* param, char param_no)
 		{
 			console_print("%s: ad9361_phy structure is invalid\n", __func__);
 			return;
+		}
+
+		ch = 2;
+		if(param_no >= 3)
+		{
+			ch = param[2];
 		}
 
 		if (1 == en_dis)
@@ -1157,8 +1184,23 @@ void slan_loopback_test(double* param, char param_no)
 					else
 					{
 						/* Setup LL for TX */
+						switch(ch)
+						{
+						case 0:
+							platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS);
+							break;
+						case 1:
+							platform_pa_bias_en(ASFE_AD1_TX2_PA_BIAS);
+							break;
+						case 2:
+							console_print("Warning!, turning both LL PAs ON \n");
+							platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
+							break;
+						default:
+							break;
+						}
+
 						platform_lna_dis(ASFE_AD1_RX1_LNA | ASFE_AD1_RX2_LNA);
-						platform_pa_bias_en(ASFE_AD1_TX1_PA_BIAS | ASFE_AD1_TX2_PA_BIAS);
 
 					}
 				}
@@ -1178,7 +1220,21 @@ void slan_loopback_test(double* param, char param_no)
 						/* Setup SLAN for TX */
 						platform_tr_tx_en(ASFE_AD2_TR_SWITCH);
 						platform_lna_dis(ASFE_AD2_RX1_LNA | ASFE_AD2_RX2_LNA);
-						platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+						switch(ch)
+						{
+						case 0:
+							platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS);
+							break;
+						case 1:
+							platform_pa_bias_en(ASFE_AD2_TX2_PA_BIAS);
+							break;
+						case 2:
+							console_print("Warning!, turning both SLAN PAs ON \n");
+							platform_pa_bias_en(ASFE_AD2_TX1_PA_BIAS | ASFE_AD2_TX2_PA_BIAS);
+							break;
+						default:
+							break;
+						}
 
 					}
 					else
@@ -1228,18 +1284,18 @@ void slan_loopback_test(double* param, char param_no)
 
 #if 1
 				val = RF_GAIN_MGC;
-				ad9361_set_rx_gain_control_mode(ad9361_phy, 0, val);
-				ad9361_set_rx_gain_control_mode(ad9361_phy, 1, val);
+				ad9361_set_rx_gain_control_mode(ad9361_phy_table[ic_id], 0, val);
+				ad9361_set_rx_gain_control_mode(ad9361_phy_table[ic_id], 1, val);
 
-				ad9361_get_rx_gain_control_mode(ad9361_phy, 0, (uint8_t*)&val);
-				console_print("rx1_gc_mode=%d\n", val);
-				ad9361_get_rx_gain_control_mode(ad9361_phy, 1, (uint8_t*)&val);
-				console_print("rx2_gc_mode=%d\n", val);
+				ad9361_get_rx_gain_control_mode(ad9361_phy_table[ic_id], 0, (uint8_t*)&val);
+				console_print("IC:%d rx1_gc_mode=%d\n", ic_id, val);
+				ad9361_get_rx_gain_control_mode(ad9361_phy_table[ic_id], 1, (uint8_t*)&val);
+				console_print("IC:%d rx2_gc_mode=%d\n", ic_id, val);
 
 				val = 70;
 
-				ad9361_set_rx_rf_gain (ad9361_phy, 0, val);
-				ad9361_set_rx_rf_gain (ad9361_phy, 1, val);
+				ad9361_set_rx_rf_gain (ad9361_phy_table[ic_id], 0, val);
+				ad9361_set_rx_rf_gain (ad9361_phy_table[ic_id], 1, val);
 #endif
 				ad9361_get_rx_rf_gain (ad9361_phy_table[ic_id], 0, (int32_t*)&val);
 				console_print("Bus %d: rx1_rf_gain=%d\n", ic_id, (int32_t)val);
